@@ -1,4 +1,4 @@
-# Loja de Refrigeração: Refrigeração Castro
+# Loja de Refrigeração
 
 Um software, de código aberto, que está em desenvolvimento utilizando a linguagem Javascript e combinação de ferramentas VUE.JS para a código que será executado no navegador e NODE.JS para o código que será executado no servidor. Tem por objetivo gerenciar uma loja de refrigeração chamada Refrigeração Castro, localizada em Mogi Mirim/SP, mas poderá servir como ponto de partida para outras lojas do segmento.
 
