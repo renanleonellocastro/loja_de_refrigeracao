@@ -21,6 +21,12 @@ O sistema será dividido em 2 subsistemas como mostrado abaixo:
 - **1-) Sistema cliente**        : Interface de acesso ao sistema e envio de requisições pelos clientes e funcionários da loja.
 - **2-) Sistema servidor**       : Gerente das requisições realizadas e gerente dos dados gerados pelo sistema.
 
+## Casos de Uso
+
+<p align="center">
+  <img width="600" height="400" src="imagens/diagrama_de_casos_de_uso.png">
+</p>
+
 ## Quer contribuir?
 
 Trata-se de um projeto de código aberto e qualquer contribuição é super bem vinda.
