@@ -9,6 +9,27 @@ sobre a prioridade de implementação, desenvolvimento e produção das funciona
 Esta sessão mostrará uma a uma das funcionalidades e descreverá com mais detalhes o que é realizado pelo sistema em cada umas dessas funcionalidades. O objetivo é
 auxiliar o desenvolvedor a compreender o que é esperado pelo cliente na execução de cada funcionalidade, auxiliando assim o desenvolvimento da mesma.
 
+### Cadastrar Cliente
+
+Os atores com acesso a funcionalidade de cadastrar cliente são: Cliente, Gerente e Super usuário.
+
+1.  O usuário executará a funcionalidade **Cadastrar Cliente**.
+2.  O sistema exibe ao usuário um formulário para preenchimento dos seguintes dados: **Nome completo, E-mail, Telefone, Senha, Confirmação de Senha, Endereço**.
+3.  O usuário prenche o formulário e clica no botão **Cadastrar**.
+4.  O usuário é autenticado ao sistema e um e-mail é enviado para ele com os dados do seu cadastro.
+5.  Fim da funcionalidade.
+
+### Consultar Clientes
+
+Os atores com acesso a funcionalidade de consultar clientes são: Colaborador, Gerente e Super usuário.
+
+1.  O usuário executará a funcionalidade **Consultar Clientes**.
+2.  O sistema exibe ao usuário uma lista com todos os nomes dos clientes cadastrados e exibe um campo de entrada para busca.
+3.  O usuário digita o nome da pessoa no campo de busca e o sistema começará a filtrar por esse nome e diminuirá as ocorrências aparecidas na tela.
+4.  O usuário seleciona na tela o nome buscado.
+5.  Os seguintes dados do cliente selecionado é exibido na tela: **Nome completo, E-mail, Telefone, Endereço e Últimos serviços realizados**.
+6.  Fim da funcionalidade.
+
 ### Comprar Produto
 
 Os atores com acesso a funcionalidade de compra de produto são: Cliente, Colaborador, Gerente e Super usuário.
