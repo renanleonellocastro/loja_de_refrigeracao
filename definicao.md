@@ -30,6 +30,50 @@ Os atores com acesso a funcionalidade de consultar clientes são: Colaborador, G
 5.  Os seguintes dados do cliente selecionado é exibido na tela: **Nome completo, E-mail, Telefone, Endereço e Últimos serviços realizados**.
 6.  Fim da funcionalidade.
 
+### Consultar Perfil do Usuário
+
+Os atores com acesso a funcionalidade de consultar perfil do usuário são: Cliente, Colaborador, Gerente e Super usuário.
+
+1.  O usuário realiza a autenticação no sistema.
+2.  O usuário executará a funcionalidade **Consultar Perfil do Usuário**.
+3.  O sistema exibe na tela os seguintes dados do usuário: **Nome completo, E-mail, Telefone, Endereço e Últimos serviços realizados**.
+4.  O sistema também exibe na tela um botão para edição dos dados **Nome completo, E-mail, Telefone e Endereço** do usuário.
+5.  O sistema exibe na tela um botão para troca de senha.
+6.  Fim da funcionalidade.
+
+### Solicitar Agendamento de Reparo/Manutenção
+
+Os atores com acesso a funcionalidade de solicitar agendamento de reparo/manutenção são: Cliente, Gerente e Super usuário.
+
+1.  O usuário realiza a autenticação no sistema.
+2.  O usuário executará a funcionalidade **Solicitar Agendamento de Reparo/Manutenção**.
+3.  O sistema exibe na tela um formulário com os seguintes campos: **Tipo de Produto, Marca do Produto, Modelo do produto, Descrição do Problema, Datas Disponíveis para Visitação do Técnico, Fotos do Produto**.
+4.  O usuário preenche os campos e clica no botão solicitar agendamento.
+5.  O sistema exibe uma mensagem dizendo que a solicitação foi realizada com sucesso e que em breve a loja responderá.
+6.  A solicitação é enviada por e-mail para os usuários do tipo gerente e super usuários.
+7.  O usuário gerente acessa o sistema e clica no botão "Solicitações Pendentes".
+8.  O sistema exibe ao usuário gerente todas as solicitações de agendamento realizadas.
+9.  O usuário gerente clica no botão **Visualizar** referente a solicitação do usuário solicitante.
+10. O usuário gerente responde a solicitação e seleciona uma data. O campo resposta/questionamentos deve ser preenchido com detalhes sobre o serviço ou novas perguntas ao usuário solicitante.
+11. O usuário gerente ou super usuário clica no botão **Enviar Resposta/Questionamentos**.
+12. O usuário gerente clica no botão **Aprovar Solicitação**.
+13. O usuário gerente registra o serviço a ser realizado na agenda de trabalho de um colaborador que estiver disponível.
+14. Um e-mail é enviado ao usuário solicitante informando a confirmação do agendamento de reparo/manutenção.
+15. O usuário solicitante acessa o status atual do agendamento clicando no botão **Agendamentos**.
+16. O usuário solicitante responde os questionamentos da loja visualizados no status do agendamento.
+17. Fim da funcionalidade.
+
+### Consultar Agenda
+
+Os atores com acesso a funcionalidade de consultar agenda são: Colaborador, Gerente e Super usuário.
+
+1.  O usuário realiza a autenticação no sistema.
+2.  O usuário executará a funcionalidade **Consultar Agenda**.
+3.  O usuário é do tipo colaborador e será exibido na tela os serviços agendados nas datas agendadas que devem ser realizados por este usuário.
+4.  O usuário é do tipo gerente ou super usuário e será exibido na tela os serviços agendados nas datas agendadas que devem ser realizados por todos os colaboradores.
+5.  Deve ser exibido a agenda em formato de mês, semana e dia. O usuário pode escolher o tipo de exibição.
+6.  Fim da Funcionalidade.
+
 ### Comprar Produto
 
 Os atores com acesso a funcionalidade de compra de produto são: Cliente, Colaborador, Gerente e Super usuário.
