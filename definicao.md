@@ -93,7 +93,7 @@ Os atores com acesso a funcionalidade de cadastrar produto são: Gerente e Super
 1.  O usuário se autenticará no sistema.
 2.  O sistema exibe ao usuário a página principal do sistema.
 3.  O usuário executa a funcionalidade **Cadastrar Produto**.
-4.  O sistema exibe um formulário contendo os seguintes itens: **Nome, Quantidade, Valor, Foto do produto, Descrição, Marca, Modelo.
+4.  O sistema exibe um formulário contendo os seguintes itens: **Nome, Quantidade, Valor, Foto do produto, Descrição, Marca, Modelo**.
 5.  O usuário preenche o formulário e clica no botão **Cadastrar**.
 6.  O sistema exibe uma mensagem dizendo que o produto foi cadastrado com sucesso.
 7.  Fim da funcionalidade.
@@ -126,12 +126,12 @@ Os atores com acesso a funcionalidade de venda de produto são: Colaborador, Ger
 3.  O usuário selecionará um ou mais produtos e executará a funcionalidade **Vender Produto**.
 4.  O sistema exibirá um formulário com os seguintes itens: **Cliente Comprador, Quantidade de Produtos**
 5.  É gerada uma ordem de venda e a mesma é mostrada ao usuário para confirmação.
-8.  O usuário confirma a ordem.
-9.  O status do produto é atualizado para **Retirado**.
-10. O sistema subtrai a quantidade de produtos em estoque de acordo com o que foi vendido.
-11. Informações detalhadas sobre a compra são enviadas por e-mail para o Cliente Comprador.
-12. Uma ordem de venda é emitida e enviada por e-mail para os usuários do tipo **Gerente e Super Usuário**.
-17. Fim da funcionalidade.
+6.  O usuário confirma a ordem.
+7.  O status do produto é atualizado para **Retirado**.
+8.  O sistema subtrai a quantidade de produtos em estoque de acordo com o que foi vendido.
+9.  Informações detalhadas sobre a compra são enviadas por e-mail para o Cliente Comprador.
+10. Uma ordem de venda é emitida e enviada por e-mail para os usuários do tipo **Gerente e Super Usuário**.
+11. Fim da funcionalidade.
 
 ### Cadastrar tipos de Reparo/Manutenção
 
