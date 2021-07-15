@@ -74,6 +74,30 @@ Os atores com acesso a funcionalidade de consultar agenda são: Colaborador, Ger
 5.  Deve ser exibido a agenda em formato de mês, semana e dia. O usuário pode escolher o tipo de exibição.
 6.  Fim da Funcionalidade.
 
+### Solicitar Orçamento
+
+Os atores com acesso a funcionalidade de solicitar orçamento são: Cliente, Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O usuário acessará a funcionalidade **Solicitar Orçamento**.
+3.  O usuário prenche o formulário contendo as seguintes informações: **Tipo de Serviço, Descrição**.
+4.  O usuário clica no botão **Solicitar Orçamento**.
+5.  O sistema exibe uma mensagem dizendo que o orçamento foi solicitado com sucesso.
+6.  O sistema envia um e-mail para o usuário com os dados do orçamento e com o status do mesmo.
+7.  Fim da funcionalidade.
+
+### Cadastrar Produto
+
+Os atores com acesso a funcionalidade de cadastrar produto são: Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Cadastrar Produto**.
+4.  O sistema exibe um formulário contendo os seguintes itens: **Nome, Quantidade, Valor, Foto do produto, Descrição, Marca, Modelo.
+5.  O usuário preenche o formulário e clica no botão **Cadastrar**.
+6.  O sistema exibe uma mensagem dizendo que o produto foi cadastrado com sucesso.
+7.  Fim da funcionalidade.
+
 ### Comprar Produto
 
 Os atores com acesso a funcionalidade de compra de produto são: Cliente, Colaborador, Gerente e Super usuário.
@@ -86,13 +110,75 @@ Os atores com acesso a funcionalidade de compra de produto são: Cliente, Colabo
 6.  O usuário confirma a ordem.
 7.  O status do produto é atualizado para **Em análise**.
 8.  O sistema subtrai a quantidade de produtos em estoque de acordo com o que foi comprado pelo cliente.
-9.  Uma ordem de compra é emitida e enviada por e-mail para os usuários do tipo **Gerente**.
-10. O usuário do tipo **Gerente** separa o produto na loja e o embrulha com uma etiqueta com os dados da ordem de compra.
-11. O usuário do tipo **Gerente** atualiza o status do produto. O novo status do produto é **Aguardando Retirada**.
+9.  Uma ordem de compra é emitida e enviada por e-mail para os usuários do tipo **Gerente e Super Usuário**.
+10. O usuário do tipo **Gerente ou Super Usuário** separa o produto na loja e o embrulha com uma etiqueta com os dados da ordem de compra.
+11. O usuário do tipo **Gerente ou Super Usuário** atualiza o status do produto. O novo status do produto é **Aguardando Retirada**.
 12. O usuário que executou a funcionalidade **Comprar Produto** retira o produto na loja.
-13. O usuário do tipo **Gerente** atualiza o status do produto. O novo status do produto é **Retirado**.
+13. O usuário do tipo **Gerente ou Super Usuário** atualiza o status do produto. O novo status do produto é **Retirado**.
 14. Fim da funcionalidade.
 
+### Vender Produto
+
+Os atores com acesso a funcionalidade de venda de produto são: Colaborador, Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário selecionará um ou mais produtos e executará a funcionalidade **Vender Produto**.
+4.  O sistema exibirá um formulário com os seguintes itens: **Cliente Comprador, Quantidade de Produtos**
+5.  É gerada uma ordem de venda e a mesma é mostrada ao usuário para confirmação.
+8.  O usuário confirma a ordem.
+9.  O status do produto é atualizado para **Retirado**.
+10. O sistema subtrai a quantidade de produtos em estoque de acordo com o que foi vendido.
+11. Informações detalhadas sobre a compra são enviadas por e-mail para o Cliente Comprador.
+12. Uma ordem de venda é emitida e enviada por e-mail para os usuários do tipo **Gerente e Super Usuário**.
+17. Fim da funcionalidade.
+
+### Cadastrar tipos de Reparo/Manutenção
+
+Os atores com acesso a essa funcionalidade são: Super usuário.
+
+1.  O usuário executará a funcionalidade **Cadastrar tipos de Reparo/Manutenção**.
+2.  O sistema exibe ao usuário um formulário para preenchimento dos seguintes dados: **Tipo de Reparo/Manutenção**.
+3.  O usuário prenche o formulário e clica no botão **Cadastrar**.
+4.  O sistema exibe uma mensagem dizendo que o tipo de reparo/manutenção foi cadastrado com sucesso.
+5.  Fim da funcionalidade.
+
+### Cadastrar Serviço de Reparo/Manutenção na Agenda do Colaborador
+
+Os atores com acesso a essa funcionalidade são: Gerente e Super usuário.
+
+1.  O usuário executará a funcionalidade **Consultar Serviços Solicitados**.
+2.  O sistema exibe ao usuário uuma lista com todos os serviços solicitados.
+3.  O usuário clica no serviço que deseja cadastrar na agenda de um colaborador.
+4.  O sistema exibe os dados do serviço e exibe um formulário para ser preenchido com os seguintes itens: **Colaborador Responsável, Data/Hora para Realização do Serviço**.
+5.  O usuário preenche o formulário e o sistema automaticamente salva as alterações no banco de dados.
+6.  Fim da funcionalidade.
+
+### Finalizar Serviço de Reparo/Manutenção
+
+Os atores com acesso a essa funcionalidade são: Colaborador.
+
+1.  O usuário, após ter finalizado um serviço, executará a funcionalidade **Consultar Agenda**.
+2.  O sistema exibe ao usuário uuma lista com todos os serviços agendados para este usuário.
+3.  O usuário clica no serviço que deseja finalizar.
+4.  O sistema exibe os dados do serviço e exibe um formulário para ser preenchido com os seguintes itens: **Defeito Encontrado?, Descrição do Defeito, Descriçao do Reparo Realizado**.
+5.  O usuário preenche o formulário e clica no botão **Finalizar Serviço**.
+6.  O status do serviço é alterado para "Aguardando Aprovação de Finalização".
+7.  Um e-mail é enviado ao usuários de tipo Gerente e Super Usuário dizendo que um serviço foi finalizado e mostrando as informações do serviço realizado.
+8.  Fim da funcionalidade.
+
+### Aprovar Finalização de Serviço de Reparo/Manutenção
+
+Os atores com acesso a essa funcionalidade são: Gerente e Super Usuário.
+
+1.  O usuário executará a funcionalidade **Consultar Agenda**.
+2.  O sistema exibe ao usuário uuma lista com todos os serviços agendados para todos os usuários do tipo colaborador.
+3.  O usuário clica no serviço que está com o status "Aguardando Aprovação de Finalização".
+4.  O sistema exibe as informações sobre o serviço realizado.
+5.  O sistema exibe um formulário com os seguintes itens: **Valor do Serviço**.
+6.  O usuário preenche o formulário e clica no botão **Aprovar Finalização do Serviço**.
+7.  Um e-mail é enviado ao usuário solicitante do serviço dizendo que o serviço foi finalizado e mostrando as informações do serviço realizado.
+8.  Fim da funcionalidade.
 
 ## Prioridade de Desenvolvimento das Funcionalidades
 
