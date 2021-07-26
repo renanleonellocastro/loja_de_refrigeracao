@@ -30,6 +30,22 @@ Os atores com acesso a funcionalidade de consultar clientes são: Colaborador, G
 5.  Os seguintes dados do cliente selecionado é exibido na tela: **Nome completo, E-mail, Telefone, Endereço e Últimos serviços realizados**.
 6.  Fim da funcionalidade.
 
+### Excluir Clientes
+
+Os atores com acesso a funcionalidade de excluir clientes são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Clientes**.
+4.  O sistema exibe ao usuário uma lista com todos os nomes dos clientes cadastrados e exibe um campo de entrada para busca.
+5.  O usuário clica sobre o cliente que deseja excluir.
+6.  O sistema exibe informações detalhadas sobre o cliente.
+7.  O usuário clica no botão **Excluir**.
+8.  O sistema exibe uma mensagem em uma caixa modal perguntando se o usuário deseja realmente excluir o cliente.
+9.  O usuário clica no botão **Sim**.
+11. O sistema exibe uma mensagem dizendo que o cliente foi excluido com sucesso.
+12. Fim da funcionalidade.
+
 ### Consultar Perfil do Usuário
 
 Os atores com acesso a funcionalidade de consultar perfil do usuário são: Cliente, Colaborador, Gerente e Super usuário.
@@ -133,6 +149,34 @@ Os atores com acesso a funcionalidade de venda de produto são: Colaborador, Ger
 10. Uma ordem de venda é emitida e enviada por e-mail para os usuários do tipo **Gerente e Super Usuário**.
 11. Fim da funcionalidade.
 
+### Consultar Produtos
+
+Os atores com acesso a funcionalidade de consultar produtos são: Cliente, Colaborador, Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Produtos**.
+4.  O sistema exibe os produtos cadastrados no sistema.
+5.  O usuário clica sobre o produto que deseja saber mais informações.
+6.  O sistema exibe informações detalhadas sobre o produto.
+7.  Fim da funcionalidade.
+
+### Excluir Produtos
+
+Os atores com acesso a funcionalidade de excluir produtos são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Produtos**.
+4.  O sistema exibe os produtos cadastrados no sistema.
+5.  O usuário clica sobre o produto que deseja excluir.
+6.  O sistema exibe informações detalhadas sobre o produto.
+7.  O usuário clica no botão **Excluir**.
+8.  O sistema exibe uma mensagem em uma caixa modal perguntando se o usuário deseja realmente excluir o produto.
+9.  O usuário clica no botão **Sim**.
+11. O sistema exibe uma mensagem dizendo que o produto foi excluido com sucesso.
+12. Fim da funcionalidade.
+
 ### Cadastrar tipos de Reparo/Manutenção
 
 Os atores com acesso a essa funcionalidade são: Super usuário.
@@ -142,6 +186,50 @@ Os atores com acesso a essa funcionalidade são: Super usuário.
 3.  O usuário prenche o formulário e clica no botão **Cadastrar**.
 4.  O sistema exibe uma mensagem dizendo que o tipo de reparo/manutenção foi cadastrado com sucesso.
 5.  Fim da funcionalidade.
+
+### Consultar tipos de Reparo/Manutenção
+
+Os atores com acesso a funcionalidade de consultar tipos de reparo e manutenção são: Cliente, Colaborador, Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Tipos de Reparo/Manutenção**.
+4.  O sistema exibe os tipos cadastrados no sistema.
+5.  O usuário clica sobre o tipo que deseja saber mais detalhes.
+6.  O sistema exibe informações detalhadas sobre o tipo.
+7.  Fim da funcionalidade.
+
+### Alterar tipos de Reparo/Manutenção
+
+Os atores com acesso a funcionalidade de alterar tipos de reparo e manutenção são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Tipos de Reparo/Manutenção**.
+4.  O sistema exibe os tipos cadastrados no sistema.
+5.  O usuário clica sobre o tipo que deseja alterar.
+6.  O sistema exibe informações detalhadas sobre o tipo.
+7.  O usuário clica no botão **Editar**.
+8.  O sistema exibe um formulário com as informações do tipo de reparo/manutenção já preenchidas.
+9.  O usuário altera as informações e clica no botão **Salvar**.
+11. O sistema exibe uma mensagem dizendo que o tipo de reparo/manutenção foi alterado com sucesso.
+12. Fim da funcionalidade.
+
+### Excluir tipos de Reparo/Manutenção
+
+Os atores com acesso a funcionalidade de excluir tipos de reparo e manutenção são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Tipos de Reparo/Manutenção**.
+4.  O sistema exibe os tipos cadastrados no sistema.
+5.  O usuário clica sobre o tipo que deseja excluir.
+6.  O sistema exibe informações detalhadas sobre o tipo.
+7.  O usuário clica no botão **Excluir**.
+8.  O sistema exibe uma mensagem em uma caixa modal perguntando se o usuário deseja realmente excluir o tipo.
+9.  O usuário clica no botão **Sim**.
+11. O sistema exibe uma mensagem dizendo que o tipo de reparo/manutenção foi excluido com sucesso.
+12. Fim da funcionalidade.
 
 ### Cadastrar Serviço de Reparo/Manutenção na Agenda do Colaborador
 
@@ -153,6 +241,42 @@ Os atores com acesso a essa funcionalidade são: Gerente e Super usuário.
 4.  O sistema exibe os dados do serviço e exibe um formulário para ser preenchido com os seguintes itens: **Colaborador Responsável, Data/Hora para Realização do Serviço**.
 5.  O usuário preenche o formulário e o sistema automaticamente salva as alterações no banco de dados.
 6.  Fim da funcionalidade.
+
+### Alterar Serviço de Reparo/Manutenção na Agenda do Colaborador
+
+Os atores com acesso a funcionalidade de alterar serviços de reparo/manutenção na agenda do colaborador são: Gerente e Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Agenda**.
+4.  O sistema exibe as agendas dos usuários do tipo colaborador no sistema.
+5.  O usuário clica sobre o colaborador que deseja alterar a agenda.
+6.  O sistema exibe informações detalhadas sobre a agenda do colaborador.
+7.  O usuário clica sobre o serviço desejado na agenda do colaborador.
+8.  O sistema exibe as informações sobre o serviço.
+9.  O usuário clica no botão **Editar**.
+10. O sistema exibe um formulário com as informações do serviço na agenda do colaborador já preenchidas.
+11. O usuário altera as informações e clica no botão **Salvar**.
+12. O sistema exibe uma mensagem dizendo que o serviço de reparo/manutenção na agenda do colaborador foi alterado com sucesso.
+13. Fim da funcionalidade.
+
+### Excluir Serviço de Reparo/Manutenção na Agenda do Colaborador
+
+Os atores com acesso a funcionalidade de excluir serviços de reparo/manutenção na agenda do colaborador são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Agenda**.
+4.  O sistema exibe as agendas dos usuários do tipo colaborador no sistema.
+5.  O usuário clica sobre o colaborador que deseja excluir um serviço da agenda.
+6.  O sistema exibe informações detalhadas sobre a agenda do colaborador.
+7.  O usuário clica sobre o serviço desejado na agenda do colaborador.
+8.  O sistema exibe as informações sobre o serviço.
+9.  O usuário clica no botão **Excluir**.
+10. O sistema exibe uma mensagem em uma caixa modal perguntando se o usuário deseja realmente excluir o tipo.
+11. O usuário clica no botão **Sim**.
+12. O sistema exibe uma mensagem dizendo que o serviço de reparo/manutenção na agenda do colaborador foi excluído com sucesso.
+13. Fim da funcionalidade.
 
 ### Finalizar Serviço de Reparo/Manutenção
 
@@ -179,6 +303,43 @@ Os atores com acesso a essa funcionalidade são: Gerente e Super Usuário.
 6.  O usuário preenche o formulário e clica no botão **Aprovar Finalização do Serviço**.
 7.  Um e-mail é enviado ao usuário solicitante do serviço dizendo que o serviço foi finalizado e mostrando as informações do serviço realizado.
 8.  Fim da funcionalidade.
+
+### Cadastrar Colaborador
+
+Os atores com acesso a funcionalidade de cadastrar colaborador são: Super usuário.
+
+1.  O usuário executará a funcionalidade **Cadastrar Colaborador**.
+2.  O sistema exibe ao usuário um formulário para preenchimento dos seguintes dados: **Nome completo, E-mail, Telefone, CPF, Senha, Confirmação de Senha, Endereço**.
+3.  O usuário prenche o formulário e clica no botão **Cadastrar**.
+4.  O sistema exibe uma mensagem dizendo que o colaborador foi cadastrado com sucesso.
+5.  Fim da funcionalidade.
+
+### Consultar Colaboradores
+
+Os atores com acesso a funcionalidade de consultar colaboradores são: Gerente e Super usuário.
+
+1.  O usuário executará a funcionalidade **Consultar Colaboradores**.
+2.  O sistema exibe ao usuário uma lista com todos os nomes dos colaboradores cadastrados e exibe um campo de entrada para busca.
+3.  O usuário digita o nome da pessoa no campo de busca e o sistema começará a filtrar por esse nome e diminuirá as ocorrências aparecidas na tela.
+4.  O usuário seleciona na tela o nome buscado.
+5.  Os seguintes dados do colaborador selecionado são exibido na tela: **Nome completo, CPF, E-mail, Telefone, Endereço, Últimos serviços executados**.
+6.  Fim da funcionalidade.
+
+### Excluir Colaborador
+
+Os atores com acesso a funcionalidade de excluir colaborador são: Super usuário.
+
+1.  O usuário se autenticará no sistema.
+2.  O sistema exibe ao usuário a página principal do sistema.
+3.  O usuário executa a funcionalidade **Consultar Colaboradores**.
+4.  O sistema exibe ao usuário uma lista com todos os nomes dos colaboradores cadastrados e exibe um campo de entrada para busca.
+5.  O usuário clica sobre o colaborador que deseja excluir.
+6.  O sistema exibe informações detalhadas sobre o colaborador.
+7.  O usuário clica no botão **Excluir**.
+8.  O sistema exibe uma mensagem em uma caixa modal perguntando se o usuário deseja realmente excluir o colaborador.
+9.  O usuário clica no botão **Sim**.
+11. O sistema exibe uma mensagem dizendo que o colaborador foi excluido com sucesso.
+12. Fim da funcionalidade.
 
 ## Prioridade de Desenvolvimento das Funcionalidades
 
