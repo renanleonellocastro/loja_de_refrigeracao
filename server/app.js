@@ -1,7 +1,10 @@
+const env = require('dotenv');
 const express = require('express');
-const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+
+const app = express();
+env.config();
 
 const produtsRoute = require('./routes/products');
 const ordersRoute = require('./routes/orders');
