@@ -1,15 +1,16 @@
-const env = require('dotenv');
 const express = require('express');
+const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
-const app = express();
-env.config();
-
-const produtsRoute = require('./routes/products');
-const ordersRoute = require('./routes/orders');
+const productRoute = require('./routes/product-route');
+const categoryRoute = require('./routes/category-route');
+const orderRoute = require('./routes/order-route');
+const userRoute = require('./routes/user-route');
+const imageRoute  = require('./routes/image-route');
 
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.urlencoded({ extended: false }));  // apenas dados simples
 app.use(bodyParser.json()); // json de entrada no body
 
@@ -24,8 +25,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/produtos', produtsRoute);
-app.use('/pedidos', ordersRoute);
+app.use('/products', productRoute);
+app.use('/categories', categoryRoute);
+app.use('/orders', orderRoute);
+app.use('/users', userRoute);
+app.use('/images', imageRoute);
 
 // Tratamento de erro
 app.use((req, res, next) => {

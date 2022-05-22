@@ -1,0 +1,15 @@
+# Busca as categorias
+GET http://localhost:3000/categories
+Content-Type: application/json
+###
+
+
+# Inclui uma nova categoria
+POST http://localhost:3000/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTMxODk5MzAsImV4cCI6MTY1MzE5MzUzMH0.aRlNokG4DzoUXYNoVN4d0GzZCtkLl-OottULlyjIQYA
+
+{
+    "name" : "ar condicionado"
+}
+###
