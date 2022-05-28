@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS products (
     productId INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(45),
     price FLOAT,
-    productImage VARCHAR(255),
     fk_product_category INT NOT NULL,
     FOREIGN KEY (fk_product_category) REFERENCES categories (categoryId)
 );
