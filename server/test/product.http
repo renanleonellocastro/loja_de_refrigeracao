@@ -1,5 +1,10 @@
 # Retorna todos os produtos
-GET http://localhost:3000/products/?categoryId=1&name=Preta
+GET http://localhost:3000/products/
+Content-Type: application/json
+###
+
+# Retorna todos os produtos com categoria 1 e nome geladeira
+GET http://localhost:3000/products/?categoryId=1&name=geladeira
 Content-Type: application/json
 ###
 
@@ -8,39 +13,40 @@ GET http://localhost:3000/products/2
 Content-Type: application/json
 ###
 
-# Altera um produto
-PATCH http://localhost:3000/products/1
+# Insere um produto
+POST http://localhost:3000/products/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2lhbm9AZ21haWwuY29tIiwiaWF0IjoxNTk1MTAwMzkwLCJleHAiOjE1OTUxMDM5OTB9.9-wb_FgeE-fy6sk3vhwoluYY2LK5wfqHq4Yniv4f76M
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
 
 {
-    "name" : "Caneta Azul Alterada",
-    "price" : 11.50
+    "name" : "Geladeira Brastemp",
+    "price" : 850.00,
+    "categoryId" : 1
+}
+###
+
+# Altera um produto
+PATCH http://localhost:3000/products/3
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
+
+{
+    "name" : "Geladeira Consul",
+    "price" : 720.37
 }
 ###
 
 # Remove um produto
-DELETE http://localhost:3000/products/3
+DELETE http://localhost:3000/products/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2lhbm9AZ21haWwuY29tIiwiaWF0IjoxNTk1MTAwMzkwLCJleHAiOjE1OTUxMDM5OTB9.9-wb_FgeE-fy6sk3vhwoluYY2LK5wfqHq4Yniv4f76M
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
 ###
-
-# Remove um produto
-DELETE http://localhost:3000/products/3
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imx1Y2lhbm9AZ21haWwuY29tIiwiaWF0IjoxNTk1MTAwMzkwLCJleHAiOjE1OTUxMDM5OTB9.9-wb_FgeE-fy6sk3vhwoluYY2LK5wfqHq4Yniv4f76M
-###
-
 
 # Insere uma imagem
 POST http://localhost:3000/produtos
 Content-Type: multipart/form-data;
-
--------
 Content-Disposition: form-data; nome="caneta"; preco="10.99; "
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c3VhcmlvIjoyMiwiZW1haWwiOiJmZXJuYW5kby5tYXJhbnNhdHRvQGdtYWlsLmNvbSIsImlhdCI6MTU5NDg0Mzg2MiwiZXhwIjoxNTk0ODQ3NDYyfQ.KSSKiAfIfCpBWWA-j_dL40c-t2YY1yk2wKIq8mGfQJU
 
 < /Users/maransatto/Pictures/curso/caneta-vermelha.jpg
 ###
-
-

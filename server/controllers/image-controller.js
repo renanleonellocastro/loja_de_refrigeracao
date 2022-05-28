@@ -2,7 +2,7 @@ const database = require('../database/postgres');
 
 exports.deleteImage = async (req, res, next) => {
     try {
-        const query = `DELETE FROM productImages WHERE imageId = ?`;
+        const query = "DELETE FROM productImages WHERE imageId = $1";
         await database.execute(query, [req.params.imageId]);
 
         const response = {
@@ -16,7 +16,7 @@ exports.deleteImage = async (req, res, next) => {
                     path: 'File'
                 }
             }
-        }
+        };
         return res.status(202).send(response);
 
     } catch (error) {

@@ -20,7 +20,7 @@ const fileFilter = (req, file, cb) => {
     } else {
         cb(null, false);
     }
-}
+};
 
 const upload = multer({
     storage: storage,
@@ -31,27 +31,11 @@ const upload = multer({
 });
 
 router.get('/', ProductsController.getProducts);
-
-router.post(
-    '/',
-    login.required,
-    upload.single('image'),
-    ProductsController.postProduct
-);
+router.post('/', login.required, ProductsController.postProduct);
 router.get('/:productId', ProductsController.getProductDetail);
 router.patch('/:productId', login.required, ProductsController.updateProduct);
 router.delete('/:productId', login.required, ProductsController.deleteProduct);
-
-// imagens
-router.post(
-    '/:productId/image',
-    login.required,
-    upload.single('image'),
-    ProductsController.postImage
-)
-router.get(
-    '/:productId/images',
-    ProductsController.getImages
-)
+router.post('/:productId/image', login.required, upload.single('image'), ProductsController.postImage);
+router.get('/:productId/images', ProductsController.getImages);
 
 module.exports = router;

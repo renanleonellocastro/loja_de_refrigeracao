@@ -24,7 +24,7 @@ exports.createUser = async (req, res, next) => {
 exports.Login = async (req, res, next) => {
 
     try {
-        const query = `SELECT * FROM users WHERE email = $1;`;
+        const query = 'SELECT * FROM users WHERE email = $1;';
         var results = await database.execute(query, [req.body.email]);
 
         if (results.length < 1) {
