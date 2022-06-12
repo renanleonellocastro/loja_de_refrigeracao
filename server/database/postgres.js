@@ -10,6 +10,7 @@ const pool = new postgres.Pool({
     "port" : cfg.getDbPort(),
     "database" : cfg.getDbName(),
     "password" : cfg.getDbPassword(),
+    "ssl" : process.env.SSL ? { rejectUnauthorized: false } : false
 });
 
 exports.execute = (query, params=[]) => {
