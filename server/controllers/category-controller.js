@@ -7,7 +7,7 @@ exports.getCategories = async (req, res, next) => {
             length: result.length,
             categories: result.rows.map(category => {
                 return {
-                    categoryId: category.categoryId,
+                    categoryid: category.categoryid,
                     name: category.name
                 };
             })
@@ -26,7 +26,7 @@ exports.postCategory = async (req, res, next) => {
         const response = {
             message: 'Categoria inserida com sucesso',
             createdCategory: {
-                categoryId: result.rows[0].categoryId,
+                categoryid: result.rows[0].categoryid,
                 name: result.rows[0].name,
                 request: {
                     type: 'GET',

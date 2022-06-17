@@ -8,7 +8,7 @@ POST http://localhost:3000/orders
 Content-Type: application/json
 
 {
-    "productId": 5,
+    "productid": 5,
     "quantity": 2
 }
 ###

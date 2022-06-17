@@ -1,21 +1,93 @@
-# Cadastra um Usuário
+# Cadastra um Gerente
+POST http://localhost:3000/users/manager
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjU1NDg0OTMzLCJleHAiOjE2NTU0ODg1MzN9.5HG2VI2xr_U08Lx4O0oGKnNKkDSOrfIZCRgWqoCbl7o
+
+{
+    "cpf" : "12312312312",
+    "name": "Gerente de Teste",
+    "email" : "gerente@gmail.com",
+    "phone" : "19998877665",
+    "address" : "Rua Das Couves 151, Apartamento 123, Bloco A",
+    "city" : "Mogi Mirim",
+    "password" : "123123"
+}
+
+###
+
+# Cadastra um Colaborador
+POST http://localhost:3000/users/employee
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NTU0ODQ5NjAsImV4cCI6MTY1NTQ4ODU2MH0.xnxNGK_KR9Uo8pcV8jnlEFd9tPLjKIiJOfj3EeXBeSo
+
+{
+    "cpf" : "98798798798",
+    "name": "Colaborador de Teste",
+    "email" : "colaborador@gmail.com",
+    "phone" : "19976543211",
+    "address" : "Rua Dos Repolhos 1054",
+    "city" : "Mogi Mirim",
+    "password" : "123456"
+}
+
+###
+
+# Cadastra um Cliente
 POST http://localhost:3000/users
 Content-Type: application/json
 
 {
-    "email" : "renanleonellocastro@gmail.com",
-    "password" : "cafe5555"
+    "cpf" : "32132132132",
+    "name": "Cliente de Teste",
+    "email" : "cliente@gmail.com",
+    "phone" : "19112233445",
+    "address" : "Rua Dos Alfaces 867, Apartamento 200, Bloco D",
+    "city" : "Mogi Mirim",
+    "password" : "321321"
 }
 
 ###
 
-# Faz o login do usuário
+# Faz o login do super usuário
 POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
-    "email" : "renanleonellocastro@gmail.com",
-    "password" : "cafe5555"
+    "email" : "superusuario@gmail.com",
+    "password" : "super"
 }
+
 ###
 
+# Faz o login do gerente
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+    "email" : "gerente@gmail.com",
+    "password" : "123123"
+}
+
+###
+
+# Faz o login do colaborador
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+    "email" : "colaborador@gmail.com",
+    "password" : "123456"
+}
+
+###
+
+# Faz o login do cliente
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+    "email" : "cliente@gmail.com",
+    "password" : "321321"
+}
+
+###

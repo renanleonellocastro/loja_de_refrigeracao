@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const login = require('../middleware/login');
+const permission = require('../middleware/permission');
 
 const ProductsController = require('../controllers/product-controller');
 
@@ -31,11 +32,11 @@ const upload = multer({
 });
 
 router.get('/', ProductsController.getProducts);
-router.post('/', login.required, ProductsController.postProduct);
-router.get('/:productId', ProductsController.getProductDetail);
-router.patch('/:productId', login.required, ProductsController.updateProduct);
-router.delete('/:productId', login.required, ProductsController.deleteProduct);
-router.post('/:productId/image', login.required, upload.single('image'), ProductsController.postImage);
-router.get('/:productId/images', ProductsController.getImages);
+router.post('/', login.required, permission.manager, ProductsController.postProduct);
+router.get('/:productid', ProductsController.getProductDetail);
+router.patch('/:productid', login.required, permission.manager, ProductsController.updateProduct);
+router.delete('/:productid', login.required, permission.admin, ProductsController.deleteProduct);
+router.post('/:productid/image', login.required, permission.manager, upload.single('image'), ProductsController.postImage);
+router.get('/:productid/images', ProductsController.getImages);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const { reject } = require('bcrypt/promises');
 const postgres = require ('pg');
-const config = require('../config');
+const config = require('../utils/config');
 
 const cfg = config.config;
 
