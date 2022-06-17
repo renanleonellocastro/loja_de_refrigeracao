@@ -10,9 +10,9 @@ exports.deleteImage = async (req, res, next) => {
             request: {
                 type: 'POST',
                 description: 'Insere um produto',
-                url: process.env.URL_API + 'products/' + req.body.productId + '/image',
+                url: process.env.URL_API + 'products/' + req.body.productid + '/image',
                 body: {
-                    productId: 'Number',
+                    productid: 'Number',
                     path: 'File'
                 }
             }

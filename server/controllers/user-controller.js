@@ -1,14 +1,21 @@
 const database = require('../database/postgres');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const roles = require('../utils/roles').roles;
 
-exports.createUser = async (req, res, next) => {
-
+var createUser = async (req, res, next) => {
     try {
+        const cpf = req.body.cpf;
         const email = req.body.email;
+        const name = req.body.name;
+        const phone = req.body.phone;
+        const address = req.body.address;
+        const city = req.body.city;
         const password = bcrypt.hashSync(req.body.password, 10);
-        query = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *;';
-        const results = await database.execute(query, [email, password]);
+        const role = req.role;
+        query = 'INSERT INTO users (cpf, email, name, phone, address, city, password, role)\
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;';
+        const results = await database.execute(query, [cpf, email, name, phone, address, city, password, role]);
 
         const response = {
             message: 'Usuário criado com sucesso',
@@ -21,8 +28,22 @@ exports.createUser = async (req, res, next) => {
     }
 };
 
-exports.Login = async (req, res, next) => {
+exports.createClient = async (req, res, next) => {
+    req.role = roles.CLIENT;
+    await createUser(req, res, next);
+};
 
+exports.createManager = async (req, res, next) => {
+    req.role = roles.MANAGER;
+    await createUser(req, res, next);
+};
+
+exports.createEmployee = async (req, res, next) => {
+    req.role = roles.EMPLOYEE;
+    await createUser(req, res, next);
+};
+
+exports.Login = async (req, res, next) => {
     try {
         const query = 'SELECT * FROM users WHERE email = $1;';
         var results = await database.execute(query, [req.body.email]);
@@ -33,13 +54,12 @@ exports.Login = async (req, res, next) => {
 
         if (await bcrypt.compareSync(req.body.password, results.rows[0].password)) {
             const token = jwt.sign({
-                userId: results.rows[0].userid,
-                email: results.rows[0].email
-            },
-            process.env.JWT_KEY,
-            {
-                expiresIn: "1h"
-            });
+                    userId: results.rows[0].userid,
+                    email: results.rows[0].email,
+                    cpf: results.rows[0].cpf,
+                    role: results.rows[0].role
+                }, process.env.JWT_KEY, {expiresIn: "1h"}
+            );
             return res.status(200).send({
                 message: 'Autenticado com sucesso',
                 token: token

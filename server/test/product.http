@@ -3,43 +3,52 @@ GET http://localhost:3000/products/
 Content-Type: application/json
 ###
 
+# Retorna todos os produtos com categoria 1
+GET http://localhost:3000/products/?categoryid=1
+Content-Type: application/json
+###
+
 # Retorna todos os produtos com categoria 1 e nome geladeira
-GET http://localhost:3000/products/?categoryId=1&name=geladeira
+GET http://localhost:3000/products/?categoryid=1&name=geladeira
 Content-Type: application/json
 ###
 
 # Retorna detalhes de um produto
-GET http://localhost:3000/products/2
+GET http://localhost:3000/products/1
 Content-Type: application/json
 ###
 
 # Insere um produto
 POST http://localhost:3000/products/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NTU0ODcxNjksImV4cCI6MTY1NTQ5MDc2OX0.kaOClxdHoRRANR9Oqub2xZtEHN3b8P8p7XrWvLbIix0
 
 {
     "name" : "Geladeira Brastemp",
     "price" : 850.00,
-    "categoryId" : 1
+    "description": "Geladeira em excelentes condições, branca, semi nova, único dono, recém reformada.",
+    "state" : "Usada",
+    "categoryid" : 1
 }
 ###
 
 # Altera um produto
-PATCH http://localhost:3000/products/3
+PATCH http://localhost:3000/products/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NTU0ODk1MTgsImV4cCI6MTY1NTQ5MzExOH0.bj-jNz0nPQdGVQa5n_roeCdvFi0EhxCV0KdV2RiZBso
 
 {
     "name" : "Geladeira Consul",
-    "price" : 720.37
+    "price" : 720.37,
+    "description": "Geladeira moderna, blindex, semi nova, econômica, com peças novas trocadas.",
+    "state" : "Usada"
 }
 ###
 
 # Remove um produto
-DELETE http://localhost:3000/products/2
+DELETE http://localhost:3000/products/3
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTM3NzE4MTgsImV4cCI6MTY1Mzc3NTQxOH0.Q7-Zvy1YVT1OCS36zFNbilfuroVZg0RAI5_DAwcsn9U
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjU1NDg5ODM4LCJleHAiOjE2NTU0OTM0Mzh9.kXQ-l9ItoerBANZ5NvDjOVXaMtgw2puyWJBlHMROC8I
 ###
 
 # Insere uma imagem
@@ -48,5 +57,5 @@ Content-Type: multipart/form-data;
 Content-Disposition: form-data; nome="caneta"; preco="10.99; "
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c3VhcmlvIjoyMiwiZW1haWwiOiJmZXJuYW5kby5tYXJhbnNhdHRvQGdtYWlsLmNvbSIsImlhdCI6MTU5NDg0Mzg2MiwiZXhwIjoxNTk0ODQ3NDYyfQ.KSSKiAfIfCpBWWA-j_dL40c-t2YY1yk2wKIq8mGfQJU
 
-< /Users/maransatto/Pictures/curso/caneta-vermelha.jpg
+< /Users/teste/Pictures/caneta-vermelha.jpg
 ###
