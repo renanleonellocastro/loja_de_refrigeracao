@@ -5,6 +5,7 @@ const userController = require('../controllers/user-controller');
 
 const router = express.Router();
 
+router.get('/', login.required, permission.manager, userController.getUsers);
 router.post('/', userController.createClient);
 router.post('/manager', login.required, permission.admin, userController.createManager);
 router.post('/employee', login.required, permission.manager, userController.createEmployee);

@@ -91,3 +91,10 @@ Content-Type: application/json
 }
 
 ###
+
+# Obtém todos os clientes
+GET http://localhost:3000/users
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJlbWFpbCI6ImNvbGFib3JhZG9yQGdtYWlsLmNvbSIsImNwZiI6Ijk4Nzk4Nzk4Nzk4Iiwicm9sZSI6MywiaWF0IjoxNjU5MjE2NDAwLCJleHAiOjE2NTkyMjAwMDB9.Hrd4X5HgzayhXnFpslniXbBcSNTsPa6RXmMjXgaRW_8
+
+###
