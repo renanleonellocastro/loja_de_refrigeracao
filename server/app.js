@@ -1,4 +1,5 @@
 const express = require('express');
+var cors = require('cors')
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
@@ -9,6 +10,7 @@ const orderRoute = require('./routes/order-route');
 const userRoute = require('./routes/user-route');
 const imageRoute  = require('./routes/image-route');
 
+app.use(cors());
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
 app.use(bodyParser.urlencoded({ extended: false }));  // apenas dados simples
