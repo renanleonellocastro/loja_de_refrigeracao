@@ -17,7 +17,8 @@ export default {
       logo_src: "/img/logo.png",
       app_name: "Refrigeracao Castro Client",
       loginName: localStorage.name ? localStorage.name : '',
-      loginToken: localStorage.token ? localStorage.token : ''
+      loginToken: localStorage.token ? localStorage.token : '',
+      loginRole: localStorage.role ? localStorage.role : 999
     }
   },
   methods: {
@@ -31,6 +32,11 @@ export default {
       this.loginToken = token;
       localStorage.token = this.loginToken;
     },
+    setRole(role)
+    {
+      this.loginRole = role;
+      localStorage.role = this.loginRole;
+    }
   },
   components: {
     Navbar,

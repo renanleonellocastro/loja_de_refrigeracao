@@ -87,6 +87,8 @@ exports.Login = async (req, res, next) => {
             );
             return res.status(200).send({
                 message: 'Autenticado com sucesso',
+                name: results.rows[0].name,
+                role: results.rows[0].role,
                 token: token
             });
         }
