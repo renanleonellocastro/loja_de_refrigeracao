@@ -4,8 +4,8 @@
       <router-link id="logo-url" to="/">
         <img id="logo" :src="logo" :alt="alt">
       </router-link>
-      <router-link to="/client">Cadastrar Cliente</router-link>
-      <router-link to="/clients">Clientes</router-link>
+      <router-link v-if="$root.loginRole <= managerRole" to="/client">Cadastrar Cliente</router-link>
+      <router-link v-if="$root.loginRole <= managerRole" to="/clients">Clientes</router-link>
       <router-link v-if="$root.loginName !== ''" to="/">{{$root.loginName}}</router-link>
       <router-link v-if="$root.loginName !== ''" @click.native="logout" to="/">Logout</router-link>
       <router-link v-else to="/login">Login</router-link>
@@ -14,14 +14,20 @@
 </template>
 
 <script>
+import roles from '../utils/roles'
+
 export default {
   name: "Navbar",
   props: ["logo", "alt"],
+  data() {
+    return {managerRole: roles.roles.MANAGER};
+  },
   methods: {
     logout()
     {
       this.$root.setName('');
       this.$root.setToken('');
+      this.$root.setRole(999);
     }
   }
 };

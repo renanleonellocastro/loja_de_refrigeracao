@@ -49,13 +49,15 @@ export default {
           headers: { "Content-Type" : "application/json" },
           body: dataJson
         });
+
         if (!req.ok) {
           this.msg = "Usuário ou senha inválidos!";
           throw new Error(`Error! status: ${req.status}`);
         }
 
         const res = await req.json();
-        this.$root.setName(this.email);
+        this.$root.setName(res.name.split(' ')[0]);
+        this.$root.setRole(res.role);
         this.$root.setToken(res.token);
         this.clearLocalVariables();
         router.push('/');

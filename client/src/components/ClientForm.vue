@@ -52,40 +52,41 @@ export default {
   methods: {
     async createClient(e)
     {
+      e.preventDefault();
 
-      e.preventDefault()
+      const data = { name: this.name, cpf: this.cpf, email: this.email, phone: this.phone, address: this.address,
+        city: this.city, password: 'doesnothave' };
+      const dataJson = JSON.stringify(data);
 
-      const data = {
-        name: this.name,
-        cpf: this.cpf,
-        email: this.email,
-        phone: this.phone,
-        address: this.address,
-        city: this.city
-      }
+        try {
+          const req = await fetch("http://localhost:3000/users", {
+            method: "POST",
+            headers: {"Content-Type" : "application/json"},
+            body: dataJson
+          });
 
-      const dataJson = JSON.stringify(data)    
+          if (!req.ok) {
+            throw new Error(`Error! status: ${req.status}`);
+          }
 
-      const req = await fetch("http://localhost:3000/users", {
-        method: "POST",
-        headers: { "Content-Type" : "application/json" },
-        body: dataJson
-      });
+          const res = await req.json();
+          this.msg = "Cliente " + this.name + " cadastrado com sucesso!";
+          this.clearData();
 
-      const res = await req.json()
+        } catch (error) {
+          this.msg = `Error: ${error}`;
+        }
 
-      console.log(res)
-
-      this.msg = "Cliente " + this.name + " cadastrado com sucesso!"
-
-      setTimeout(() => this.msg = "", 3000)
-
-      this.name = ""
-      this.cpf = ""
-      this.email = ""
-      this.phone = ""
-      this.address = ""
-      this.city = ""
+        setTimeout(() => this.msg = "", 3000);
+    },
+    clearData()
+    {
+      this.name = "";
+      this.cpf = "";
+      this.email = "";
+      this.phone = "";
+      this.address = "";
+      this.city = "";
     }
   },
   components: {
