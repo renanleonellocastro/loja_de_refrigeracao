@@ -3,31 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const roles = require('../utils/roles').roles;
 
-exports.getUsers = async (req, res, next) => {
-    try {
-        let query = 'SELECT * FROM users;';
-        let result = await database.execute(query);
-
-        const response = {
-            length: result.length,
-            users: result.rows.map(user => {
-                return {
-                    userid: user.userid,
-                    cpf: user.cpf,
-                    name: user.name,
-                    city: user.city,
-                    phone: user.phone,
-                    email: user.email,
-                    address: user.address
-                };
-            })
-        };
-        return res.status(200).send(response);
-    } catch (error) {
-        return res.status(500).send({ error: error });
-    }
-};
-
 var createUser = async (req, res, next) => {
     try {
         const cpf = req.body.cpf;
@@ -53,19 +28,99 @@ var createUser = async (req, res, next) => {
     }
 };
 
-exports.createClient = async (req, res, next) => {
-    req.role = roles.CLIENT;
-    await createUser(req, res, next);
+var deleteUser = async (req, res, next) => {
+    try {
+        const cpf = req.body.cpf;
+        const email = req.body.email;
+        query = 'DELETE FROM users where cpf=$1 AND email=$2 RETURNING *;';
+        const results = await database.execute(query, [cpf, email]);
+
+        const response = {
+            message: 'Usuário removido com sucesso',
+            deletedUser: { email: results.rows[0].email }
+        }
+        return res.status(201).send(response);
+
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
 };
 
-exports.createManager = async (req, res, next) => {
-    req.role = roles.MANAGER;
-    await createUser(req, res, next);
+var getUserRole = async (req) => {
+    try {
+        const cpf = req.body.cpf;
+        const email = req.body.email;
+        query = 'SELECT role FROM users where cpf=$1 AND email=$2;';
+        const results = await database.execute(query, [cpf, email]);
+        return results.rows[0].role;
+    } catch (error) {
+        return false;
+    }
+};
+
+exports.getUsers = async (req, res, next) => {
+    try {
+        let query = 'SELECT * FROM users;';
+        let result = await database.execute(query);
+
+        const response = {
+            length: result.length,
+            users: result.rows.map(user => {
+                return {
+                    userid: user.userid,
+                    cpf: user.cpf,
+                    name: user.name,
+                    city: user.city,
+                    phone: user.phone,
+                    email: user.email,
+                    address: user.address
+                };
+            })
+        };
+        return res.status(200).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.createClient = async (req, res, next) => {
+    req.role = roles.CLIENT;
+    return await createUser(req, res, next);
 };
 
 exports.createEmployee = async (req, res, next) => {
     req.role = roles.EMPLOYEE;
-    await createUser(req, res, next);
+    return await createUser(req, res, next);
+};
+
+exports.createManager = async (req, res, next) => {
+    req.role = roles.MANAGER;
+    return await createUser(req, res, next);
+};
+
+exports.deleteClient = async (req, res, next) => {
+    if (await getUserRole(req) === roles.CLIENT) {
+        return await deleteUser(req, res, next);
+    } else {
+        return res.status(500).send({ error: 'User is not a client!' });
+    }
+
+};
+
+exports.deleteEmployee = async (req, res, next) => {
+    if (await getUserRole(req) === roles.EMPLOYEE) {
+        return await deleteUser(req, res, next);
+    } else {
+        return res.status(500).send({ error: 'User is not an employee!' });
+    }
+};
+
+exports.deleteManager = async (req, res, next) => {
+    if (await getUserRole(req) === roles.MANAGER) {
+        return await deleteUser(req, res, next);
+    } else {
+        return res.status(500).send({ error: 'User is not a manager!' });
+    }
 };
 
 exports.Login = async (req, res, next) => {
