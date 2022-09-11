@@ -3,13 +3,21 @@ GET http://localhost:3000/categories
 Content-Type: application/json
 ###
 
-
 # Inclui uma nova categoria
 POST http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoicmVuYW5sZW9uZWxsb2Nhc3Ryb0BnbWFpbC5jb20iLCJpYXQiOjE2NTMyNTgyNDYsImV4cCI6MTY1MzI2MTg0Nn0.m4cX-i7FZBLI2xojL0Gg-2W4E9zRncLzWDlPFXjrOn0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
 
 {
     "name" : "climatizador"
 }
 ###
+
+# Remove uma categoria
+DELETE http://localhost:3000/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
+
+{
+    "id" : 2
+}

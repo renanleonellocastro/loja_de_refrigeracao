@@ -21,7 +21,6 @@ exports.getProducts = async (req, res, next) => {
         }
 
         const response = {
-            length: result.length,
             products: result.rows.map(prod => {
                 return {
                     productid: prod.productid,
@@ -29,11 +28,7 @@ exports.getProducts = async (req, res, next) => {
                     description: prod.description,
                     state: prod.state,
                     price: prod.price,
-                    request: {
-                        type: 'GET',
-                        description: 'Retorna os detalhes de um produto específico',
-                        url: process.env.URL_API + 'products/' + prod.productid
-                    }
+                    categoryid: prod.fk_product_category
                 };
             })
         };
@@ -43,7 +38,7 @@ exports.getProducts = async (req, res, next) => {
     }
 };
 
-exports.postProduct = async (req, res, next) => {
+exports.createProduct = async (req, res, next) => {
     try {
         const query = 'INSERT INTO products (name, price, description, state, fk_product_category)\
             VALUES ($1, $2, $3, $4, $5) RETURNING *;';
@@ -52,19 +47,12 @@ exports.postProduct = async (req, res, next) => {
 
         const response = {
             message: 'Produto inserido com sucesso',
-            createdProduct: {
-                productid: result.rows[0].productid,
-                name: result.rows[0].name,
-                price: result.rows[0].price,
-                description: result.rows[0].description,
-                state: result.rows[0].state,
-                categoryid: result.rows[0].fk_product_category,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todos os produtos',
-                    url: process.env.URL_API + 'products'
-                }
-            }
+            productid: result.rows[0].productid,
+            name: result.rows[0].name,
+            price: result.rows[0].price,
+            description: result.rows[0].description,
+            state: result.rows[0].state,
+            categoryid: result.rows[0].fk_product_category
         };
         return res.status(201).send(response);
     } catch (error) {
@@ -83,19 +71,12 @@ exports.getProductDetail = async (req, res, next) => {
             });
         }
         const response = {
-            product: {
-                productid: result.rows[0].productid,
-                name: result.rows[0].name,
-                price: result.rows[0].price,
-                description: result.rows[0].description,
-                state: result.rows[0].state,
-                categoryid: result.rows[0].fk_product_category,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todos os produtos',
-                    url: process.env.URL_API + 'products'
-                }
-            }
+            productid: result.rows[0].productid,
+            name: result.rows[0].name,
+            price: result.rows[0].price,
+            description: result.rows[0].description,
+            state: result.rows[0].state,
+            categoryid: result.rows[0].fk_product_category
         };
         return res.status(200).send(response);
     } catch (error) {
@@ -107,22 +88,17 @@ exports.updateProduct = async (req, res, next) => {
     try {
         const query = 'UPDATE products SET name = $1, price = $2, description = $3, state = $4 \
             WHERE productid = $5 RETURNING *;';
+
         const result = await database.execute(query, [req.body.name, req.body.price,
             req.body.description, req.body.state, req.params.productid]);
+
         const response = {
             message: 'Produto atualizado com sucesso',
-            upatedProduct: {
-                productid: result.rows[0].productid,
-                name: result.rows[0].name,
-                price: result.rows[0].price,
-                description: result.rows[0].description,
-                state: result.rows[0].state,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna os detalhes de um produto específico',
-                    url: process.env.URL_API + 'products/' + result.rows[0].productid
-                }
-            }
+            productid: result.rows[0].productid,
+            name: result.rows[0].name,
+            price: result.rows[0].price,
+            description: result.rows[0].description,
+            state: result.rows[0].state,
         };
         return res.status(202).send(response);
     } catch (error) {
@@ -132,20 +108,12 @@ exports.updateProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
     try {
-        const query = 'DELETE FROM products WHERE productid = $1;';
+        const query = 'DELETE FROM products WHERE productid = $1 RETURNING *;';
         await database.execute(query, [req.params.productid]);
 
         const response = {
             message: 'Produto removido com sucesso',
-            request: {
-                type: 'POST',
-                description: 'Insere um produto',
-                url: process.env.URL_API + 'products',
-                body: {
-                    name: 'String',
-                    price: 'Number'
-                }
-            }
+            name: res.rows[0].name
         };
         return res.status(202).send(response);
     } catch (error) {
@@ -155,23 +123,13 @@ exports.deleteProduct = async (req, res, next) => {
 
 exports.postImage = async (req, res, next) => {
     try {
-        const query = 'INSERT INTO productImages (productid, path) \
-            VALUES ($1, $2) RETURNING *;';
-        const result = await database.execute(query, [req.params.productid,
-            req.file.path]);
+        const query = 'INSERT INTO productImages (productid, path) VALUES ($1, $2) RETURNING *;';
+        const result = await database.execute(query, [req.params.productid, req.file.path]);
 
         const response = {
             message: 'Imagem inserida com sucesso',
-            createdImage: {
-                productid: result.rows[0].productid,
-                path: result.rows[0].path,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todas as imagens',
-                    url: process.env.URL_API + 'products/' +
-                        result.rows[0].productid + '/imagens'
-                }
-            }
+            productid: result.rows[0].productid,
+            path: result.rows[0].path
         };
         return res.status(201).send(response);
     } catch (error) {
@@ -184,13 +142,12 @@ exports.getImages = async (req, res, next) => {
         const query  = "SELECT * FROM productImages WHERE productid = $1;";
         const result = await database.execute(query, [req.params.productid]);
         const response = {
-            length: result.length,
             images: result.rows.map(img => {
                 return {
-                    productid: req.params.productid,
+                    productid: img.productid,
                     imageId: img.imageId,
                     path: process.env.URL_API + img.path
-                }
+                };
             })
         };
         return res.status(200).send(response);

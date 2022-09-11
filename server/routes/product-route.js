@@ -32,7 +32,7 @@ const upload = multer({
 });
 
 router.get('/', ProductsController.getProducts);
-router.post('/', login.required, permission.manager, ProductsController.postProduct);
+router.post('/', login.required, permission.manager, ProductsController.createProduct);
 router.get('/:productid', ProductsController.getProductDetail);
 router.patch('/:productid', login.required, permission.manager, ProductsController.updateProduct);
 router.delete('/:productid', login.required, permission.admin, ProductsController.deleteProduct);

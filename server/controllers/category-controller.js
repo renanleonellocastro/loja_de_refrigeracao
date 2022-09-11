@@ -4,7 +4,6 @@ exports.getCategories = async (req, res, next) => {
     try {
         const result = await database.execute("SELECT * FROM categories;");
         const response = {
-            length: result.length,
             categories: result.rows.map(category => {
                 return {
                     categoryid: category.categoryid,
@@ -18,23 +17,35 @@ exports.getCategories = async (req, res, next) => {
     }
 };
 
-exports.postCategory = async (req, res, next) => {
+exports.createCategory = async (req, res, next) => {
     try {
         const query = 'INSERT INTO categories (name) VALUES ($1) RETURNING *;';
         const result = await database.execute(query, [req.body.name]);
 
         const response = {
             message: 'Categoria inserida com sucesso',
-            createdCategory: {
-                categoryid: result.rows[0].categoryid,
-                name: result.rows[0].name,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todas as categorias',
-                    url: process.env.URL_API + 'categories'
-                }
-            }
+            id: result.rows[0].categoryid,
+            name: result.rows[0].name
         };
+
+        return res.status(201).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.deleteCategory = async (req, res, next) => {
+    try {
+        const id = req.body.id;
+        query = 'DELETE FROM categories where categoryid=$1 RETURNING *;';
+        const results = await database.execute(query, [id]);
+
+        const response = {
+            message: 'Categoria removida com sucesso',
+            id: results.rows[0].categoryid,
+            name: results.rows[0].name
+        };
+
         return res.status(201).send(response);
     } catch (error) {
         return res.status(500).send({ error: error });
