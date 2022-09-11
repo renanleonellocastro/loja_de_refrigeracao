@@ -1,27 +1,18 @@
 const database = require('../database/postgres');
+const orderlinesController = require('orderline-controller');
+const orderState = require('../utils/order-state').orderState;
 
 exports.getOrders = async (req, res, next) => {
     try {
-        const query = "SELECT orders.orderId, orders.quantity, products.productid,\
-            products.name, products.price FROM orders INNER JOIN products ON \
-            products.productid = orders.productid;"
+        const query = "SELECT * from orders;"
         const result = await database.execute(query);
         const response = {
             orders: result.rows.map(order => {
                 return {
-                    orderId: order.orderId,
-                    quantity: order.quantity,
-                    product: {
-                        productid: order.productid,
-                        name: order.name,
-                        price: order.price
-                    },
-                    request: {
-                        type: 'GET',
-                        description: 'Retorna os detalhes de um pedido específico',
-                        url: process.env.URL_API + 'orders/' + order.orderId
-                    }
-                }
+                    orderid: order.orderid,
+                    userid: order.userid,
+                    state: order.state
+                };
             })
         };
         return res.status(200).send(response);
@@ -31,30 +22,49 @@ exports.getOrders = async (req, res, next) => {
     }
 };
 
-exports.postOrder = async (req, res, next) => {
+exports.getOrdersByUser = async (req, res, next) => {
     try {
-        const queryProduct = 'SELECT * FROM products WHERE productid = $1;';
-        const resultProduct = await database.execute(queryProduct, [req.body.productid]);
+        const query = "SELECT * from orders where userid = $1;"
+        const result = await database.execute(query, req.body.userid);
+        const response = {
+            orders: result.rows.map(order => {
+                return {
+                    orderid: order.orderid,
+                    userid: order.userid,
+                    state: order.state
+                };
+            })
+        };
+        return res.status(200).send(response);
+        
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
 
-        if (resultProduct.length == 0) {
-            return res.status(404).send({ message: 'Produto não encontrado'});
-        }
+exports.createOrder = async (req, res, next) => {
+    try {
+        const query  = 'INSERT INTO order (userid, state) VALUES ($1, $2) RETURNING *;';
+        const result = await database.execute(query, [req.body.userid, orderState.NEW]);
+        let orderlineResponse = [];
 
-        const queryOrder  = 'INSERT INTO orders (productid, quantity) VALUES ($1, $2) RETURNING *;';
-        const resultOrder = await database.execute(queryOrder, [req.body.productid, req.body.quantity]);
+        req.orderlines.map(line => {
+            orderlineResponse.push(orderlinesController.createOrderline(line.orderid, line.productid, line.quantity));
+        });
 
         const response = {
-            message: 'Pedido inserido com sucesso',
-            createdOrder: {
-                orderId: resultOrder.rows[0].orderId,
-                productid: resultOrder.rows[0].productid,
-                quantity: resultOrder.rows[0].quantity,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todos os pedidos',
-                    url: process.env.URL_API + 'orders'
-                }
-            }
+            message: 'Ordem criada com sucesso',
+            orderid: result.rows[0].orderid,
+            userid: result.rows[0].userid,
+            state: result.rows[0].state,
+            orderlines: orderlineResponse.map(orderline => {
+                return {
+                    orderlineid: orderline.orderlineid,
+                    orderid: orderline.orderid,
+                    productid: orderline.productid,
+                    quantity: orderline.quantity
+                };
+            })
         };
         return res.status(201).send(response);
 
@@ -63,27 +73,24 @@ exports.postOrder = async (req, res, next) => {
     }
 };
 
-exports.getOrderDetail = async (req, res, next) => {
+exports.getOrder = async (req, res, next) => {
     try {
-        const query = 'SELECT * FROM orders WHERE orderId = $1;';
-        const result = await database.execute(query, [req.params.orderId]);
-
-        if (result.length == 0) {
-            return res.status(404).send({
-                message: 'Não foi encontrado pedido com este ID'
-            });
-        }
+        const query = 'SELECT * FROM orders WHERE orderid = $1;';
+        const result = await database.execute(query, [req.params.orderid]);
+        const orderlines = await orderlinesController.getOrderlinesByOrderid(req.params.orderid);
+        
         const response = {
-            order: {
-                orderId: result.rows[0].orderId,
-                productid: result.rows[0].productid,
-                quantity: result.rows[0].quantity,
-                request: {
-                    type: 'GET',
-                    description: 'Retorna todos os pedidos',
-                    url: process.env.URL_API + 'orders'
-                }
-            }
+            orderid: result.rows[0].orderid,
+            userid: result.rows[0].userid,
+            state: result.rows[0].state,
+            orderlines: result.rows.map(orderline => {
+                return {
+                    orderlineid: orderline.orderlineid,
+                    orderid: orderline.orderid,
+                    productid: orderline.productid,
+                    quantity: orderline.quantity
+                };
+            })
         };
         return res.status(200).send(response);
 
@@ -94,22 +101,49 @@ exports.getOrderDetail = async (req, res, next) => {
 
 exports.deleteOrder = async (req, res, next) => {
     try {
-        const query = 'DELETE FROM orders WHERE orderId = $1;';
-        await database.execute(query, [req.params.orderId]);
+        const query = 'DELETE FROM orders WHERE orderid = $1 RETURNING *;';
+        const orderlines = orderlinesController.getOrderlinesByOrderid(req.params.orderid);
+        let orderlineResponse = [];
+
+        orderlines.map(line => {
+            orderlineResponse.push(orderlinesController.deleteOrderline(line.orderlineid));
+        });
+
+        const result = await database.execute(query, [req.params.orderid]);
 
         const response = {
-            message: 'Pedido removido com sucesso',
-            request: {
-                type: 'POST',
-                description: 'Insere um pedido',
-                url: process.env.URL_API + 'orders',
-                body: {
-                    productid: 'Number',
-                    quantity: 'Number'
-                }
-            }
+            message: 'Ordem removida com sucesso',
+            orderid: result.rows[0].orderid,
+            userid: result.rows[0].userid,
+            state: result.rows[0].state,
+            orderlines: orderlineResponse.map(orderline => {
+                return {
+                    orderlineid: orderline.orderlineid,
+                    orderid: orderline.orderid,
+                    productid: orderline.productid,
+                    quantity: orderline.quantity
+                };
+            })
         };
+
         return res.status(202).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.changeOrderState = async (req, res, next) => {
+    try {
+        const query = 'UPDATE orders SET state = $1 WHERE orderid = $2 RETURNING *;';
+        const result = await database.execute(query, [req.body.state, req.params.orderid]);
+
+        const response = {
+            message: 'Estado da order atualizado com sucesso',
+            orderid: result.rows[0].orderid,
+            userid: result.rows[0].userid,
+            state: result.rows[0].state
+        };
+        return res.status(201).send(response);
 
     } catch (error) {
         return res.status(500).send({ error: error });

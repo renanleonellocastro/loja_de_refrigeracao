@@ -6,6 +6,7 @@ const CategoriesController = require('../controllers/category-controller');
 const router = express.Router();
 
 router.get('/', CategoriesController.getCategories);
-router.post('/', login.required, permission.admin, CategoriesController.postCategory);
+router.post('/', login.required, permission.admin, CategoriesController.createCategory);
+router.delete('/', login.required, permission.admin, CategoriesController.deleteCategory);
 
 module.exports = router;

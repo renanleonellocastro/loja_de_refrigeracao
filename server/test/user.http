@@ -95,14 +95,14 @@ Content-Type: application/json
 # Obtém todos os clientes
 GET http://localhost:3000/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEzLCJlbWFpbCI6ImNvbGFib3JhZG9yQGdtYWlsLmNvbSIsImNwZiI6Ijk4Nzk4Nzk4Nzk4Iiwicm9sZSI6MywiaWF0IjoxNjU5MjE2NDAwLCJleHAiOjE2NTkyMjAwMDB9.Hrd4X5HgzayhXnFpslniXbBcSNTsPa6RXmMjXgaRW_8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
 
 ###
 
 # Deleta um cliente
-POST http://localhost:3000/users/delete
+DELETE http://localhost:3000/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NjE2NDgzOTAsImV4cCI6MTY2MTY1MTk5MH0.X15X3cw5YnphlBr4y8WUBj-dzyLbNMYI5rEOXIbsJBA
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
 
 {
     "email" : "apagar@gmail.com",
@@ -112,7 +112,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlb
 ###
 
 # Deleta um colaborador
-POST http://localhost:3000/users/delete/employee
+DELETE http://localhost:3000/users/employee
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYxNjQ5NDM3LCJleHAiOjE2NjE2NTMwMzd9.iIq5gGpG04R4X5_us7I6fCuw9N1rzsyt6euGyzXTsjo
 
@@ -124,9 +124,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtY
 ###
 
 # Deleta um gerente
-POST http://localhost:3000/users/delete/manager
+DELETE http://localhost:3000/users/manager
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYxNjQ5NDM3LCJleHAiOjE2NjE2NTMwMzd9.iIq5gGpG04R4X5_us7I6fCuw9N1rzsyt6euGyzXTsjo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
 
 {
     "email" : "apagar@gmail.com",
