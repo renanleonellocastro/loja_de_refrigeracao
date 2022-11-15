@@ -21,7 +21,7 @@ Content-Type: application/json
 # Insere um produto
 POST http://localhost:3000/products/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NTU0ODcxNjksImV4cCI6MTY1NTQ5MDc2OX0.kaOClxdHoRRANR9Oqub2xZtEHN3b8P8p7XrWvLbIix0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTM0MTMzLCJleHAiOjE2Njg1Mzc3MzN9.nm1VbBSabXFHRzbTPOcuajRWqOM7Q7v0s265F2d4thM
 
 {
     "name" : "Geladeira Brastemp",

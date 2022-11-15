@@ -1,5 +1,5 @@
 const database = require('../database/postgres');
-const orderlinesController = require('orderline-controller');
+const orderlinesController = require('../controllers/orderline-controller');
 const orderState = require('../utils/order-state').orderState;
 
 exports.getOrders = async (req, res, next) => {
@@ -11,6 +11,8 @@ exports.getOrders = async (req, res, next) => {
                 return {
                     orderid: order.orderid,
                     userid: order.userid,
+                    creationdate: order.creationdate,
+                    laststatechangedate: order.laststatechangedate,
                     state: order.state
                 };
             })
@@ -31,6 +33,8 @@ exports.getOrdersByUser = async (req, res, next) => {
                 return {
                     orderid: order.orderid,
                     userid: order.userid,
+                    creationdate: order.creationdate,
+                    laststatechangedate: order.laststatechangedate,
                     state: order.state
                 };
             })
@@ -44,20 +48,21 @@ exports.getOrdersByUser = async (req, res, next) => {
 
 exports.createOrder = async (req, res, next) => {
     try {
-        const query  = 'INSERT INTO order (userid, state) VALUES ($1, $2) RETURNING *;';
-        const result = await database.execute(query, [req.body.userid, orderState.NEW]);
-        let orderlineResponse = [];
+        const query  = 'INSERT INTO orders (userid, state) VALUES ($1, $2) RETURNING *;';
+        const result = await database.execute(query, [req.user['userId'], orderState.NEW]);
 
-        req.orderlines.map(line => {
-            orderlineResponse.push(orderlinesController.createOrderline(line.orderid, line.productid, line.quantity));
-        });
+        let orderline_responses = await Promise.all(req.body.orderlines.map(async line => {
+            return await orderlinesController.createOrderline(result.rows[0].orderid, line.productid, line.quantity);
+        }));
 
         const response = {
             message: 'Ordem criada com sucesso',
             orderid: result.rows[0].orderid,
             userid: result.rows[0].userid,
+            creationdate: result.rows[0].creationdate,
+            laststatechangedate: result.rows[0].laststatechangedate,
             state: result.rows[0].state,
-            orderlines: orderlineResponse.map(orderline => {
+            orderlines: orderline_responses.map(orderline => {
                 return {
                     orderlineid: orderline.orderlineid,
                     orderid: orderline.orderid,
@@ -76,21 +81,16 @@ exports.createOrder = async (req, res, next) => {
 exports.getOrder = async (req, res, next) => {
     try {
         const query = 'SELECT * FROM orders WHERE orderid = $1;';
-        const result = await database.execute(query, [req.params.orderid]);
-        const orderlines = await orderlinesController.getOrderlinesByOrderid(req.params.orderid);
+        const result_order = await database.execute(query, [req.params.orderid]);
+        const result_orderlines = await orderlinesController.getOrderlinesByOrderid(req.params.orderid);
         
         const response = {
-            orderid: result.rows[0].orderid,
-            userid: result.rows[0].userid,
-            state: result.rows[0].state,
-            orderlines: result.rows.map(orderline => {
-                return {
-                    orderlineid: orderline.orderlineid,
-                    orderid: orderline.orderid,
-                    productid: orderline.productid,
-                    quantity: orderline.quantity
-                };
-            })
+            orderid: result_order.rows[0].orderid,
+            userid: result_order.rows[0].userid,
+            creationdate: result_order.rows[0].creationdate,
+            laststatechangedate: result_order.rows[0].laststatechangedate,
+            state: result_order.rows[0].state,
+            orderlines: result_orderlines.orderlines
         };
         return res.status(200).send(response);
 
@@ -102,12 +102,11 @@ exports.getOrder = async (req, res, next) => {
 exports.deleteOrder = async (req, res, next) => {
     try {
         const query = 'DELETE FROM orders WHERE orderid = $1 RETURNING *;';
-        const orderlines = orderlinesController.getOrderlinesByOrderid(req.params.orderid);
-        let orderlineResponse = [];
+        const orderlines = await orderlinesController.getOrderlinesByOrderid(req.params.orderid);
 
-        orderlines.map(line => {
-            orderlineResponse.push(orderlinesController.deleteOrderline(line.orderlineid));
-        });
+        let orderline_responses = await Promise.all(orderlines.orderlines.map(async line => {
+            return await orderlinesController.deleteOrderline(line.orderlineid);
+        }));
 
         const result = await database.execute(query, [req.params.orderid]);
 
@@ -115,8 +114,10 @@ exports.deleteOrder = async (req, res, next) => {
             message: 'Ordem removida com sucesso',
             orderid: result.rows[0].orderid,
             userid: result.rows[0].userid,
+            creationdate: result.rows[0].creationdate,
+            laststatechangedate: result.rows[0].laststatechangedate,
             state: result.rows[0].state,
-            orderlines: orderlineResponse.map(orderline => {
+            orderlines: orderline_responses.map(orderline => {
                 return {
                     orderlineid: orderline.orderlineid,
                     orderid: orderline.orderid,
@@ -134,13 +135,16 @@ exports.deleteOrder = async (req, res, next) => {
 
 exports.changeOrderState = async (req, res, next) => {
     try {
-        const query = 'UPDATE orders SET state = $1 WHERE orderid = $2 RETURNING *;';
-        const result = await database.execute(query, [req.body.state, req.params.orderid]);
+        const current_timestamp = Date.now()/1000;
+        const query = 'UPDATE orders SET state = $1, laststatechangedate = to_timestamp($2) WHERE orderid = $3 RETURNING *;';
+        const result = await database.execute(query, [req.body.state, current_timestamp, req.params.orderid]);
 
         const response = {
             message: 'Estado da order atualizado com sucesso',
             orderid: result.rows[0].orderid,
             userid: result.rows[0].userid,
+            creationdate: result.rows[0].creationdate,
+            laststatechangedate: result.rows[0].laststatechangedate,
             state: result.rows[0].state
         };
         return res.status(201).send(response);

@@ -62,7 +62,7 @@ exports.getOrderlinesByOrderid = async (orderid) => {
 
 exports.deleteOrderline = async (orderlineid) => {
     const query = 'DELETE FROM orderlines WHERE orderlineid = $1 RETURNING *;';
-    await database.execute(query, [orderlineid]);
+    const result = await database.execute(query, [orderlineid]);
 
     const response = {
         message: 'Item do pedido removido com sucesso',

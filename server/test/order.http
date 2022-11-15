@@ -1,26 +1,59 @@
 # Get orders
 GET http://localhost:3000/orders
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
 ###
 
 # Post order
 POST http://localhost:3000/orders
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTM4NDEyLCJleHAiOjE2Njg1NDIwMTJ9.GMNulIXKopYGSItD4mSRUOEpIeP0eWl8IRuf-SMr-2A
 
 {
-    "productid": 5,
-    "quantity": 2
+    "orderlines": [{
+        "productid": 5,
+        "quantity": 2
+    }]
+}
+###
+
+# Post order with two products
+POST http://localhost:3000/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+
+{
+    "orderlines": [
+        {
+            "productid": 5,
+            "quantity": 2
+        },
+        {
+            "productid": 2,
+            "quantity": 10
+        }
+    ]
+}
+###
+
+# Change order state
+PATCH http://localhost:3000/orders/32
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+
+{
+    "state": "INPROG"
 }
 ###
 
 # Get order detail
-GET http://localhost:3000/orders/2
+GET http://localhost:3000/orders/32
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
 ###
-
 
 # Remove an order
-DELETE http://localhost:3000/orders/2
+DELETE http://localhost:3000/orders/31
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
 ###
-

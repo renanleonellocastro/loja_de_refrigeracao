@@ -7,11 +7,11 @@ class Config
 
     reload()
     {
+        this.postgresName = process.env.DATABASE_URL.split(':')[0];
         this.postgresUser = process.env.DATABASE_URL.split(':')[1].split('//')[1];
         this.postgresPass = process.env.DATABASE_URL.split(':')[2].split('@')[0];
         this.postgresHost = process.env.DATABASE_URL.split(':')[2].split('@')[1];
         this.postgresPort = process.env.DATABASE_URL.split(':')[3].split('/')[0];
-        this.postgresName = process.env.DATABASE_URL.split(':')[3].split('/')[1];
     }
 
     getDbUser()
