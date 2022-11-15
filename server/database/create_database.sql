@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 CREATE TABLE IF NOT EXISTS users (
-    userId INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    userid INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     cpf VARCHAR(11) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(100) NOT NULL,
@@ -33,10 +33,26 @@ CREATE TABLE IF NOT EXISTS productImages (
 );
 
 CREATE TABLE IF NOT EXISTS orders (
-    orderId INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    orderid INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    userid INT NOT NULL,
+    creationdate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    laststatechangedate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    state VARCHAR(10) NOT NULL,
+    FOREIGN KEY (userid) REFERENCES users (userid)
+);
+
+CREATE TABLE IF NOT EXISTS orderlines (
+    orderlineid INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    orderid INT NOT NULL,
     productid INT,
+    quantity INT,
+    FOREIGN KEY (productid) REFERENCES products (productid),
+    FOREIGN KEY (orderid) REFERENCES orders (orderid)
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+    inventoryid INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    productid INT NOT NULL,
     quantity INT,
     FOREIGN KEY (productid) REFERENCES products (productid)
 );
-
-INSERT INTO categories (name) VALUES ('Geladeira');
