@@ -18,17 +18,61 @@ GET http://localhost:3000/products/1
 Content-Type: application/json
 ###
 
-# Insere um produto
+# Insere um produto geladeira
 POST http://localhost:3000/products/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTM0MTMzLCJleHAiOjE2Njg1Mzc3MzN9.nm1VbBSabXFHRzbTPOcuajRWqOM7Q7v0s265F2d4thM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 
 {
     "name" : "Geladeira Brastemp",
     "price" : 850.00,
     "description": "Geladeira em excelentes condições, branca, semi nova, único dono, recém reformada.",
     "state" : "Usada",
-    "categoryid" : 1
+    "categoryid" : 1,
+    "quantity" : 10
+}
+###
+
+# Altera quantidade de geladeira para 10
+PATCH http://localhost:3000/products/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+
+{
+    "name" : "Geladeira Brastemp",
+    "price" : 850.00,
+    "description": "Geladeira em excelentes condições, branca, semi nova, único dono, recém reformada.",
+    "state" : "Usada",
+    "quantity" : 10
+}
+###
+
+# Insere um produto ar condicionado
+POST http://localhost:3000/products/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+
+{
+    "name" : "Ar condicionado Spring Carrier",
+    "price" : 1100.00,
+    "description": "Ar condicionado novo, cromado, 9000 btus.",
+    "state" : "Novo",
+    "categoryid" : 2,
+    "quantity" : 3
+}
+###
+
+# Altera quantidade de ar condicionado para 3
+PATCH http://localhost:3000/products/7
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+
+{
+    "name" : "Ar condicionado Spring Carrier",
+    "price" : 1100.00,
+    "description": "Ar condicionado novo, cromado, 9000 btus.",
+    "state" : "Novo",
+    "quantity" : 3
 }
 ###
 
@@ -48,7 +92,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlb
 # Remove um produto
 DELETE http://localhost:3000/products/3
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjU1NDg5ODM4LCJleHAiOjE2NTU0OTM0Mzh9.kXQ-l9ItoerBANZ5NvDjOVXaMtgw2puyWJBlHMROC8I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 ###
 
 # Insere uma imagem

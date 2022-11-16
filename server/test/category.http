@@ -6,10 +6,10 @@ Content-Type: application/json
 # Inclui uma nova categoria
 POST http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4MzY5MTA2LCJleHAiOjE2NjgzNzI3MDZ9.4lI1nCwMXmnc6cnKdCS57ehNGCkhYxYKNg27oQFOskE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 
 {
-    "name" : "climatizador"
+    "name" : "ar condicionado"
 }
 ###
 

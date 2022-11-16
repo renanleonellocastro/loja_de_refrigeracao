@@ -1,5 +1,44 @@
 const database = require('../database/postgres');
 
+exports.getSingleProduct = async (productid) => {
+    const query = 'SELECT * FROM products WHERE productid = $1;';
+    const result = await database.execute(query, [productid]);
+    let response = NaN;
+
+    if (result.length === 0) {
+        response = {found: false};
+    } else {
+        response = {
+            found: true,
+            productid: result.rows[0].productid,
+            name: result.rows[0].name,
+            price: result.rows[0].price,
+            description: result.rows[0].description,
+            state: result.rows[0].state,
+            quantity: result.rows[0].quantity,
+            categoryid: result.rows[0].fk_product_category
+        };
+    }
+    return response;
+}
+
+exports.updateSingleProduct = async (productid, name, price, description, state, quantity) => {
+    const query = 'UPDATE products SET name = $1, price = $2, description = $3, state = $4,\
+    quantity = $5 WHERE productid = $6 RETURNING *;';
+
+    const result = await database.execute(query, [name, price, description, state, quantity, productid]);
+
+    return {
+        message: 'Produto atualizado com sucesso',
+        productid: result.rows[0].productid,
+        name: result.rows[0].name,
+        price: result.rows[0].price,
+        description: result.rows[0].description,
+        state: result.rows[0].state,
+        quantity: result.rows[0].quantity
+    };
+}
+
 exports.getProducts = async (req, res, next) => {
     try {
         let name = req.query.name ? req.query.name : '';
@@ -28,6 +67,7 @@ exports.getProducts = async (req, res, next) => {
                     description: prod.description,
                     state: prod.state,
                     price: prod.price,
+                    quantity: prod.quantity,
                     categoryid: prod.fk_product_category
                 };
             })
@@ -40,10 +80,10 @@ exports.getProducts = async (req, res, next) => {
 
 exports.createProduct = async (req, res, next) => {
     try {
-        const query = 'INSERT INTO products (name, price, description, state, fk_product_category)\
-            VALUES ($1, $2, $3, $4, $5) RETURNING *;';
+        const query = 'INSERT INTO products (name, price, description, state, quantity, fk_product_category)\
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;';
         const result = await database.execute(query, [req.body.name, req.body.price,
-            req.body.description, req.body.state, req.body.categoryid]);
+            req.body.description, req.body.state, req.body.quantity, req.body.categoryid]);
 
         const response = {
             message: 'Produto inserido com sucesso',
@@ -52,6 +92,7 @@ exports.createProduct = async (req, res, next) => {
             price: result.rows[0].price,
             description: result.rows[0].description,
             state: result.rows[0].state,
+            quantity: result.rows[0].quantity,
             categoryid: result.rows[0].fk_product_category
         };
         return res.status(201).send(response);
@@ -62,22 +103,12 @@ exports.createProduct = async (req, res, next) => {
 
 exports.getProductDetail = async (req, res, next) => {
     try {
-        const query = 'SELECT * FROM products WHERE productid = $1;';
-        const result = await database.execute(query, [req.params.productid]);
+        const response = await getSingleProduct(req.params.productid);
 
-        if (result.length === 0) {
-            return res.status(404).send({
-                message: 'Não foi encontrado produto com este ID'
-            });
+        if (response.found === false) {
+            return res.status(404).send({message: 'Não foi encontrado produto com este ID'});
         }
-        const response = {
-            productid: result.rows[0].productid,
-            name: result.rows[0].name,
-            price: result.rows[0].price,
-            description: result.rows[0].description,
-            state: result.rows[0].state,
-            categoryid: result.rows[0].fk_product_category
-        };
+
         return res.status(200).send(response);
     } catch (error) {
         return res.status(500).send({ error: error });
@@ -86,20 +117,8 @@ exports.getProductDetail = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {
     try {
-        const query = 'UPDATE products SET name = $1, price = $2, description = $3, state = $4 \
-            WHERE productid = $5 RETURNING *;';
-
-        const result = await database.execute(query, [req.body.name, req.body.price,
-            req.body.description, req.body.state, req.params.productid]);
-
-        const response = {
-            message: 'Produto atualizado com sucesso',
-            productid: result.rows[0].productid,
-            name: result.rows[0].name,
-            price: result.rows[0].price,
-            description: result.rows[0].description,
-            state: result.rows[0].state,
-        };
+        const response = await this.updateSingleProduct(req.params.productid, req.body.name, req.body.price,
+             req.body.description, req.body.state, req.body.quantity); 
         return res.status(202).send(response);
     } catch (error) {
         return res.status(500).send({ error: error });
@@ -109,11 +128,11 @@ exports.updateProduct = async (req, res, next) => {
 exports.deleteProduct = async (req, res, next) => {
     try {
         const query = 'DELETE FROM products WHERE productid = $1 RETURNING *;';
-        await database.execute(query, [req.params.productid]);
+        const result = await database.execute(query, [req.params.productid]);
 
         const response = {
             message: 'Produto removido com sucesso',
-            name: res.rows[0].name
+            name: result.rows[0].name
         };
         return res.status(202).send(response);
     } catch (error) {
