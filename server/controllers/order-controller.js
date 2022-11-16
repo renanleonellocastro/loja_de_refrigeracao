@@ -1,6 +1,65 @@
 const database = require('../database/postgres');
 const orderlinesController = require('../controllers/orderline-controller');
+const productController = require('../controllers/product-controller');
 const orderState = require('../utils/order-state').orderState;
+
+async function getSingleOrder(orderid)
+{
+    const query = 'SELECT * FROM orders WHERE orderid = $1;';
+    const result_order = await database.execute(query, [orderid]);
+    const result_orderlines = await orderlinesController.getOrderlinesByOrderid(orderid);
+    
+    const response = {
+        orderid: result_order.rows[0].orderid,
+        userid: result_order.rows[0].userid,
+        creationdate: result_order.rows[0].creationdate,
+        laststatechangedate: result_order.rows[0].laststatechangedate,
+        state: result_order.rows[0].state,
+        orderlines: result_orderlines.orderlines
+    };
+
+    return response;
+}
+
+async function isProductAvailableInInventory(productid, desired_quantity)
+{
+    const product = await productController.getSingleProduct(productid);
+
+    if (product.found === true) {
+        if (product.quantity >= desired_quantity) {
+            return true;
+        }
+    }
+    return false;
+}
+
+async function areProductsAvailableInInventory(orderid)
+{
+    const result = await getSingleOrder(orderid);
+
+    for (let orderline in result.orderlines) {
+        if (!await isProductAvailableInInventory(result.orderlines[orderline].productid,
+            result.orderlines[orderline].quantity)) {
+            return false;
+        }
+    };
+
+    return true;
+}
+
+async function updateAvailableProductQuantityInInventory(orderid)
+{
+    const result = await getSingleOrder(orderid);
+
+    result.orderlines.forEach(async orderline => {
+        const product = await productController.getSingleProduct(orderline.productid);
+        let remaining_quantity = product.quantity - orderline.quantity;
+        await productController.updateSingleProduct(product.productid, product.name, product.price,
+            product.description, product.state, remaining_quantity);
+    });
+
+    return true;
+}
 
 exports.getOrders = async (req, res, next) => {
     try {
@@ -80,18 +139,7 @@ exports.createOrder = async (req, res, next) => {
 
 exports.getOrder = async (req, res, next) => {
     try {
-        const query = 'SELECT * FROM orders WHERE orderid = $1;';
-        const result_order = await database.execute(query, [req.params.orderid]);
-        const result_orderlines = await orderlinesController.getOrderlinesByOrderid(req.params.orderid);
-        
-        const response = {
-            orderid: result_order.rows[0].orderid,
-            userid: result_order.rows[0].userid,
-            creationdate: result_order.rows[0].creationdate,
-            laststatechangedate: result_order.rows[0].laststatechangedate,
-            state: result_order.rows[0].state,
-            orderlines: result_orderlines.orderlines
-        };
+        const response = await getSingleOrder(req.params.orderid);
         return res.status(200).send(response);
 
     } catch (error) {
@@ -137,7 +185,18 @@ exports.changeOrderState = async (req, res, next) => {
     try {
         const current_timestamp = Date.now()/1000;
         const query = 'UPDATE orders SET state = $1, laststatechangedate = to_timestamp($2) WHERE orderid = $3 RETURNING *;';
+
+        if (req.body.state === orderState.DONE) {
+            if (!await areProductsAvailableInInventory(req.params.orderid)) {
+                return res.status(500).send({ error: "Not enough itens on the inventory to release this order" });
+            }
+        }
+
         const result = await database.execute(query, [req.body.state, current_timestamp, req.params.orderid]);
+
+        if (req.body.state === orderState.DONE) {
+            await updateAvailableProductQuantityInInventory(req.params.orderid);
+        }
 
         const response = {
             message: 'Estado da order atualizado com sucesso',

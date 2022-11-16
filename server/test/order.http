@@ -1,7 +1,7 @@
 # Get orders
 GET http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 ###
 
 # Post order
@@ -20,36 +20,46 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 # Post order with two products
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 
 {
     "orderlines": [
         {
-            "productid": 5,
-            "quantity": 2
+            "productid": 2,
+            "quantity": 5
         },
         {
-            "productid": 2,
-            "quantity": 10
+            "productid": 7,
+            "quantity": 2
         }
     ]
 }
 ###
 
 # Change order state
-PATCH http://localhost:3000/orders/32
+PATCH http://localhost:3000/orders/1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
 
 {
     "state": "INPROG"
 }
 ###
 
-# Get order detail
-GET http://localhost:3000/orders/32
+# Change order state to DONE
+PATCH http://localhost:3000/orders/1
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+
+{
+    "state": "DONE"
+}
+###
+
+# Get order detail
+GET http://localhost:3000/orders/1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
 ###
 
 # Remove an order

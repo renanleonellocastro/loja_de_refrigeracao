@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS products (
     price FLOAT,
     description text,
     state VARCHAR(10) NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
     fk_product_category INT NOT NULL,
     FOREIGN KEY (fk_product_category) REFERENCES categories (categoryid)
 );
@@ -48,11 +49,4 @@ CREATE TABLE IF NOT EXISTS orderlines (
     quantity INT,
     FOREIGN KEY (productid) REFERENCES products (productid),
     FOREIGN KEY (orderid) REFERENCES orders (orderid)
-);
-
-CREATE TABLE IF NOT EXISTS inventory (
-    inventoryid INT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    productid INT NOT NULL,
-    quantity INT,
-    FOREIGN KEY (productid) REFERENCES products (productid)
 );
