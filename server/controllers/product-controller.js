@@ -1,4 +1,12 @@
+const fs = require('fs');
+const { promisify } = require('util');
+const unlinkAsync = promisify(fs.unlink);
 const database = require('../database/postgres');
+
+async function remove(filepath)
+{
+    await unlinkAsync(filepath);
+}
 
 exports.getSingleProduct = async (productid) => {
     const query = 'SELECT * FROM products WHERE productid = $1;';
@@ -103,7 +111,7 @@ exports.createProduct = async (req, res, next) => {
 
 exports.getProductDetail = async (req, res, next) => {
     try {
-        const response = await getSingleProduct(req.params.productid);
+        const response = await this.getSingleProduct(req.params.productid);
 
         if (response.found === false) {
             return res.status(404).send({message: 'Não foi encontrado produto com este ID'});
@@ -140,7 +148,28 @@ exports.deleteProduct = async (req, res, next) => {
     }
 };
 
-exports.postImage = async (req, res, next) => {
+exports.getImages = async (req, res, next) => {
+    try {
+        const query  = "SELECT * FROM productImages WHERE productid = $1;";
+        const result = await database.execute(query, [req.params.productid]);
+        const response = {
+            images: result.rows.map(img => {
+                return {
+                    imageid: img.imageid,
+                    productid: img.productid,
+                    imageId: img.imageId,
+                    path: img.path,
+                    url: process.env.URL_API + img.path
+                };
+            })
+        };
+        return res.status(200).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.uploadImage = async (req, res, next) => {
     try {
         const query = 'INSERT INTO productImages (productid, path) VALUES ($1, $2) RETURNING *;';
         const result = await database.execute(query, [req.params.productid, req.file.path]);
@@ -156,20 +185,13 @@ exports.postImage = async (req, res, next) => {
     }
 };
 
-exports.getImages = async (req, res, next) => {
+exports.deleteImage = async (req, res, next) => {
     try {
-        const query  = "SELECT * FROM productImages WHERE productid = $1;";
-        const result = await database.execute(query, [req.params.productid]);
-        const response = {
-            images: result.rows.map(img => {
-                return {
-                    productid: img.productid,
-                    imageId: img.imageId,
-                    path: process.env.URL_API + img.path
-                };
-            })
-        };
-        return res.status(200).send(response);
+        const query = 'DELETE FROM productImages WHERE imageid = $1 RETURNING *;';
+        const result = await database.execute(query, [req.params.imageid]);
+        const response = {message: 'Imagem removida com sucesso'};
+        await remove(result.rows[0].path);
+        return res.status(202).send(response);
     } catch (error) {
         return res.status(500).send({ error: error });
     }
