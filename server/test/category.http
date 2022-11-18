@@ -13,11 +13,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 }
 ###
 
+# Inclui uma nova categoria
+POST http://localhost:3000/categories
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
+
+{
+    "name" : "bebedouro"
+}
+###
+
 # Remove uma categoria
 DELETE http://localhost:3000/categories
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4MzY5MTA2LCJleHAiOjE2NjgzNzI3MDZ9.4lI1nCwMXmnc6cnKdCS57ehNGCkhYxYKNg27oQFOskE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
-    "id" : 2
+    "id" : 3
 }

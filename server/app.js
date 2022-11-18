@@ -8,13 +8,12 @@ const productRoute = require('./routes/product-route');
 const categoryRoute = require('./routes/category-route');
 const orderRoute = require('./routes/order-route');
 const userRoute = require('./routes/user-route');
-const imageRoute  = require('./routes/image-route');
 
 app.use(cors());
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
-app.use(bodyParser.urlencoded({ extended: false }));  // apenas dados simples
-app.use(bodyParser.json()); // json de entrada no body
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -31,11 +30,9 @@ app.use('/products', productRoute);
 app.use('/categories', categoryRoute);
 app.use('/orders', orderRoute);
 app.use('/users', userRoute);
-app.use('/images', imageRoute);
 
-// Tratamento de erro
 app.use((req, res, next) => {
-    const erro = new Error('Não encontrado');
+    const erro = new Error('Error not found');
     erro.status = 404;
     next(erro);
 });

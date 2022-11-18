@@ -1,7 +1,7 @@
 # Cadastra um Gerente
 POST http://localhost:3000/users/manager
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjU1NDg0OTMzLCJleHAiOjE2NTU0ODg1MzN9.5HG2VI2xr_U08Lx4O0oGKnNKkDSOrfIZCRgWqoCbl7o
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
     "cpf" : "12312312312",
@@ -18,7 +18,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtY
 # Cadastra um Colaborador
 POST http://localhost:3000/users/employee
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlbWFpbCI6ImdlcmVudGVAZ21haWwuY29tIiwiY3BmIjoiMTIzMTIzMTIzMTIiLCJyb2xlIjoyLCJpYXQiOjE2NTU0ODQ5NjAsImV4cCI6MTY1NTQ4ODU2MH0.xnxNGK_KR9Uo8pcV8jnlEFd9tPLjKIiJOfj3EeXBeSo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
     "cpf" : "98798798798",
@@ -95,18 +95,18 @@ Content-Type: application/json
 # Obtém todos os clientes
 GET http://localhost:3000/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 ###
 
 # Deleta um cliente
 DELETE http://localhost:3000/users
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
-    "email" : "apagar@gmail.com",
-    "cpf" : "11122211122"
+    "cpf" : "32132132132",
+    "email" : "cliente@gmail.com"
 }
 
 ###
@@ -114,7 +114,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtY
 # Deleta um colaborador
 DELETE http://localhost:3000/users/employee
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYxNjQ5NDM3LCJleHAiOjE2NjE2NTMwMzd9.iIq5gGpG04R4X5_us7I6fCuw9N1rzsyt6euGyzXTsjo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
     "email" : "apagar@gmail.com",
@@ -126,7 +126,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtY
 # Deleta um gerente
 DELETE http://localhost:3000/users/manager
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjYyNTk0Njk5LCJleHAiOjE2NjI1OTgyOTl9.74csMs2cGuyHPiyPduifv_giSQgKFoF-_IHCTGmiPY0
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
 
 {
     "email" : "apagar@gmail.com",

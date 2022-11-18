@@ -36,7 +36,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 # Altera quantidade de geladeira para 10
 PATCH http://localhost:3000/products/2
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4Nzk5NzIzLCJleHAiOjE2Njg4MDMzMjN9.kQAVMVEdUPOOJ6ahP16EAjRQgCrSSZoV_UBWDpYboWM
 
 {
     "name" : "Geladeira Brastemp",
@@ -65,7 +65,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 # Altera quantidade de ar condicionado para 3
 PATCH http://localhost:3000/products/7
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjQwMjQwLCJleHAiOjE2Njg2NDM4NDB9.-yGPO-vWRAyPqcUnDRqQU9ijVGT9F1m9IHeYzecrJy8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4Nzk5NzIzLCJleHAiOjE2Njg4MDMzMjN9.kQAVMVEdUPOOJ6ahP16EAjRQgCrSSZoV_UBWDpYboWM
 
 {
     "name" : "Ar condicionado Spring Carrier",
@@ -92,14 +92,33 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyLCJlb
 # Remove um produto
 DELETE http://localhost:3000/products/3
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzA5NzQ5LCJleHAiOjE2Njg3MTMzNDl9.lZQdKqp5cZJh4Nh5SDkwqaDC8eZeaVEpy2p-WBUtXRs
+###
+
+# Retorna todas as imagens da geladeira
+GET http://localhost:3000/products/2/image
+Content-Type: application/json
 ###
 
 # Insere uma imagem
-POST http://localhost:3000/produtos
-Content-Type: multipart/form-data;
-Content-Disposition: form-data; nome="caneta"; preco="10.99; "
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c3VhcmlvIjoyMiwiZW1haWwiOiJmZXJuYW5kby5tYXJhbnNhdHRvQGdtYWlsLmNvbSIsImlhdCI6MTU5NDg0Mzg2MiwiZXhwIjoxNTk0ODQ3NDYyfQ.KSSKiAfIfCpBWWA-j_dL40c-t2YY1yk2wKIq8mGfQJU
+POST http://localhost:3000/products/2/image
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NzI1NjYwLCJleHAiOjE2Njg3MjkyNjB9.2nwE1qVp4aHEM0-DPruCtXSDLppBrUUiRjivMGT8TXE
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-< /Users/teste/Pictures/caneta-vermelha.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="text"
+
+title
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="geladeira.jpg"
+Content-Type: image/jpeg
+
+< ../../imagens/geladeira.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+###
+
+# Remove uma imagem
+DELETE http://localhost:3000/products/2/image/4
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODAwMjQyLCJleHAiOjE2Njg4MDM4NDJ9.UEfRdCgdLD2Jb6s01N07hHWEYlT9yVraEcrGg_IV_7w
 ###

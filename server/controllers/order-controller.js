@@ -185,6 +185,11 @@ exports.changeOrderState = async (req, res, next) => {
     try {
         const current_timestamp = Date.now()/1000;
         const query = 'UPDATE orders SET state = $1, laststatechangedate = to_timestamp($2) WHERE orderid = $3 RETURNING *;';
+        const order = await getSingleOrder(req.params.orderid);
+
+        if ((order.state === orderState.CANCELED) || (order.state === orderState.DONE)) {
+            return res.status(500).send({ error: "Pedido já está cancelado ou pronto." });
+        }
 
         if (req.body.state === orderState.DONE) {
             if (!await areProductsAvailableInInventory(req.params.orderid)) {
