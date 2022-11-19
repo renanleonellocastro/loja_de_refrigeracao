@@ -85,8 +85,9 @@ exports.getOrders = async (req, res, next) => {
 
 exports.getOrdersByUser = async (req, res, next) => {
     try {
+        const userid = req.body.userid && req.user['role'] <= 2 ? req.body.userid : req.user['userId'];
         const query = "SELECT * from orders where userid = $1;"
-        const result = await database.execute(query, req.body.userid);
+        const result = await database.execute(query, [userid]);
         const response = {
             orders: result.rows.map(order => {
                 return {
@@ -107,8 +108,9 @@ exports.getOrdersByUser = async (req, res, next) => {
 
 exports.createOrder = async (req, res, next) => {
     try {
+        const userid = req.body.userid && req.user['role'] <= 2 ? req.body.userid : req.user['userId'];
         const query  = 'INSERT INTO orders (userid, state) VALUES ($1, $2) RETURNING *;';
-        const result = await database.execute(query, [req.user['userId'], orderState.NEW]);
+        const result = await database.execute(query, [userid, orderState.NEW]);
 
         let orderline_responses = await Promise.all(req.body.orderlines.map(async line => {
             return await orderlinesController.createOrderline(result.rows[0].orderid, line.productid, line.quantity);

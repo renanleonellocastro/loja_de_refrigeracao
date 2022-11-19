@@ -73,7 +73,8 @@ exports.getUsers = async (req, res, next) => {
                     city: user.city,
                     phone: user.phone,
                     email: user.email,
-                    address: user.address
+                    address: user.address,
+                    role: user.role
                 };
             })
         };
