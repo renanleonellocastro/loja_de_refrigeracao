@@ -1,13 +1,13 @@
 # Get orders
 GET http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4Nzk5NzIzLCJleHAiOjE2Njg4MDMzMjN9.kQAVMVEdUPOOJ6ahP16EAjRQgCrSSZoV_UBWDpYboWM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODk4NTYwLCJleHAiOjE2Njg5MDIxNjB9.ZCrZc34EBhnlI1ix5_N8v8oxSuJ3JoSJHWuWiLAhKuA
 ###
 
 # Post order
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTM4NDEyLCJleHAiOjE2Njg1NDIwMTJ9.GMNulIXKopYGSItD4mSRUOEpIeP0eWl8IRuf-SMr-2A
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODk3NTI4LCJleHAiOjE2Njg5MDExMjh9.GI8Tk5jcJllR-wnTrEn0lvcWeGD03mv3RH8vv8YFAkQ
 
 {
     "orderlines": [{
@@ -20,9 +20,29 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 # Post order with two products
 POST http://localhost:3000/orders
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NjM1MzkwLCJleHAiOjE2Njg2Mzg5OTB9.O_cFneEk2LAQnJRoboQTcGuZWG_4vsmXxh_VFk4cKgc
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODk3NTI4LCJleHAiOjE2Njg5MDExMjh9.GI8Tk5jcJllR-wnTrEn0lvcWeGD03mv3RH8vv8YFAkQ
 
 {
+    "orderlines": [
+        {
+            "productid": 2,
+            "quantity": 5
+        },
+        {
+            "productid": 7,
+            "quantity": 2
+        }
+    ]
+}
+###
+
+# Post order with two products for other user
+POST http://localhost:3000/orders
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODk3NTI4LCJleHAiOjE2Njg5MDExMjh9.GI8Tk5jcJllR-wnTrEn0lvcWeGD03mv3RH8vv8YFAkQ
+
+{
+    "userid": 5,
     "orderlines": [
         {
             "productid": 2,
@@ -66,4 +86,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtY
 DELETE http://localhost:3000/orders/31
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4NTQyNzU5LCJleHAiOjE2Njg1NDYzNTl9.dyGkFgpn7FqiLDtWBMmaniCeAqNftIya3pP-gz4ZbzU
+###
+
+# Get orders by client user
+GET http://localhost:3000/orders/user/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsImVtYWlsIjoiY2xpZW50ZUBnbWFpbC5jb20iLCJjcGYiOiIzMjEzMjEzMjEzMiIsInJvbGUiOjQsImlhdCI6MTY2ODg5OTcwMCwiZXhwIjoxNjY4OTAzMzAwfQ.vnyRfqxYmLX00Uxjh4L-e0xihK6oPk4JKEpRzIRUPOc
 ###
