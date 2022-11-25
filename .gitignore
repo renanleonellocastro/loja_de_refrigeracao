@@ -1,4 +1,7 @@
 server/node_modules/
 server/nodemon.json
 server/package-lock.json
+server/uploads/*
+server/.vscode/*
 client/package-lock.json
+client/.vscode/*
