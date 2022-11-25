@@ -8,6 +8,7 @@
     "backend": "json-server --watch db/db.json"
   },
   "dependencies": {
+    "axios": "^1.2.0",
     "core-js": "^3.6.5",
     "json-server": "^0.17.0",
     "vue": "^3.0.0",
