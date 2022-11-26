@@ -1,5 +1,5 @@
 <template>
-  <div id="product-item">
+  <div id="product-item" v-bind:style="{opacity: opacity}">
     <div id="product-item-exclude">
       <img class="product-image" :src="image_url">
       <button v-if="$root.loginRole <= managerRole" class="exclude-button" @click="deleteProduct()">
@@ -8,7 +8,8 @@
     </div>
     <h2>{{ name }}</h2>
     <h3>{{ price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</h3>
-    <button @click="addToOrder()">Adicionar ao pedido</button>
+    <button v-if="quantity != 0" @click="addToOrder()">Adicionar ao pedido</button>
+    <p v-if="quantity === 0">Não disponível</p>
     <confirm-dialogue ref="confirmDialogue"></confirm-dialogue>
   </div>
 
@@ -17,18 +18,21 @@
 <script>
 import roles from '../utils/roles'
 import ConfirmDialogue from '../components/ConfirmationDialogue.vue'
+import ProductForm from './ProductForm.vue';
 
 export default {
   name: "ProductItem",
   props: {
       id: Number,
       name: String,
-      price: Number
+      price: Number,
+      quantity: Number
   },
   data() {
       return {
         managerRole: roles.roles.MANAGER,
-        image_url: ''
+        image_url: '',
+        opacity: 1
       }
   },
   methods: {
@@ -85,10 +89,16 @@ export default {
           alert(`Error: ${error}`);
         }
       }
+    },
+    checkIfItemIsAvailableAndSetOpacity() {
+      if (this.quantity === 0) {
+        this.opacity = 0.5;
+      }
     }
   },
   async mounted()
   {
+    this.checkIfItemIsAvailableAndSetOpacity();
     await this.getImageUrl();
   },
   components: {
