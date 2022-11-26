@@ -8,6 +8,71 @@ async function remove(filepath)
     await unlinkAsync(filepath);
 }
 
+getAllProductImages = async (productid) => {
+    const query  = "SELECT * FROM productImages WHERE productid = $1;";
+    const result = await database.execute(query, [productid]);
+    const response = {
+        images: result.rows.map(img => {
+            return {
+                imageid: img.imageid,
+                productid: img.productid,
+                path: img.path,
+                url: process.env.URL_API + img.path
+            };
+        })
+    };
+    return response;
+};
+
+deleteSingleProductImage = async (imageid) => {
+    const query = 'DELETE FROM productImages WHERE imageid = $1 RETURNING *;';
+    const result = await database.execute(query, [imageid]);
+    const response = {message: 'Imagem removida com sucesso'};
+    await remove(result.rows[0].path);
+    return response;
+};
+
+deleteAllProductImages = async (productid) => {
+    const productImages = await getAllProductImages(productid);
+    for (var i = 0; i < productImages.images.length; i++) {
+        await deleteSingleProductImage(productImages.images[i].imageid);
+    }
+};
+
+exports.getImages = async (req, res, next) => {
+    try {
+        const response = await getAllProductImages(req.params.productid);
+        return res.status(200).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.uploadImage = async (req, res, next) => {
+    try {
+        const query = 'INSERT INTO productImages (productid, path) VALUES ($1, $2) RETURNING *;';
+        const result = await database.execute(query, [req.params.productid, req.file.path]);
+
+        const response = {
+            message: 'Imagem inserida com sucesso',
+            productid: result.rows[0].productid,
+            path: result.rows[0].path
+        };
+        return res.status(201).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
+exports.deleteImage = async (req, res, next) => {
+    try {
+        const response = await deleteSingleProductImage(req.params.imageid);
+        return res.status(202).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
 exports.getSingleProduct = async (productid) => {
     const query = 'SELECT * FROM products WHERE productid = $1;';
     const result = await database.execute(query, [productid]);
@@ -135,6 +200,7 @@ exports.updateProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
     try {
+        await deleteAllProductImages(req.params.productid);
         const query = 'DELETE FROM products WHERE productid = $1 RETURNING *;';
         const result = await database.execute(query, [req.params.productid]);
 
@@ -142,55 +208,6 @@ exports.deleteProduct = async (req, res, next) => {
             message: 'Produto removido com sucesso',
             name: result.rows[0].name
         };
-        return res.status(202).send(response);
-    } catch (error) {
-        return res.status(500).send({ error: error });
-    }
-};
-
-exports.getImages = async (req, res, next) => {
-    try {
-        const query  = "SELECT * FROM productImages WHERE productid = $1;";
-        const result = await database.execute(query, [req.params.productid]);
-        const response = {
-            images: result.rows.map(img => {
-                return {
-                    imageid: img.imageid,
-                    productid: img.productid,
-                    imageId: img.imageId,
-                    path: img.path,
-                    url: process.env.URL_API + img.path
-                };
-            })
-        };
-        return res.status(200).send(response);
-    } catch (error) {
-        return res.status(500).send({ error: error });
-    }
-};
-
-exports.uploadImage = async (req, res, next) => {
-    try {
-        const query = 'INSERT INTO productImages (productid, path) VALUES ($1, $2) RETURNING *;';
-        const result = await database.execute(query, [req.params.productid, req.file.path]);
-
-        const response = {
-            message: 'Imagem inserida com sucesso',
-            productid: result.rows[0].productid,
-            path: result.rows[0].path
-        };
-        return res.status(201).send(response);
-    } catch (error) {
-        return res.status(500).send({ error: error });
-    }
-};
-
-exports.deleteImage = async (req, res, next) => {
-    try {
-        const query = 'DELETE FROM productImages WHERE imageid = $1 RETURNING *;';
-        const result = await database.execute(query, [req.params.imageid]);
-        const response = {message: 'Imagem removida com sucesso'};
-        await remove(result.rows[0].path);
         return res.status(202).send(response);
     } catch (error) {
         return res.status(500).send({ error: error });

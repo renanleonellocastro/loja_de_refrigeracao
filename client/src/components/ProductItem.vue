@@ -1,14 +1,23 @@
 <template>
   <div id="product-item">
-    <img :src="image_url" alt="/img/loading.jpg">
+    <div id="product-item-exclude">
+      <img class="product-image" :src="image_url">
+      <button v-if="$root.loginRole <= managerRole" class="exclude-button" @click="deleteProduct()">
+        <img class="exclude-image" src="../../public/img/exclude_button.png"/>
+      </button>
+    </div>
     <h2>{{ name }}</h2>
     <h3>{{ price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</h3>
     <button @click="addToOrder()">Adicionar ao pedido</button>
+    <confirm-dialogue ref="confirmDialogue"></confirm-dialogue>
   </div>
 
 </template>
 
 <script>
+import roles from '../utils/roles'
+import ConfirmDialogue from '../components/ConfirmationDialogue.vue'
+
 export default {
   name: "ProductItem",
   props: {
@@ -18,6 +27,7 @@ export default {
   },
   data() {
       return {
+        managerRole: roles.roles.MANAGER,
         image_url: ''
       }
   },
@@ -49,11 +59,40 @@ export default {
       } catch (error) {
         console.log(`Error: ${error}`);
       }
+    },
+    async deleteProduct()
+    {
+      const ok = await this.$refs.confirmDialogue.show({
+        title: 'Remover produto ' + this.id,
+        message: 'Você tem certeza que deseja remover o produto ' + this.name + '?',
+        okButton: 'Sim',
+        cancelButton: "Cancelar"
+      })
+
+      if (ok) {
+        try {
+          const req = await fetch("http://localhost:3000/products/" + this.id, {
+            method: "DELETE",
+            headers: {"Content-Type" : "application/json", 'Authorization': 'Bearer ' + this.$root.loginToken}
+          });
+
+          if (!req.ok) {
+            throw new Error(`Error! status: ${req.status}`);
+          }
+
+          this.$emit('updateProducts');
+        } catch (error) {
+          alert(`Error: ${error}`);
+        }
+      }
     }
   },
   async mounted()
   {
     await this.getImageUrl();
+  },
+  components: {
+    ConfirmDialogue
   }
 }
 </script>
@@ -77,7 +116,7 @@ export default {
 }
 #product-item img {
   max-width: 100px;
-  max-height: 100px;
+  max-height: 200px;
 }
 #product-item h1 {
   font-family: 'Patrick Hand', cursive;
@@ -94,6 +133,27 @@ export default {
 #product-item button:hover {
   filter: brightness(1.1);
   cursor: pointer;
+}
+#product-item #product-item-exclude {
+  width: 100%;
+  position: relative;
+}
+#product-item #product-item-exclude .product-image {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+#product-item #product-item-exclude .exclude-button {
+  position: absolute;
+  top: -30px;
+  right: -40px;
+  padding: 0px 0px;
+  border: transparent;
+  border-radius: 20px;
+}
+#product-item #product-item-exclude .exclude-button .exclude-image {
+  max-width: 50px;
+  max-height: 50px;
 }
 #product-item .fade-in {
   animation: fadeIn ease 500ms;
