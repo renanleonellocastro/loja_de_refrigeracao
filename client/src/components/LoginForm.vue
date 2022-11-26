@@ -8,7 +8,7 @@
       </div>
       <div class="input-container">
         <label for="password">Senha:</label>
-        <input type="text" id="password" name="password" v-model="password" placeholder="Ex.: ***********">
+        <input type="password" id="password" name="password" v-model="password" placeholder="Ex.: ***********">
       </div>
       <div class="input-container">
         <input class="submit-btn" type="submit" value="Login">

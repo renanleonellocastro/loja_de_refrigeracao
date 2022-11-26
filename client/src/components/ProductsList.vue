@@ -1,6 +1,7 @@
 <template>
   <div id="product-list" v-if="products !== null">
-    <ProductItem v-on:updateProducts="getProducts" v-for="product in products" :id="product.productid" :name="product.name" :price="product.price"/>
+    <ProductItem v-on:updateProducts="getProducts" v-for="product in products" :id="product.productid"
+      :name="product.name" :price="product.price" :quantity="product.quantity"/>
   </div>
   <div v-else>
     <h2>Não há produtos no momento!</h2>
