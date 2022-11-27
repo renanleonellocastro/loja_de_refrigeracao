@@ -51,6 +51,7 @@
 <script>
 import axios from 'axios';
 import Message from './Message'
+import * as common from '../utils/common';
 
 export default {
   name: "ProductForm",
@@ -82,6 +83,7 @@ export default {
         });
 
         if (!req.ok) {
+          common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
           throw new Error(`Error! status: ${req.status}`);
         }
 
@@ -108,6 +110,7 @@ export default {
           });
 
           if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
             throw new Error(`Error! status: ${req.status}`);
           }
 

@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import * as common from '../utils/common'
 import Message from './Message'
 import router from '@/router'
 
@@ -56,9 +57,7 @@ export default {
         }
 
         const res = await req.json();
-        this.$root.setName(res.name.split(' ')[0]);
-        this.$root.setRole(res.role);
-        this.$root.setToken(res.token);
+        common.login(this, res.name.split(' ')[0], res.token, res.role);
         this.clearLocalVariables();
         router.push('/');
 

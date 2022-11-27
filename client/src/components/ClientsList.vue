@@ -28,6 +28,8 @@
   </div>
 </template>
 <script>
+  import * as common from '../utils/common';
+
   export default {
     name: "ClientsList",
     data() {
@@ -45,6 +47,7 @@
           });
 
           if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
             throw new Error(`Error! status: ${req.status}`);
           }
 

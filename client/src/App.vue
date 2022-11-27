@@ -36,6 +36,18 @@ export default {
     {
       this.loginRole = role;
       localStorage.role = this.loginRole;
+    },
+    getName()
+    {
+      return this.loginName;
+    },
+    getToken()
+    {
+      return this.loginToken;
+    },
+    getRole()
+    {
+      return this.loginRole;
     }
   },
   components: {

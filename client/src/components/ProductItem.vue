@@ -17,8 +17,8 @@
 
 <script>
 import roles from '../utils/roles'
+import * as common from '../utils/common';
 import ConfirmDialogue from '../components/ConfirmationDialogue.vue'
-import ProductForm from './ProductForm.vue';
 
 export default {
   name: "ProductItem",
@@ -54,6 +54,7 @@ export default {
         });
 
         if (!req.ok) {
+          common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
           throw new Error(`Error! status: ${req.status}`);
         }
 
@@ -81,6 +82,7 @@ export default {
           });
 
           if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
             throw new Error(`Error! status: ${req.status}`);
           }
 

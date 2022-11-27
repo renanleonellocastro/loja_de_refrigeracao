@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import * as common from '../utils/common';
 import Message from './Message'
 
 export default {
@@ -66,6 +67,7 @@ export default {
           });
 
           if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
             throw new Error(`Error! status: ${req.status}`);
           }
 

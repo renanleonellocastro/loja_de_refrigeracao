@@ -16,7 +16,8 @@
 </template>
 
 <script>
-import roles from '../utils/roles'
+import * as common from '../utils/common';
+import roles from '../utils/roles';
 
 export default {
   name: "Navbar",
@@ -27,9 +28,7 @@ export default {
   methods: {
     logout()
     {
-      this.$root.setName('');
-      this.$root.setToken('');
-      this.$root.setRole(999);
+      common.logout(this);
     }
   }
 };
