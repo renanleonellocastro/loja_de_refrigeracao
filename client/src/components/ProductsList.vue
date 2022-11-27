@@ -9,6 +9,7 @@
 </template>
 <script>
 import ProductItem from './ProductItem'
+import * as common from '../utils/common';
 
 export default {
   name: "ProductsList",
@@ -27,6 +28,7 @@ export default {
         });
 
         if (!req.ok) {
+          common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
           throw new Error(`Error! status: ${req.status}`);
         }
 
@@ -66,5 +68,4 @@ export default {
     margin-bottom: 20px;
   }
 }
-
 </style>
