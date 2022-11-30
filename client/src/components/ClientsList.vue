@@ -10,30 +10,33 @@
       </div>
     </div>
     <div id="client-table-rows">
-      <div class="client-table-row" v-for="client in clients" :key="client.userid">
+      <div class="client-table-row" v-for="client in clients" :key="client.userid" @click="updateClient(client.userid)">
         <div>{{ client.name }}</div>
         <div>{{ client.email }}</div>
         <div>{{ client.phone }}</div>
         <div>{{ client.address }}</div>
         <div>{{ client.city }}</div>
-        <div id="update-delete-buttons">
-          <button class="update-btn" @click="updateClient(client.cpf)">Editar</button>
-          <button class="delete-btn" @click="deleteClient(client.id)">Remover</button>
-        </div>
+        <button v-if="$root.loginRole <= managerRole" class="exclude-button" @click.stop.prevent="deleteClient(client.email, client.cpf)">
+          <img class="exclude-image" src="../../public/img/exclude_button.png"/>
+        </button>
       </div>
     </div>
   </div>
   <div v-else>
     <h2>Não há clientes no momento!</h2>
   </div>
+  <confirm-dialogue ref="confirmDialogue"></confirm-dialogue>
 </template>
 <script>
+  import roles from '../utils/roles';
   import * as common from '../utils/common';
+  import ConfirmDialogue from '../components/ConfirmationDialogue.vue';
 
   export default {
     name: "ClientsList",
     data() {
       return {
+        managerRole: roles.roles.MANAGER,
         clients: null
       }
     },
@@ -58,29 +61,44 @@
           console.log(`Error: ${error}`);
         }
       },
-      async deleteClient(cpf)
+      async deleteClient(email, cpf)
       {
         try {
-          const req = await fetch(`http://localhost:3000/users/${cpf}`, {
+          const ok = await this.$refs.confirmDialogue.show({
+            title: 'Remover cliente ' + email,
+            message: 'Você tem certeza que deseja remover o cliente ' + email + '?',
+            okButton: 'Sim',
+            cancelButton: "Cancelar"
+          });
+
+        if (ok) {
+          const dataJson = JSON.stringify({ email: email, cpf: cpf });
+          const req = await fetch(`http://localhost:3000/users`, {
             method: "DELETE",
-            headers: { "Content-Type" : "application/json" }
+            headers: { "Content-Type" : "application/json", 'Authorization': 'Bearer ' + this.$root.loginToken },
+            body: dataJson
           });
 
           if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
             throw new Error(`Error! status: ${req.status}`);
           }
 
           const res = await req.json();
           this.getClients();
+        }
 
         } catch (error) {
           console.log(`Error: ${error}`);
         }
       },
-      async updateClient(event, cpf)
+      async updateClient(user_id)
       {
-        console.log("Not implemented yet!")
+        this.$router.push({path: "/clientdetails/" + user_id});
       }
+    },
+    components: {
+      ConfirmDialogue
     },
     async mounted()
     {
@@ -123,21 +141,24 @@
     padding: 12px;
     border-bottom: 3px solid #333;
   }
-
   .client-table-row
   {
     width: 100%;
     padding: 12px;
     border-bottom: 1px solid #CCC;
+    cursor: pointer;
+    transition: .5s;
   }
-
+  .client-table-row:hover, .client-table-row:hover .child
+  {
+    background-color: #fcba03;
+  }
   #client-table-heading div,
   .client-table-row div
   {
+    line-height: 40px;
     width: 19%;
   }
-
-  .delete-btn,
   .update-btn
   {
     margin-right: 5px;
@@ -151,12 +172,19 @@
     transition: .5s;
     flex-grow: 1;
   }
-  
-  .delete-btn:hover,
-  .update-btn:hover
-  {
-    background-color: transparent;
-    color: #222;
-  }
-  
+ .exclude-button {
+  margin-right: 5px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: .5s;
+  flex-grow: 1;
+  border: transparent;
+  border-radius: 20px;
+  /*background-color: transparent;*/
+}
+.exclude-button .exclude-image {
+  max-width: 50px;
+  max-height: 50px;
+}
 </style>

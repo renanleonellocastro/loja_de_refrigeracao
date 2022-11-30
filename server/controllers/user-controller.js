@@ -28,6 +28,21 @@ var createUser = async (req, res, next) => {
     }
 };
 
+var updateUser = async (id, name, email, phone, address, city) => {
+    const query = 'UPDATE users SET name = $1, email = $2, phone = $3, address = $4,\
+    city = $5 WHERE userid = $6 RETURNING *;';
+    const result = await database.execute(query, [name, email, phone, address, city, id]);
+
+    const response = {
+        name: result.rows[0].name,
+        email: result.rows[0].email,
+        phone: result.rows[0].phone,
+        address: result.rows[0].address,
+        city: result.rows[0].city
+    }
+    return response;
+};
+
 var deleteUser = async (req, res, next) => {
     try {
         const cpf = req.body.cpf;
@@ -84,6 +99,31 @@ exports.getUsers = async (req, res, next) => {
     }
 };
 
+exports.getUserDetails = async (req, res, next) => {
+    try {
+        if ((req.params.id !== String(req.user['userId'])) && (req.user['role'] > 2)) {
+            return res.status(401).send({ mensagem: 'Usuário não autorizado' });
+        }
+
+        let query = 'SELECT * FROM users where userid = $1;';
+        let result = await database.execute(query, [req.params.id]);
+
+        const response = {
+            userid: result.rows[0].userid,
+            cpf: result.rows[0].cpf,
+            name: result.rows[0].name,
+            city: result.rows[0].city,
+            phone: result.rows[0].phone,
+            email: result.rows[0].email,
+            address: result.rows[0].address
+        };
+
+        return res.status(200).send(response);
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
+};
+
 exports.createClient = async (req, res, next) => {
     req.role = roles.CLIENT;
     return await createUser(req, res, next);
@@ -97,6 +137,19 @@ exports.createEmployee = async (req, res, next) => {
 exports.createManager = async (req, res, next) => {
     req.role = roles.MANAGER;
     return await createUser(req, res, next);
+};
+
+exports.updateUser = async (req, res, next) => {
+    try {
+        if ((req.params.id !== String(req.user['userId'])) && (req.user['role'] > 2)) {
+            return res.status(401).send({ mensagem: 'Usuário não autorizado' });
+        }
+        const response = await updateUser(req.params.id, req.body.name, req.body.email, req.body.phone, req.body.address, req.body.city);
+        return res.status(201).send(response);
+
+    } catch (error) {
+        return res.status(500).send({ error: error });
+    }
 };
 
 exports.deleteClient = async (req, res, next) => {
@@ -143,6 +196,7 @@ exports.Login = async (req, res, next) => {
             );
             return res.status(200).send({
                 message: 'Autenticado com sucesso',
+                userid: results.rows[0].userid,
                 name: results.rows[0].name,
                 role: results.rows[0].role,
                 token: token

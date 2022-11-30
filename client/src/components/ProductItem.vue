@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import roles from '../utils/roles'
+import roles from '../utils/roles';
 import * as common from '../utils/common';
-import ConfirmDialogue from '../components/ConfirmationDialogue.vue'
+import ConfirmDialogue from '../components/ConfirmationDialogue.vue';
 
 export default {
   name: "ProductItem",
