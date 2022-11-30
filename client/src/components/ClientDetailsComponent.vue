@@ -122,7 +122,7 @@
         this.new_city = this.current_city;
         this.new_phone = this.current_phone;
       },
-      async updateClient(event, cpf)
+      async updateClient()
       {
         const data = { name: this.new_name, email: this.new_email, phone: this.new_phone, address: this.new_address,
         city: this.new_city };

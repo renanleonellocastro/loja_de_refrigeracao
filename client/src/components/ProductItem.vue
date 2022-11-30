@@ -1,5 +1,5 @@
 <template>
-  <div id="product-item" v-bind:style="{opacity: opacity}">
+  <div id="product-item" v-bind:style="{opacity: opacity}" @click="showProductDetails()">
     <div id="product-item-exclude">
       <img class="product-image" :src="image_url">
       <button v-if="$root.loginRole <= managerRole" class="exclude-button" @click="deleteProduct()">
@@ -8,7 +8,7 @@
     </div>
     <h2>{{ name }}</h2>
     <h3>{{ price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</h3>
-    <button v-if="quantity != 0" @click="addToOrder()">Adicionar ao pedido</button>
+    <button v-if="quantity != 0" @click.stop.prevent="addToOrder()">Adicionar ao pedido</button>
     <p v-if="quantity === 0">Não disponível</p>
     <confirm-dialogue ref="confirmDialogue"></confirm-dialogue>
   </div>
@@ -96,6 +96,9 @@ export default {
       if (this.quantity === 0) {
         this.opacity = 0.5;
       }
+    },
+    showProductDetails() {
+      this.$router.push({path: "/productdetails/" + this.id});
     }
   },
   async mounted()
@@ -121,6 +124,8 @@ export default {
   background-color: #f1f1f1;
   border-radius: 15px;
   box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+  cursor: pointer;
+  transition: .5s;
 }
 #product-item h2,h3 {
   font-family: 'Noto Sans', sans-serif;
@@ -173,6 +178,10 @@ export default {
   -moz-animation: fadeIn ease 500ms;
   -o-animation: fadeIn ease 500ms;
   -ms-animation: fadeIn ease 500ms;
+}
+#product-item:hover, #product-item:hover .child
+{
+    background-color: #fcba03;
 }
 
 @keyframes fadeIn {

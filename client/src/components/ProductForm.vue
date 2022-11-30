@@ -77,17 +77,7 @@ export default {
     async getCategories()
     {
       try {
-        const req = await fetch("http://localhost:3000/categories", {
-          method: "GET",
-          headers: { "Content-Type" : "application/json" }
-        });
-
-        if (!req.ok) {
-          common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
-          throw new Error(`Error! status: ${req.status}`);
-        }
-
-        const res = await req.json();
+        const res = await common.getCategories(this);
         this.categories = res.categories;
 
       } catch (error) {
