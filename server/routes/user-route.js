@@ -13,5 +13,7 @@ router.delete('/employee', login.required, permission.admin, userController.dele
 router.post('/manager', login.required, permission.admin, userController.createManager);
 router.delete('/manager', login.required, permission.admin, userController.deleteManager);
 router.post('/login', userController.Login)
+router.get('/:id', login.required, userController.getUserDetails);
+router.patch('/:id', login.required, userController.updateUser);
 
 module.exports = router;

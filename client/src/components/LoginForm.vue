@@ -57,7 +57,7 @@ export default {
         }
 
         const res = await req.json();
-        common.login(this, res.name.split(' ')[0], res.token, res.role);
+        common.login(this, res.userid, res.name.split(' ')[0], res.token, res.role);
         this.clearLocalVariables();
         router.push('/');
 

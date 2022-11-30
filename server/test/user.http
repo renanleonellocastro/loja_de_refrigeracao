@@ -92,11 +92,31 @@ Content-Type: application/json
 
 ###
 
+# Atualiza os dados do cliente
+PATCH http://localhost:3000/users/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsImVtYWlsIjoiY2xpZW50ZUBnbWFpbC5jb20iLCJjcGYiOiIzMjEzMjEzMjEzMiIsInJvbGUiOjQsImlhdCI6MTY2OTY2ODQ5NiwiZXhwIjoxNjY5NjcyMDk2fQ.U0hYTvBeT7ol_QUWXYuIQMjQ_ick7xY1BrXzWCPTusA
+
+{
+    "name": "Cliente de Teste Atualizado",
+    "email" : "clienteatualizado@gmail.com",
+    "phone" : "19002233445",
+    "address" : "Rua Atualizada 867, Apartamento 200, Bloco D",
+    "city" : "Mogi Mirim Atualizado"
+}
+###
+
 # Obtém todos os clientes
 GET http://localhost:3000/users
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoic3VwZXJ1c3VhcmlvQGdtYWlsLmNvbSIsImNwZiI6IjExMTIyMjMzMzQ1Iiwicm9sZSI6MSwiaWF0IjoxNjY4ODk3NTI4LCJleHAiOjE2Njg5MDExMjh9.GI8Tk5jcJllR-wnTrEn0lvcWeGD03mv3RH8vv8YFAkQ
 
+###
+
+# Obtém detalhes do cliente 1
+GET http://localhost:3000/users/1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjUsImVtYWlsIjoiY2xpZW50ZUBnbWFpbC5jb20iLCJjcGYiOiIzMjEzMjEzMjEzMiIsInJvbGUiOjQsImlhdCI6MTY2OTY2ODQ5NiwiZXhwIjoxNjY5NjcyMDk2fQ.U0hYTvBeT7ol_QUWXYuIQMjQ_ick7xY1BrXzWCPTusA
 ###
 
 # Deleta um cliente

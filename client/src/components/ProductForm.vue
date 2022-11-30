@@ -33,7 +33,7 @@
         </option>
         </select>
       </div>
-      <div class="input-contianer">
+      <div class="input-container">
         <label for="images">Imagens do produto:</label>
         <div class="product-input-images" v-for="imageindex in number_of_images">
           <input name="file" style="display:none" type="file" @change="onFile" accept="image/png, image/jpeg" ref="fileInput"/>

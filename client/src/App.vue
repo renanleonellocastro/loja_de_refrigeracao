@@ -16,12 +16,18 @@ export default {
     return {
       logo_src: "/img/logo.png",
       app_name: "Refrigeracao Castro Client",
+      loginUserID: localStorage.userid ? localStorage.userid : '',
       loginName: localStorage.name ? localStorage.name : '',
       loginToken: localStorage.token ? localStorage.token : '',
       loginRole: localStorage.role ? localStorage.role : 999
     }
   },
   methods: {
+    setUserID(userid)
+    {
+      this.loginUserID = userid;
+      localStorage.userid = this.loginUserID;
+    },
     setName(name)
     {
       this.loginName = name;
@@ -36,6 +42,10 @@ export default {
     {
       this.loginRole = role;
       localStorage.role = this.loginRole;
+    },
+    getUserID()
+    {
+      return this.loginUserID;
     },
     getName()
     {

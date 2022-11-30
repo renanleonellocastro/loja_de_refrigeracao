@@ -6,8 +6,9 @@ function isUserLoggedIn(token) {
     return token !== '';
 }
 
-module.exports.login = function login(that, name, token, role)
+module.exports.login = function login(that, userid, name, token, role)
 {
+    that.$root.setUserID(userid);
     that.$root.setName(name);
     that.$root.setToken(token);
     that.$root.setRole(role);
@@ -15,6 +16,7 @@ module.exports.login = function login(that, name, token, role)
 
 module.exports.logout = function logout(that)
 {
+    that.$root.setUserID('');
     that.$root.setName('');
     that.$root.setToken('');
     that.$root.setRole(999);
