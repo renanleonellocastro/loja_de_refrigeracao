@@ -117,9 +117,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   place-self: center;
-  min-width: 240px;
-  max-width: 360px;
+  min-width: 330px;
+  max-width: 330px;
+  min-height: 330px;
+  max-height: 330px;
   padding: 10px 20px;
   background-color: #f1f1f1;
   border-radius: 15px;
@@ -132,7 +135,7 @@ export default {
   margin: 0 0 10px 0;
 }
 #product-item img {
-  max-width: 100px;
+  max-width: 200px;
   max-height: 200px;
 }
 #product-item h1 {

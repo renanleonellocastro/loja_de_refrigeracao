@@ -1,6 +1,16 @@
 <template>
   <Message :msg="msg" v-show="msg" />
   <div>
+    <div class="product-images">
+      <ProductImageViewer v-on:updateProductDetails="getProductImages" v-for="image in images"
+       :key="image.imageid" :product_id_input_parameter="current_id" :image_id_input_parameter="image.imageid"
+       :image_url_input_parameter="image.url" :is_editing_input_parameter="is_editing"/>
+      <input v-if="is_editing.is_editing === true" name="file" style="display:none" type="file"
+       @change="uploadProductImage" accept="image/png, image/jpeg" ref="fileInput"/>
+      <button v-if="is_editing.is_editing === true" id="add-image-button"
+       @click.prevent="$refs.fileInput.click()">Adicionar Imagem</button>
+    </div>
+    <br/><br/>
     <div id="product-details">
       <div id=product-id>
         <label>ID:</label>
@@ -9,29 +19,29 @@
       </div>
       <div id=product-name>
         <label>Nome:</label>
-        <a v-if="is_editing === false"> {{current_name}} </a>
-        <input v-if="is_editing === true" type="text" v-model="new_name">
+        <a v-if="is_editing.is_editing === false"> {{current_name}} </a>
+        <input v-if="is_editing.is_editing === true" type="text" v-model="new_name">
         <br/><br/>
       </div>
       <div id=product-state>
         <label>Estado:</label>
-        <a v-if="is_editing === false"> {{current_state}} </a>
-        <label class=radio-button-label v-if="is_editing === true" for="new">Novo</label>
-        <input v-if="is_editing === true" type="radio" id="new" value="Novo" v-model="new_state"/>
-        <label class=radio-button-label v-if="is_editing === true" for="old">Seminovo</label>
-        <input v-if="is_editing === true" type="radio" id="old" value="Seminovo" v-model="new_state"/>
+        <a v-if="is_editing.is_editing === false"> {{current_state}} </a>
+        <label class=radio-button-label v-if="is_editing.is_editing === true" for="new">Novo</label>
+        <input v-if="is_editing.is_editing === true" type="radio" id="new" value="Novo" v-model="new_state"/>
+        <label class=radio-button-label v-if="is_editing.is_editing === true" for="old">Seminovo</label>
+        <input v-if="is_editing.is_editing === true" type="radio" id="old" value="Seminovo" v-model="new_state"/>
         <br/><br/>
       </div>
       <div id=product-price>
         <label>Preço:</label>
-        <a v-if="is_editing === false"> {{ current_price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }} </a>
-        <input v-if="is_editing === true" type="number" min="0.00" max="100000.00" step="0.01" v-model="new_price">
+        <a v-if="is_editing.is_editing === false"> {{ current_price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }} </a>
+        <input v-if="is_editing.is_editing === true" type="number" min="0.00" max="100000.00" step="0.01" v-model="new_price">
         <br/><br/>
       </div>
       <div id=product-quantity>
         <label>Quantidade Disponível:</label>
-        <a v-if="is_editing === false"> {{current_quantity}} </a>
-        <input v-if="is_editing === true" type="number" min="0" max="99999" step="1" v-model="new_quantity">
+        <a v-if="is_editing.is_editing === false"> {{current_quantity}} </a>
+        <input v-if="is_editing.is_editing === true" type="number" min="0" max="99999" step="1" v-model="new_quantity">
         <br/><br/>
       </div>
       <div id=product-category>
@@ -41,23 +51,25 @@
       </div>
       <div id=product-description>
         <label>Descrição:</label>
-        <a v-if="is_editing === false"> {{current_description}} </a>
-        <input v-if="is_editing === true" type="text" v-model="new_description">
+        <a v-if="is_editing.is_editing === false"> {{current_description}} </a>
+        <input v-if="is_editing.is_editing === true" type="text" v-model="new_description">
         <br/><br/>
       </div>
     </div>
     <div id="edit-update-cancel-buttons">
-      <button v-if="((is_editing === false) && ($root.loginRole <= managerRole))" class="edit-btn" @click="editProduct()">Editar</button>
-      <button v-if="is_editing === true" class="update-btn" @click="updateProduct()">Atualizar</button>
-      <button v-if="is_editing === true" class="cancel-btn" @click="cancelUpdate()">Cancelar</button>
+      <button v-if="((is_editing.is_editing === false) && ($root.loginRole <= managerRole))" class="edit-btn" @click="editProduct()">Editar</button>
+      <button v-if="is_editing.is_editing === true" class="update-btn" @click="updateProduct()">Atualizar</button>
+      <button v-if="is_editing.is_editing === true" class="cancel-btn" @click="cancelUpdate()">Cancelar</button>
     </div>
   </div>
 </template>
 
 <script>
-  import * as common from '../utils/common';
-  import roles from '../utils/roles';
+  import axios from 'axios';
   import Message from './Message';
+  import roles from '../utils/roles';
+  import * as common from '../utils/common';
+  import ProductImageViewer from './ProductImageViewer';
 
   export default {
     name: "ProductDetailsComponent",
@@ -79,12 +91,36 @@
         current_category: '',
         current_description: '',
         new_description: '',
-        is_editing: false,
+        is_editing: {is_editing: false},
         msg: '',
-        categories: null
+        categories: null,
+        images: null
       }
     },
     methods: {
+      getProductImagesApiEndpoint()
+      {
+        return "http://localhost:3000/products/" + this.current_id + "/image";
+      },
+      async getProductImages() {
+        try {
+          const req = await fetch(this.getProductImagesApiEndpoint(), {
+            method: "GET",
+            headers: { "Content-Type" : "application/json" }
+          });
+
+          if (!req.ok) {
+            common.logoutIfNotAuthorizedAndIsLoggedIn(this, req);
+            throw new Error(`Error! status: ${req.status}`);
+          }
+
+          const res = await req.json();
+          this.images = res.images;
+
+        } catch (error) {
+          console.log(`Error: ${error}`);
+        }
+      },
       getCategoryNameById(category_id) {
         for (let i = 0; i < this.categories.length; i++) {
           if (this.categories[i].categoryid === category_id) {
@@ -135,11 +171,11 @@
       },
       async editProduct()
       {
-        this.is_editing = true;
+        this.is_editing.is_editing = true;
       },
       async cancelUpdate()
       {
-        this.is_editing = false;
+        this.is_editing.is_editing = false;
         this.new_name = this.current_name;
         this.new_state = this.current_state;
         this.new_price = this.current_price;
@@ -171,23 +207,39 @@
           this.current_price = res.price;
           this.current_quantity = res.quantity;
           this.current_description = res.description;
-          this.is_editing = false;
+          this.is_editing.is_editing = false;
 
         } catch (error) {
           this.msg = `Error: ${error}`;
         }
 
         setTimeout(() => this.msg = "", 3000);
+      },
+      async uploadProductImage(e)
+      {
+        const file = e.target.files[0];
+        let formData = new FormData();
+        formData.append('filename', file.name);
+        formData.append('image', file);
+        await axios.post(`http://localhost:3000/products/${this.current_id}/image`, formData, {
+          headers: {
+            'Authorization': 'Bearer ' + this.$root.loginToken,
+            'Content-Type': `multipart/form-data; boundary=${formData._boundary}` 
+          },
+        });
+        this.getProductImages();
       }
     },
     components: {
-      Message
+      Message,
+      ProductImageViewer
     },
     async mounted()
     {
       this.current_id = this.product_id_input_parameter;
       await this.getCategories();
       await this.getProductDetails();
+      await this.getProductImages();
     }
   }
 </script>
@@ -264,5 +316,18 @@
     padding: 0px 0px;
     border-left: 0px solid transparent;
     width: 10%;
+  }
+  .product-images {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1em;
+    padding: 10px 20px;
+  }
+  #add-image-button {
+    display: grid;
+    max-width: 120px;
+    max-height: 100px;
+    font-size: 18px;
+    align-self: center;
   }
 </style>
