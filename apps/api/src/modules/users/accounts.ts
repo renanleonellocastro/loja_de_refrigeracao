@@ -5,13 +5,11 @@ import type { AddressSnapshot } from '../../infra/db/schema.js';
 import { AppError, conflict, forbidden, notFound, unprocessable } from '../../shared/errors.js';
 import { pageOf } from '../../shared/pagination.js';
 import { recordAudit } from '../audit/service.js';
-import type { AccessClaims } from '../auth/tokens.js';
 import * as auth from '../auth/service.js';
-import { hashPassword, passwordProblem, verifyPassword } from '../auth/passwords.js';
+import { hashPassword, passwordProblem, verifyPassword, type AccessClaims } from '../auth/service.js';
 import { queueEmail } from '../mail/service.js';
 import * as users from './service.js';
-import type { ProfileUpdate } from './schemas.js';
-import { STAFF_CREATABLE_ROLES } from './schemas.js';
+import type { ProfileUpdate, STAFF_CREATABLE_ROLES } from './schemas.js';
 
 export const PRIVACY_POLICY_VERSION = '2026-10-03';
 

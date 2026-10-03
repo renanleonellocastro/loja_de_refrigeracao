@@ -280,3 +280,7 @@ export async function confirmEmail(ctx: AppContext, token: string): Promise<void
     await repo.markAuthTokenUsed(tx, record.id, now);
   });
 }
+
+// Public surface used by other modules.
+export { hashPassword, passwordProblem, verifyPassword } from './passwords.js';
+export type { AccessClaims } from './tokens.js';
