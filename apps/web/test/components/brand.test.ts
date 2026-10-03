@@ -8,9 +8,7 @@ import ThemeToggle from '~/components/ThemeToggle.vue';
 import WhatsAppButton from '~/components/WhatsAppButton.vue';
 import IllustrationEmptyBox from '~/components/illustration/EmptyBox.vue';
 import IllustrationLock from '~/components/illustration/Lock.vue';
-import IllustrationLostWrench from '~/components/illustration/LostWrench.vue';
 import IllustrationThermometer from '~/components/illustration/Thermometer.vue';
-import IllustrationUnplugged from '~/components/illustration/Unplugged.vue';
 import { useCartCount } from '~/composables/useCartCount';
 import { useCurrentActor } from '~/composables/useCurrentActor';
 import { useOnline } from '~/composables/useOnline';
@@ -36,14 +34,7 @@ describe('AppLogo', () => {
 
 describe('decorations', () => {
   it('are hidden from assistive technology', async () => {
-    for (const component of [
-      FrostLines,
-      IllustrationEmptyBox,
-      IllustrationLock,
-      IllustrationLostWrench,
-      IllustrationThermometer,
-      IllustrationUnplugged,
-    ]) {
+    for (const component of [FrostLines, IllustrationEmptyBox, IllustrationLock, IllustrationThermometer]) {
       const wrapper = await mountSuspended(component);
       expect(wrapper.attributes('aria-hidden')).toBe('true');
     }
@@ -112,6 +103,8 @@ describe('ErrorState', () => {
       const button = wrapper.findAll('button').find((b) => b.text() === 'Tentar de novo');
       expect(Boolean(button)).toBe(retry);
       expect(wrapper.get('a[href="/"]').text()).toBe('Voltar ao início');
+      const image = wrapper.find('img');
+      expect(image.exists()).toBe(kind === 'not-found' || kind === 'offline');
     }
   });
 

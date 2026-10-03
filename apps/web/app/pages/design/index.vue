@@ -469,6 +469,15 @@ const roleNavigation = computed(() =>
                   text="Que tal dar uma olhada nos produtos?"
                   :heading-level="3"
                 >
+                  <template #illustration>
+                    <img
+                      src="/illustrations/vazio-pedidos.svg"
+                      alt=""
+                      width="480"
+                      height="360"
+                      class="h-36 w-auto"
+                    />
+                  </template>
                   <template #action><BaseButton to="/produtos">Ver produtos</BaseButton></template>
                 </BaseEmptyState>
               </template>
@@ -552,6 +561,15 @@ const roleNavigation = computed(() =>
                 text="Quando você pedir uma visita, ela aparece aqui."
                 :heading-level="3"
               >
+                <template #illustration>
+                  <img
+                    src="/illustrations/vazio-agenda.svg"
+                    alt=""
+                    width="480"
+                    height="360"
+                    class="h-36 w-auto"
+                  />
+                </template>
                 <template #action><BaseButton size="sm">Agendar visita</BaseButton></template>
               </BaseEmptyState>
             </DesignExample>
