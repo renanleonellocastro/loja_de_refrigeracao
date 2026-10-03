@@ -10,5 +10,7 @@ export interface AppContext {
   db: Database;
   mailer: Mailer;
   storage: Storage;
+  /** Outbound HTTP (CEP lookup); injected so tests never hit the network. */
+  fetch: typeof globalThis.fetch;
   clock: Clock;
 }

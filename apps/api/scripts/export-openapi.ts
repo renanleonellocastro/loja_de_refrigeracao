@@ -12,6 +12,7 @@ const app = await buildApp({
   db: {} as Database,
   mailer: new MemoryMailer(),
   storage: createLocalStorage('storage'),
+  fetch: globalThis.fetch,
   clock: systemClock,
 });
 await app.ready();
