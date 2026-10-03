@@ -1,6 +1,6 @@
 // Product placeholder (800 x 800) and social share card (1200 x 630).
 const L = require('./lib.cjs');
-const { C, doc, lin, rad, g, air, snowflake, logo } = L;
+const { C, doc, rad, g, air, snowflake, logo } = L;
 
 function semFoto() {
   const S = C.s300,
