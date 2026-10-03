@@ -179,13 +179,18 @@ function validateWindows(windows: RequestCreation['windows'], now: Date) {
   });
 }
 
-/** UC Solicitar Agendamento: by the customer or by the staff on behalf of a customer (decision D7). */
+/**
+ * UC Solicitar Agendamento: by the customer or by the staff on behalf of a customer (decision D7).
+ * Runs in its own transaction, or inside `executor` when the caller needs it to be part of a larger one
+ * (an accepted quote and its request are created together or not at all).
+ */
 export async function createRequest(
   ctx: AppContext,
   actor: AccessClaims,
   input: RequestCreation,
   ip: string,
   quoteId: number | null = null,
+  executor?: Executor,
 ) {
   const onBehalf = actor.role !== 'CLIENT';
   if (!onBehalf && input.customerId !== undefined && input.customerId !== actor.userId) {
@@ -204,7 +209,7 @@ export async function createRequest(
   const customerId = onBehalf ? input.customerId! : actor.userId;
   validateWindows(input.windows, ctx.clock.now());
 
-  return ctx.db.transaction(async (tx) => {
+  const work = async (tx: Executor) => {
     const customer = await users.findActiveUserById(tx, customerId);
     if (!customer || customer.role !== 'CLIENT') throw notFound('Cliente não encontrado.');
     const type = await repo.findServiceType(tx, input.serviceTypeId);
@@ -287,7 +292,8 @@ export async function createRequest(
       });
     }
     return request;
-  });
+  };
+  return executor ? work(executor) : ctx.db.transaction(work);
 }
 
 export async function addPhotos(ctx: AppContext, viewer: AccessClaims, id: number, files: Buffer[]) {
