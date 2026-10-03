@@ -23,4 +23,9 @@ describe('buildCss', () => {
     expect(css).toContain(':root:not([data-theme="light"])');
     expect(css).toContain(`:root[data-theme="dark"] {\n  --rc-bg: ${dark.bg};`);
   });
+
+  it('lets any element force a theme for its subtree', () => {
+    expect(css).toContain(`:where(:root) [data-theme="dark"] {\n  --rc-bg: ${dark.bg};`);
+    expect(css).toContain(`:where(:root) [data-theme="light"] {\n  --rc-bg: ${light.bg};`);
+  });
 });
