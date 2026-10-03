@@ -2,10 +2,9 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { requireAuth } from '../../plugins/auth.js';
-import { notFound } from '../../shared/errors.js';
 import { pageMetaSchema, pageQuerySchema } from '../../shared/pagination.js';
 import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
-import * as repo from './repository.js';
+import * as inbox from './inbox.js';
 
 const notificationSchema = z
   .object({
@@ -43,18 +42,7 @@ export function notificationRoutes(ctx: AppContext): FastifyPluginAsyncZod {
           },
         },
       },
-      async (request) => {
-        const { userId } = requireAuth(request);
-        const { page, pageSize, unread } = request.query;
-        const result = await repo.listNotifications(
-          ctx.db,
-          userId,
-          unread === 'true',
-          pageSize,
-          (page - 1) * pageSize,
-        );
-        return { data: result.rows, meta: { page, pageSize, total: result.total, unread: result.unread } };
-      },
+      async (request) => inbox.listInbox(ctx, requireAuth(request).userId, request.query),
     );
 
     app.post(
@@ -70,13 +58,7 @@ export function notificationRoutes(ctx: AppContext): FastifyPluginAsyncZod {
         },
       },
       async (request, reply) => {
-        const found = await repo.markRead(
-          ctx.db,
-          requireAuth(request).userId,
-          request.params.id,
-          ctx.clock.now(),
-        );
-        if (!found) throw notFound('Notificação não encontrada.');
+        await inbox.markNotificationRead(ctx, requireAuth(request).userId, request.params.id);
         return reply.code(204).send();
       },
     );
@@ -93,7 +75,7 @@ export function notificationRoutes(ctx: AppContext): FastifyPluginAsyncZod {
         },
       },
       async (request, reply) => {
-        await repo.markAllRead(ctx.db, requireAuth(request).userId, ctx.clock.now());
+        await inbox.markAllNotificationsRead(ctx, requireAuth(request).userId);
         return reply.code(204).send();
       },
     );
