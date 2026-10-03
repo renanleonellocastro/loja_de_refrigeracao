@@ -115,9 +115,9 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 | `GET /service-types` | Listar tipos | público |
 | `GET /service-types/{id}` | Detalhes | público |
 | `POST /service-types`, `PATCH /service-types/{id}`, `DELETE /service-types/{id}` | Gerenciar | super |
-| `POST /service-requests` | Solicitar agendamento (multipart com fotos) | cliente; equipe em nome de cliente |
-| `GET /me/service-requests` | Meus agendamentos | cliente |
-| `GET /service-requests?status=` | Solicitações | gerente |
+| `POST /service-requests` | Solicitar agendamento (JSON, com `Idempotency-Key`) | cliente; equipe em nome de cliente |
+| `POST /service-requests/{id}/photos` | Enviar fotos do problema (multipart, até 6) | dono enquanto aberta, gerente |
+| `GET /service-requests?status=&q=` | Solicitações visíveis: as suas (cliente), as atribuídas (colaborador), todas (gerente; `q` busca cliente ou número) | logado conforme matriz |
 | `GET /service-requests/{id}` | Detalhes | dono, gerente, colaborador atribuído |
 | `GET /service-requests/{id}/messages`, `POST /service-requests/{id}/messages` | Conversa | dono e gerente |
 | `POST /service-requests/{id}/approval` | Aprovar | gerente |

@@ -91,6 +91,18 @@ export async function updateUser(
   return row!;
 }
 
+/** Emails of every active user with one of the roles (staff notifications). */
+export async function activeEmailsByRole(
+  db: Executor,
+  roles: Role[],
+): Promise<Array<{ id: number; name: string; email: string }>> {
+  return db
+    .select({ id: users.id, name: users.name, email: users.email })
+    .from(users)
+    .where(and(inArray(users.role, roles), isNull(users.deletedAt)))
+    .orderBy(asc(users.id));
+}
+
 export async function findAddress(db: Executor, userId: number): Promise<AddressRow | undefined> {
   const [row] = await db.select().from(addresses).where(eq(addresses.userId, userId)).limit(1);
   return row;

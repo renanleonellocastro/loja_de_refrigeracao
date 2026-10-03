@@ -138,6 +138,28 @@ export const templates = {
       footer,
     );
   },
+  /** Generic event notice used by orders, services and quotes. Paragraphs are plain text. */
+  notice(
+    data: {
+      name: string;
+      subject: string;
+      heading: string;
+      paragraphs: string[];
+      link?: string;
+      actionLabel?: string;
+    },
+    footer: StoreFooter,
+  ): Email {
+    return build(
+      data.subject,
+      {
+        heading: data.heading,
+        paragraphs: [`Olá, ${firstName(data.name)}!`, ...data.paragraphs.map(escapeHtml)],
+        ...(data.link ? { action: { label: data.actionLabel ?? 'Ver detalhes', url: data.link } } : {}),
+      },
+      footer,
+    );
+  },
 } as const;
 
 export type TemplateName = keyof typeof templates;
