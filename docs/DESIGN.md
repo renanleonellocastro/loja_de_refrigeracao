@@ -13,7 +13,7 @@ O arquivo atual (`imagens/logo.png`) é uma foto do letreiro. O primeiro trabalh
 * **Versões**: prata com relevo sobre azul (uso principal, cabeçalho e hero), azul sobre branco, branco chapado, monocromático para impressão de etiquetas.
 * **Área de respiro** igual à altura da letra "C" de CASTRO; tamanho mínimo de 120 px de largura para o logo completo e 24 px para o símbolo.
 
-Se existir um arquivo vetorial original da fachada, ele substitui o redesenho (questão Q1 em [REQUISITOS.md](REQUISITOS.md)).
+Não existe arquivo original (Q1). O redesenho é gerado por código em `packages/brand/scripts/build-logo.mjs` (`pnpm --filter @rc/brand logo`): as letras vêm dos contornos da Montserrat (Black em CASTRO, ExtraBold em EFRIGERAÇÃO, licença OFL), o "R" é o glifo real enxertado no tronco do mascote, e o "A" é desenhado para que o mascote fique de pé sobre as pernas da letra. O script grava os SVGs em `apps/web/public/brand/`, as versões `currentColor` em `apps/web/app/assets/brand/` e os ícones PNG (favicon, Apple, PWA e maskable).
 
 ### Cores
 
