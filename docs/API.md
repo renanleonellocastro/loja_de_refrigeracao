@@ -154,6 +154,7 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 | `GET /me/notifications?unread=` | Notificações | logado |
 | `POST /me/notifications/{id}/read`, `POST /me/notifications/read-all` | Marcar como lidas | logado |
 | `GET /store` | Dados públicos da loja (endereço, horários, contatos) | público |
+| `GET /store/settings` | Configurações completas (inclui emails de aviso e estoque mínimo padrão) | super |
 | `PATCH /store` | Configurar a loja | super |
 | `GET /audit-logs` | Auditoria | super |
 | `GET /health`, `GET /ready` | Saúde do processo e das dependências | público (fora de `/api/v1`) |
