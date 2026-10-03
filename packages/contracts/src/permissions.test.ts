@@ -10,6 +10,7 @@ describe('permission matrix', () => {
   it('restricts destructive actions to the super user (docs/REQUISITOS.md section 5)', () => {
     const adminOnly: Permission[] = [
       'employees.manage',
+      'users.manage',
       'managers.manage',
       'categories.manage',
       'products.delete',

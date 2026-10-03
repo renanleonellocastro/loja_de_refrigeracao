@@ -16,6 +16,22 @@ import { insertUser, type NewUser, type UserRow } from '../src/modules/users/ser
 import { FixedClock } from '../src/shared/clock.js';
 import { useTestDatabase } from './database.js';
 
+/** Answers like ViaCEP for 13800061 (the store) and 404 style for 99999999; fails for 00000000. */
+export const fakeFetch: typeof globalThis.fetch = async (input) => {
+  const url = String(input);
+  if (url.includes('00000000')) throw new Error('network down');
+  const body = url.includes('13800061')
+    ? {
+        cep: '13800-061',
+        logradouro: 'Rua Doutor Ulhoa Cintra',
+        bairro: 'Centro',
+        localidade: 'Mogi Mirim',
+        uf: 'SP',
+      }
+    : { erro: 'true' };
+  return new Response(JSON.stringify(body), { headers: { 'content-type': 'application/json' } });
+};
+
 export const TEST_PASSWORD = 'Geladeira-Nova-2026';
 export const START = new Date('2026-10-05T12:00:00.000Z');
 
@@ -36,7 +52,14 @@ export function useTestApp(configOverrides: Record<string, string> = {}) {
 
   beforeAll(async () => {
     const storage = createLocalStorage(mkdtempSync(join(tmpdir(), 'rc-storage-')));
-    state.ctx = { config: testConfig(configOverrides), db: database.db, mailer, clock, storage };
+    state.ctx = {
+      config: testConfig(configOverrides),
+      db: database.db,
+      mailer,
+      clock,
+      storage,
+      fetch: fakeFetch,
+    };
     state.app = await buildApp(state.ctx);
     await state.app.ready();
   });
