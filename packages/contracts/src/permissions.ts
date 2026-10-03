@@ -20,6 +20,10 @@ export const PERMISSIONS = {
   'catalog.read': EVERYONE,
   'customers.register': { GUEST: 'all', MANAGER: 'all', ADMIN: 'all' },
   'customers.read': STAFF,
+  /** Staff registration: managers register customers; only the super user registers staff. */
+  'users.create': MANAGEMENT,
+  /** Edit or delete any account (customers, employees, managers). */
+  'users.manage': ADMIN_ONLY,
   'profile.manage': { ...SIGNED_IN_OWN, ADMIN: 'all' },
   'account.delete': { CLIENT: 'own', ADMIN: 'all' },
   'employees.manage': ADMIN_ONLY,

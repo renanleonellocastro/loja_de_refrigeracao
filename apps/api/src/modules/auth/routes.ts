@@ -2,6 +2,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import type { AppContext } from '../../context.js';
 import { requireAuth } from '../../plugins/auth.js';
+import { REFRESH_COOKIE, clearSessionCookie, sendSession as sendWithCookie } from '../../plugins/session.js';
 import { errorResponses, noContentSchema } from '../../shared/schemas.js';
 import {
   changePasswordBodySchema,
@@ -13,25 +14,12 @@ import {
 } from './schemas.js';
 import * as auth from './service.js';
 
-export const REFRESH_COOKIE = 'rc_refresh';
-const REFRESH_PATH = '/api/v1/auth';
-
 function meta(request: FastifyRequest): auth.ClientMeta {
   return { ip: request.ip, userAgent: request.headers['user-agent'] };
 }
 
-function sendSession(ctx: AppContext, reply: FastifyReply, session: auth.IssuedSession, status = 200) {
-  reply.setCookie(REFRESH_COOKIE, session.refreshToken, {
-    httpOnly: true,
-    secure: ctx.config.COOKIE_SECURE,
-    sameSite: 'strict',
-    path: REFRESH_PATH,
-    expires: session.refreshExpiresAt,
-  });
-  return reply
-    .code(status)
-    .send({ accessToken: session.accessToken, expiresIn: session.expiresIn, user: session.user });
-}
+const sendSession = (ctx: AppContext, reply: FastifyReply, session: auth.IssuedSession) =>
+  sendWithCookie(ctx.config, reply, session);
 
 export function authRoutes(ctx: AppContext): FastifyPluginAsyncZod {
   return async (app) => {
@@ -69,7 +57,7 @@ export function authRoutes(ctx: AppContext): FastifyPluginAsyncZod {
             await auth.refresh(ctx, request.cookies[REFRESH_COOKIE], meta(request)),
           );
         } catch (error) {
-          reply.clearCookie(REFRESH_COOKIE, { path: REFRESH_PATH });
+          clearSessionCookie(reply);
           throw error;
         }
       },
@@ -83,7 +71,7 @@ export function authRoutes(ctx: AppContext): FastifyPluginAsyncZod {
       },
       async (request, reply) => {
         await auth.logout(ctx, request.cookies[REFRESH_COOKIE], request.auth?.sessionId);
-        reply.clearCookie(REFRESH_COOKIE, { path: REFRESH_PATH });
+        clearSessionCookie(reply);
         return reply.code(204).send();
       },
     );

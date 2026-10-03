@@ -1,3 +1,14 @@
 // Public surface of the users module for other modules (docs/ARQUITETURA.md: modules talk through services).
-export { findActiveUserByEmail, findActiveUserById, insertUser, updateUser } from './repository.js';
-export type { NewUser, UserRow } from './repository.js';
+export {
+  anonymizeUser,
+  exportUserData,
+  findActiveUserByCpf,
+  findActiveUserByEmail,
+  findActiveUserById,
+  findAddress,
+  insertUser,
+  saveAddress,
+  searchUsers,
+  updateUser,
+} from './repository.js';
+export type { AddressRow, NewUser, UserRow } from './repository.js';

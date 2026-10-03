@@ -13,6 +13,7 @@ const app = await buildApp({
   db: database.db,
   mailer: createSmtpMailer(config.SMTP_URL, config.MAIL_FROM),
   storage: createLocalStorage(config.STORAGE_PATH),
+  fetch: globalThis.fetch,
   clock: systemClock,
 });
 

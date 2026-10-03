@@ -35,7 +35,7 @@ export interface IssuedSession {
   user: UserSummary;
 }
 
-async function issueSession(
+export async function startSession(
   ctx: AppContext,
   db: Executor,
   user: UserRow,
@@ -97,7 +97,7 @@ export async function login(
     throw invalidCredentials();
   }
   await repo.recordLoginAttempt(ctx.db, email, meta.ip, true, ctx.clock.now());
-  return issueSession(ctx, ctx.db, user, meta);
+  return startSession(ctx, ctx.db, user, meta);
 }
 
 /** Rotates the refresh token. Reusing an already rotated token revokes the whole family (theft detection). */
@@ -119,7 +119,7 @@ export async function refresh(ctx: AppContext, refreshToken: string | undefined,
       return { error: expired() };
     }
     await repo.markSessionRotated(tx, session.id, now);
-    return { session: await issueSession(ctx, tx, user, meta, session.familyId) };
+    return { session: await startSession(ctx, tx, user, meta, session.familyId) };
   });
   if (outcome.error) throw outcome.error;
   return outcome.session;
@@ -214,7 +214,7 @@ async function redeemPasswordToken(
     if (purpose === 'PASSWORD_RESET') {
       await queueEmail(tx, user.email, 'passwordChanged', { name: user.name });
     }
-    return issueSession(ctx, tx, user, meta);
+    return startSession(ctx, tx, user, meta);
   });
 }
 
@@ -280,3 +280,7 @@ export async function confirmEmail(ctx: AppContext, token: string): Promise<void
     await repo.markAuthTokenUsed(tx, record.id, now);
   });
 }
+
+// Public surface used by other modules.
+export { hashPassword, passwordProblem, verifyPassword } from './passwords.js';
+export type { AccessClaims } from './tokens.js';

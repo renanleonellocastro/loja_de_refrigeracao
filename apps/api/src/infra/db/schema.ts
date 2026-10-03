@@ -79,6 +79,8 @@ export const users = pgTable(
     emailVerifiedAt: timestamp({ withTimezone: true }),
     privacyAcceptedAt: timestamp({ withTimezone: true }),
     privacyVersion: text(),
+    /** Name, email, phone and CPF lowercased without accents, for search (see shared/text.ts). */
+    searchText: text().notNull().default(''),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
     deletedAt: timestamp({ withTimezone: true }),
@@ -91,10 +93,7 @@ export const users = pgTable(
       .on(t.cpf)
       .where(sql`${t.deletedAt} is null and ${t.cpf} is not null`),
     index('users_role_idx').on(t.role),
-    index('users_search_trgm_idx').using(
-      'gin',
-      sql`(lower(${t.name} || ' ' || ${t.email} || ' ' || coalesce(${t.phone}, '') || ' ' || coalesce(${t.cpf}, ''))) gin_trgm_ops`,
-    ),
+    index('users_search_trgm_idx').using('gin', sql`${t.searchText} gin_trgm_ops`),
   ],
 );
 
