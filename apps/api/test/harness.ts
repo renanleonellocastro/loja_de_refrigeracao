@@ -4,7 +4,11 @@ import { afterAll, beforeAll, beforeEach } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadConfig, type Config } from '../src/config.js';
 import type { AppContext } from '../src/context.js';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { MemoryMailer } from '../src/infra/mail/mailer.js';
+import { createLocalStorage } from '../src/infra/storage/storage.js';
 import { hashPassword } from '../src/modules/auth/passwords.js';
 import { EMAIL_TOPIC, emailHandler } from '../src/modules/mail/service.js';
 import { processOutboxBatch } from '../src/modules/outbox/service.js';
@@ -31,7 +35,8 @@ export function useTestApp(configOverrides: Record<string, string> = {}) {
   let counter = 0;
 
   beforeAll(async () => {
-    state.ctx = { config: testConfig(configOverrides), db: database.db, mailer, clock };
+    const storage = createLocalStorage(mkdtempSync(join(tmpdir(), 'rc-storage-')));
+    state.ctx = { config: testConfig(configOverrides), db: database.db, mailer, clock, storage };
     state.app = await buildApp(state.ctx);
     await state.app.ready();
   });

@@ -9,9 +9,11 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { AppContext } from './context.js';
 import { auditRoutes } from './modules/audit/routes.js';
+import { mediaRoutes } from './modules/media/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { authPlugin } from './plugins/auth.js';
 import { registerErrorHandling } from './plugins/errors.js';
+import { idempotencyPlugin } from './plugins/idempotency.js';
 import { registerOpenApi } from './plugins/openapi.js';
 
 z.config(z.locales.pt());
@@ -49,6 +51,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   await app.register(rateLimit, { global: false });
   await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 10 } });
   await app.register(authPlugin, { ctx });
+  await app.register(idempotencyPlugin, { ctx });
   await registerOpenApi(app);
 
   app.get('/health', { schema: { hide: true } }, async () => ({ status: 'ok' }));
@@ -65,6 +68,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
     async (api) => {
       await api.register(authRoutes(ctx));
       await api.register(auditRoutes(ctx));
+      await api.register(mediaRoutes(ctx.storage));
     },
     { prefix: API_PREFIX },
   );
