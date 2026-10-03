@@ -1,0 +1,31 @@
+name: Capturas visuais
+
+# Generates the Linux baselines for the @visual Playwright tests and commits them to the branch.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Atualizar capturas de referência
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter './packages/*' run build
+      - run: pnpm --filter @rc/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @rc/e2e exec playwright test --grep @visual --update-snapshots
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/e2e
+          git diff --cached --quiet || git commit -m "test(e2e): update linux visual baselines"
+          git push

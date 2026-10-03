@@ -57,9 +57,41 @@ Próxima, direta e confiável, como o atendimento de balcão de uma loja de bair
 * Sucesso: "Pronto! Recebemos sua solicitação. A gente responde em até 1 dia útil."
 * Erro: "Não conseguimos salvar agora. Confira sua conexão e tente de novo."
 
+### Guia de microcopy
+
+Regras que valem para toda a interface:
+
+* Fale com a pessoa, na segunda pessoa e no presente: "Seu pedido está pronto para retirada".
+* Botões começam com verbo e dizem o que acontece: "Salvar alterações", "Excluir produto", nunca só "OK" ou "Sim".
+* Erros explicam o que houve e o próximo passo, sem culpar a pessoa e sem código técnico.
+* Datas em `dd/mm/aaaa`, horas em `14:20`, dinheiro como `R$ 1.234,56`.
+* Um toque do ofício é bem vindo nos momentos leves (vazio, 404), nunca em erros que custam dinheiro ou tempo do cliente.
+
+| Situação | Como escrever | Exemplos |
+|---|---|---|
+| Sucesso | Confirme o que aconteceu e diga o que vem depois. Ofereça "Desfazer" quando a ação for reversível. | "Pronto! Recebemos sua solicitação. A gente responde em até 1 dia útil." · "Produto excluído." com o botão Desfazer |
+| Erro | O que deu errado e o que fazer agora, em uma ou duas frases. | "Não conseguimos salvar agora. Confira sua conexão e tente de novo." · "Esse email já tem conta. Quer entrar ou recuperar a senha?" |
+| Erro em campo | Diga como acertar, com um exemplo quando ajudar. | "Digite um email válido, como nome@exemplo.com." · "CPF incompleto: faltam 2 números." |
+| Vazio | Explique por que está vazio e convide para a próxima ação. | "Nenhum pedido por aqui ainda. Que tal dar uma olhada nos produtos?" · "Nenhum agendamento. Quando você pedir uma visita, ela aparece aqui." |
+| Confirmação de exclusão | O título é a pergunta com o objeto; o texto diz a consequência; o botão repete o verbo. | Título "Excluir este produto?", texto "Ele some do catálogo na hora. Pedidos antigos continuam com o histórico.", botões "Cancelar" e "Excluir produto" |
+| Carregando | Diga o que está carregando; prefira esqueletos a telas em branco. | "Carregando pedidos…" · "Preparando as fotos…" · "Enviando fotos 64%" |
+| Sem permissão | Sem tom de acusação, aponte quem pode ajudar. | "Esta porta é só para a equipe. Se acha que deveria ter acesso, fale com o gerente da loja." |
+| Sem conexão | Diga o que verificar e que dá para tentar de novo. | "Parece que a internet caiu. Confira a rede sem fio ou os dados móveis." |
+| Página não encontrada | Leve, com caminho de volta. | "Procuramos em todas as prateleiras e não achamos esta página." |
+
 ## 2. Design system
 
-Tokens em `packages/design-tokens` (fonte única) geram as variáveis CSS do Tailwind CSS v4 e as cores dos emails. Componentes em `apps/web/app/components/base`, construídos sobre primitivas acessíveis (Reka UI) e documentados no Storybook com casos de uso e testes visuais.
+Tokens em `packages/design-tokens` (fonte única) geram as variáveis CSS do Tailwind CSS v4 e as cores dos emails. Componentes em `apps/web/app/components/base` (usados como `BaseButton`, `BaseTextField` e assim por diante), construídos com as classes semânticas geradas pelos tokens (`bg-surface`, `text-text-muted`, `bg-primary`, `ring-focus`) e sobre primitivas acessíveis da Reka UI onde o teclado e o leitor de tela pedem (diálogo, menu, combobox, abas, caixa de seleção e interruptor). Ícones da Lucide. Os componentes da marca ficam em `apps/web/app/components` (`AppLogo`, `WhatsAppButton`, `ThemeToggle`, `FrostLines`) e as ilustrações dos estados vazios e de erro em `components/illustration`.
+
+### Guia vivo em `/design`
+
+A documentação dos componentes é a página `/design` do próprio site, e não o Storybook. Ela mostra cada componente em todos os estados (padrão, foco, erro, desativado, carregando, vazio), nos dois temas, e traz a prévia da área logada para cada papel em `/design/area?papel=MANAGER`. A escolha tem três motivos:
+
+* **Mais leve**: nenhuma ferramenta a mais para instalar, configurar e manter em dia com o Nuxt e o Tailwind.
+* **Roda dentro do Nuxt**: os componentes aparecem com as mesmas fontes, tokens, rotas e importações automáticas da aplicação, sem adaptadores.
+* **Testada de verdade**: a página é coberta pelos testes de componente, pelos E2E nos três dispositivos, pelo axe nos temas claro e escuro e pelas capturas visuais (`@visual`).
+
+A página não é indexada (`robots: noindex`).
 
 | Grupo | Componentes |
 |---|---|

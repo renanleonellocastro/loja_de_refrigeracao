@@ -55,8 +55,12 @@ export function buildCss(): string {
     semanticBlock(':root', light),
     `@media (prefers-color-scheme: dark) {\n${semanticBlock(':root:not([data-theme="light"])', dark, '  ')}\n}`,
     semanticBlock(':root[data-theme="dark"]', dark),
+    '/* Scoped previews: any element can force a theme for its subtree, as the /design page does. */',
+    semanticBlock(':where(:root) [data-theme="light"]', light),
+    semanticBlock(':where(:root) [data-theme="dark"]', dark),
     ':root { color-scheme: light; }',
-    ':root[data-theme="dark"] { color-scheme: dark; }',
+    ':root[data-theme="dark"], [data-theme="dark"] { color-scheme: dark; }',
+    '[data-theme="light"] { color-scheme: light; }',
     '',
   ].join('\n\n');
 }
