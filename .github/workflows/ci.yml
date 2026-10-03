@@ -39,6 +39,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter './packages/*' run build
+      - name: OpenAPI e cliente gerado sem divergência
+        run: pnpm --filter @rc/contracts generate && git diff --exit-code packages/contracts
       - run: pnpm lint
       - run: pnpm depcruise
       - run: pnpm typecheck
