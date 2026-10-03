@@ -6,7 +6,7 @@ import { conflict, forbidden, notFound, unprocessable } from '../../shared/error
 import { formatDateTime, formatMoney, formatTimeRange } from '../../shared/format.js';
 import { recordAudit } from '../audit/service.js';
 import type { AccessClaims } from '../auth/service.js';
-import { queueEmail } from '../mail/service.js';
+import * as notifications from '../notifications/service.js';
 import { imageView, storeImage } from '../media/service.js';
 import * as services from '../services/service.js';
 import * as users from '../users/service.js';
@@ -150,7 +150,7 @@ export function mapOverlapViolation(error: unknown): never {
   throw error;
 }
 
-async function notifyCustomer(
+function notifyCustomer(
   ctx: AppContext,
   db: Executor,
   request: services.RequestRow,
@@ -158,19 +158,17 @@ async function notifyCustomer(
   heading: string,
   paragraphs: string[],
 ) {
-  const customer = await users.findActiveUserById(db, request.customerId);
-  if (!customer) return;
-  await queueEmail(db, customer.email, 'notice', {
-    name: customer.name,
+  return notifications.notifyUserById(ctx, db, request.customerId, {
+    type: 'appointment',
     subject,
     heading,
     paragraphs,
-    link: `${ctx.config.APP_ORIGIN}/minha-conta/agendamentos/${request.id}`,
+    path: `/minha-conta/agendamentos/${request.id}`,
     actionLabel: 'Ver meu agendamento',
   });
 }
 
-async function notifyEmployee(
+function notifyEmployee(
   ctx: AppContext,
   db: Executor,
   employeeId: number,
@@ -178,14 +176,11 @@ async function notifyEmployee(
   subject: string,
   paragraphs: string[],
 ) {
-  const employee = await users.findActiveUserById(db, employeeId);
-  if (!employee) return;
-  await queueEmail(db, employee.email, 'notice', {
-    name: employee.name,
+  return notifications.notifyUserById(ctx, db, employeeId, {
+    type: 'appointment',
     subject,
-    heading: subject,
     paragraphs,
-    link: `${ctx.config.APP_ORIGIN}/agenda/${appointmentId}`,
+    path: `/agenda/${appointmentId}`,
     actionLabel: 'Abrir na agenda',
   });
 }
@@ -359,23 +354,20 @@ export async function removeAppointment(ctx: AppContext, actor: AccessClaims, id
   });
 }
 
-async function notifyManagement(
+function notifyManagement(
   ctx: AppContext,
   db: Executor,
   subject: string,
   paragraphs: string[],
-  link: string,
+  path: string,
 ) {
-  for (const person of await users.activeEmailsByRole(db, ['MANAGER', 'ADMIN'])) {
-    await queueEmail(db, person.email, 'notice', {
-      name: person.name,
-      subject,
-      heading: subject,
-      paragraphs,
-      link,
-      actionLabel: 'Abrir aprovação',
-    });
-  }
+  return notifications.notifyManagement(ctx, db, null, {
+    type: 'serviceReport',
+    subject,
+    paragraphs,
+    path,
+    actionLabel: 'Abrir aprovação',
+  });
 }
 
 /** UC Finalizar Serviço: only the assigned technician; also used to resubmit after a rework request. */
@@ -406,7 +398,7 @@ export async function submitReport(
         `${row.employee.name} finalizou ${row.serviceType.toLowerCase()} (${row.request.productKind}).`,
         input.repairDescription,
       ],
-      `${ctx.config.APP_ORIGIN}/aprovacoes/${id}`,
+      `/aprovacoes/${id}`,
     );
     return report;
   });

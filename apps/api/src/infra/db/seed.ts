@@ -2,37 +2,7 @@ import { count } from 'drizzle-orm';
 import type { Role } from '@rc/contracts';
 import { hashPassword } from '../../modules/auth/passwords.js';
 import type { Database } from './client.js';
-import { categories, serviceTypes, storeSettings, users } from './schema.js';
-
-/** Real store data from docs/LOJA.md. */
-export const STORE = {
-  name: 'Refrigeração Castro',
-  legalName: 'Refrigeração Castro Ltda ME',
-  cnpj: '63060560000151',
-  phone: '1938041658',
-  whatsapp: null,
-  email: 'refrigeracaocastro@yahoo.com.br',
-  address: {
-    cep: '13800061',
-    street: 'Rua Doutor Ulhoa Cintra',
-    number: '91',
-    complement: null,
-    district: 'Centro',
-    city: 'Mogi Mirim',
-    state: 'SP',
-  },
-  openingHours: {
-    '0': null,
-    '1': { opens: '09:00', closes: '18:00' },
-    '2': { opens: '09:00', closes: '18:00' },
-    '3': { opens: '09:00', closes: '18:00' },
-    '4': { opens: '09:00', closes: '18:00' },
-    '5': { opens: '09:00', closes: '18:00' },
-    '6': null,
-  },
-  notificationEmails: ['refrigeracaocastro@yahoo.com.br'],
-  defaultStockMin: 1,
-} as const;
+import { categories, serviceTypes, users } from './schema.js';
 
 export const CATEGORIES = [
   'Geladeiras e refrigeradores',
@@ -109,11 +79,10 @@ export const SAMPLE_USERS: Array<{
 
 /** Fills an empty development database. Returns false when data already exists. */
 export async function seedDevelopment(db: Database): Promise<boolean> {
-  const [existing] = await db.select({ value: count() }).from(storeSettings);
+  const [existing] = await db.select({ value: count() }).from(users);
   if (existing!.value > 0) return false;
   const passwordHash = await hashPassword(SAMPLE_PASSWORD);
   await db.transaction(async (tx) => {
-    await tx.insert(storeSettings).values({ ...STORE, notificationEmails: [...STORE.notificationEmails] });
     await tx
       .insert(users)
       .values(SAMPLE_USERS.map((u) => ({ ...u, passwordHash, emailVerifiedAt: new Date() })));

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { getTableName, sql } from 'drizzle-orm';
 import { isTable } from 'drizzle-orm';
 import pg from 'pg';
@@ -6,6 +7,12 @@ import { afterAll, beforeAll } from 'vitest';
 import { connect, type DatabaseHandle } from '../src/infra/db/client.js';
 import * as schema from '../src/infra/db/schema.js';
 import { TEMPLATE_DB, adminUrl, urlFor } from './global-setup.js';
+
+// Reapplied after every truncate so tests start with the real store settings row.
+const STORE_DEFAULTS_SQL = readFileSync(
+  new URL('../drizzle/0004_store_settings_default.sql', import.meta.url),
+  'utf8',
+);
 
 const tableNames = Object.values(schema)
   .filter((value) => isTable(value))
@@ -46,6 +53,7 @@ export function useTestDatabase() {
     },
     async reset() {
       await this.db.execute(sql.raw(`TRUNCATE ${tableNames.join(', ')} RESTART IDENTITY CASCADE`));
+      await this.db.execute(sql.raw(STORE_DEFAULTS_SQL));
     },
   };
 }
