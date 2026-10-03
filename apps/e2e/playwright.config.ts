@@ -15,6 +15,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  // Visual baselines are per platform and device; a missing baseline is recorded instead of failing.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{projectName}/{arg}{ext}',
+  updateSnapshots: 'missing',
   use: { baseURL, trace: 'retain-on-failure', locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' },
   projects: engines.flatMap((engine) =>
     viewports.map((viewport) => ({
