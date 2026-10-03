@@ -1,8 +1,5 @@
 packages:
   - apps/*
   - packages/*
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - esbuild
-  - sharp
-  - vue-demi
+allowBuilds:
+  esbuild: true
