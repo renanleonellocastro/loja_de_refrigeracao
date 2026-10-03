@@ -136,15 +136,17 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 
 | Método e caminho | Descrição | Acesso |
 |---|---|---|
-| `POST /quotes` | Solicitar | cliente; equipe em nome de cliente |
-| `GET /me/quotes` | Meus orçamentos | cliente |
-| `GET /quotes?status=` | Fila | gerente |
-| `GET /quotes/{id}` | Detalhes | dono, gerente |
-| `GET /quotes/{id}/messages`, `POST /quotes/{id}/messages` | Conversa | dono e gerente |
-| `POST /quotes/{id}/answer` | Responder com valor e validade | gerente |
-| `POST /quotes/{id}/acceptance` | Aceitar (cria solicitação de agendamento) | dono |
-| `POST /quotes/{id}/decline` | Recusar | dono |
-| `POST /quotes/{id}/cancellation` | Cancelar | dono |
+| `POST /quotes` | Solicitar (JSON, com `Idempotency-Key`) | cliente; gerente em nome de cliente (`customerId`) |
+| `POST /quotes/{id}/photos` | Enviar fotos (multipart, até 6) | dono enquanto solicitado, gerente enquanto aberto |
+| `GET /quotes?status=&q=` | Orçamentos visíveis: os seus (cliente), todos (gerente; `q` busca cliente ou número) | cliente, gerente |
+| `GET /quotes/{id}` | Detalhes com fotos, valor, validade e `canAccept`, `canDecline`, `canCancel` de quem pergunta | dono, gerente |
+| `GET /quotes/{id}/messages`, `POST /quotes/{id}/messages` | Conversa enquanto aberto | dono e gerente |
+| `POST /quotes/{id}/answer` | Responder com `amountCents`, `validityDays` (1 a 90, contados em São Paulo), `included` e `notes` | gerente |
+| `POST /quotes/{id}/acceptance` | Aceitar até o último dia da validade, com `windows` e `address` como em `POST /service-requests`; cria a solicitação de agendamento na mesma transação e devolve `serviceRequestId` | dono |
+| `POST /quotes/{id}/decline` | Recusar com motivo opcional | dono |
+| `POST /quotes/{id}/cancellation` | Cancelar com motivo opcional | dono enquanto solicitado, gerente enquanto aberto |
+
+Orçamentos respondidos vencem sozinhos: o worker roda `expireQuotes` a cada hora e marca como vencidos os que passaram do último dia de validade no horário de São Paulo, avisando o cliente e a gerência.
 
 ### Painel, notificações e administração
 
