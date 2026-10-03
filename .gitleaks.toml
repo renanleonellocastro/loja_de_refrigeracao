@@ -2,5 +2,12 @@
 useDefault = true
 
 [allowlist]
-description = "Development only placeholders"
-paths = ['''infra/env\.sample$''', '''infra/compose\.yaml$''']
+description = "Development placeholders and test fixtures with fake credentials"
+paths = [
+  '''infra/env\.sample$''',
+  '''infra/compose\.yaml$''',
+  '''\.test\.ts$''',
+  '''(^|/)apps/api/test/''',
+  '''apps/api/src/infra/db/seed\.ts$''',
+  '''apps/e2e/''',
+]
