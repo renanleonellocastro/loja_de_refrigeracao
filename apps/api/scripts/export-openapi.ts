@@ -4,12 +4,14 @@ import { buildApp } from '../src/app.js';
 import { loadConfig } from '../src/config.js';
 import type { Database } from '../src/infra/db/client.js';
 import { MemoryMailer } from '../src/infra/mail/mailer.js';
+import { createLocalStorage } from '../src/infra/storage/storage.js';
 import { systemClock } from '../src/shared/clock.js';
 
 const app = await buildApp({
   config: loadConfig({ LOG_LEVEL: 'silent' }),
   db: {} as Database,
   mailer: new MemoryMailer(),
+  storage: createLocalStorage('storage'),
   clock: systemClock,
 });
 await app.ready();
