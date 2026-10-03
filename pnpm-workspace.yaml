@@ -3,3 +3,9 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+# Advisories without a patched release that only reach build or dev tooling, never the production runtime.
+# Reviewed on 2026-10-03; see docs/SEGURANCA.md section 5.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-86w9-cpqp-85rv # node-forge via listhen (Nuxt dev server HTTPS helper)
+    - GHSA-vfj7-8cjw-p6xm # braces via globby (Nitro build file scanning)
