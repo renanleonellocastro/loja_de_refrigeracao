@@ -10,6 +10,18 @@ Um software, de código aberto, que está em desenvolvimento utilizando a lingua
 
 O sistema ainda está em fase de planejamento, mas em breve começara a ser desenvolvido. As instruções de como executar serão adicionadas assim que o desenvolvimento começar.
 
+## Documentação
+
+O sistema foi replanejado em outubro de 2026. Comece por aqui:
+
+* [Diagnóstico do estado atual](docs/DIAGNOSTICO.md)
+* [Requisitos](docs/REQUISITOS.md) e [casos de uso complementares](docs/CASOS_DE_USO_NOVOS.md), além da [definição original](definicao.md)
+* [Modelo de domínio](docs/DOMINIO.md), [arquitetura](docs/ARQUITETURA.md) e [API REST](docs/API.md)
+* [Identidade visual e design system](docs/DESIGN.md)
+* [Testes](docs/TESTES.md) e [segurança](docs/SEGURANCA.md)
+* [Decisões de arquitetura (ADRs)](docs/adr/README.md)
+* [Roteiro de milestones](docs/ROTEIRO.md)
+
 ## Funcionamento
 
 O sistema funcionará contando com dois softwares na sua primeira versão. O primeiro software será desenvolvido para executar nos computadores dos clientes e funcionários da loja. Este software tem por objetivo oferecer aos clientes da loja as interfaces para cadastro de novo cliente, consulta de preços dos produtos oferecidos pela loja, agendamento de serviço de manutenção técnica e solicitação de orçamento de serviço especializado. Aos funcionários da loja, o software oferecerá as mesmas interfaces dos clientes da loja e também as interfaces de consulta de produtos no estoque, cadastramento de novos produtos, consulta da agenda de trabalho e consulta de clientes. O segundo software será desenvolvido para executar em um computador servidor e será o responsável por gerenciar todas as requisições realizadas pelos clientes e funcionários e também gerenciará o banco de dados o qual conterá todas as informações geradas após as requisições.
