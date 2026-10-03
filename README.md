@@ -14,6 +14,7 @@ O sistema ainda está em fase de planejamento, mas em breve começara a ser dese
 
 O sistema foi replanejado em outubro de 2026. Comece por aqui:
 
+* [A loja: história, dados e serviços](docs/LOJA.md)
 * [Diagnóstico do estado atual](docs/DIAGNOSTICO.md)
 * [Requisitos](docs/REQUISITOS.md) e [casos de uso complementares](docs/CASOS_DE_USO_NOVOS.md), além da [definição original](definicao.md)
 * [Modelo de domínio](docs/DOMINIO.md), [arquitetura](docs/ARQUITETURA.md) e [API REST](docs/API.md)

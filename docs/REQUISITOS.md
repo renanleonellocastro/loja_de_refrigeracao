@@ -189,7 +189,7 @@ A matriz é implementada como dado (`packages/contracts/src/permissions.ts`) e t
 
 ## 7. Questões em aberto
 
-Respostas registradas na issue "Informações pendentes da Refrigeração Castro".
+Respostas registradas na issue #15. Respondidas em 03/10/2026: Q1 (não há logo nem fotos; redesenho a partir da fachada), Q2 (ver [LOJA.md](LOJA.md), endereço a confirmar) e Q8 (sim). As demais seguem com o padrão proposto até nova decisão: sem pagamento online, sem WhatsApp automatizado, sem NFS-e, hospedagem e email definidos antes do M10.
 
 * **Q1** Logo vetorial original existe? Fotos da loja, da equipe e de serviços para o site?
 * **Q2** Dados da loja: endereço completo, telefones, WhatsApp, horário, redes sociais, CNPJ.

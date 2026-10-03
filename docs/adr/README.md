@@ -1,6 +1,6 @@
 # Registros de decisão de arquitetura
 
-Todas propostas em 03/10/2026, aguardando aprovação do dono na issue de revisão do replanejamento.
+Propostas e aceitas em 03/10/2026 (issue #14). A ADR 0012 (hospedagem) segue aberta quanto ao provedor.
 
 | ADR | Título |
 |---|---|
