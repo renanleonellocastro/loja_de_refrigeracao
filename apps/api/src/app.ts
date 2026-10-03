@@ -10,6 +10,7 @@ import { z } from 'zod';
 import type { AppContext } from './context.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
+import { userRoutes } from './modules/users/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { authPlugin } from './plugins/auth.js';
 import { registerErrorHandling } from './plugins/errors.js';
@@ -69,6 +70,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(authRoutes(ctx));
       await api.register(auditRoutes(ctx));
       await api.register(mediaRoutes(ctx.storage));
+      await api.register(userRoutes(ctx));
     },
     { prefix: API_PREFIX },
   );
