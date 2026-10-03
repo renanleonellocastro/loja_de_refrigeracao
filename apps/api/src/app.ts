@@ -8,6 +8,7 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from 'fas
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { AppContext } from './context.js';
+import { agendaRoutes } from './modules/agenda/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
@@ -75,6 +76,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(userRoutes(ctx));
       await api.register(serviceRoutes(ctx));
       await api.register(catalogRoutes(ctx));
+      await api.register(agendaRoutes(ctx));
     },
     { prefix: API_PREFIX },
   );
