@@ -40,7 +40,7 @@ Logo vetorial, tokens da marca, biblioteca de componentes acessíveis e layouts 
 
 * #22 Logo vetorial da Refrigeração Castro e variações
 * #23 Tokens de design da marca com modo claro e escuro
-* #24 Biblioteca de componentes base com Storybook
+* #24 Biblioteca de componentes base com guia vivo em `/design`
 * #25 Layouts responsivos: público, cliente e equipe
 * #26 Voz e tom, páginas de erro e estados globais
 

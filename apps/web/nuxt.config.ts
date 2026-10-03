@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
+import { THEME_BOOT_SCRIPT } from './app/utils/theme';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
@@ -12,6 +13,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },
+      viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
       title: 'Refrigeração Castro',
       meta: [
         {
@@ -26,6 +28,8 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       ],
+      // Applies the saved theme before the first paint, so there is no flash of the other theme.
+      script: [{ innerHTML: THEME_BOOT_SCRIPT, tagPosition: 'head' }],
     },
   },
   fonts: {

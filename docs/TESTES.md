@@ -15,7 +15,7 @@ Regra do projeto: **todo código entra com teste, e o CI recusa qualquer mudanç
 | Permissões | Teste gerado da matriz: cada rota × cada papel × dono ou não dono | Guardas de rota por papel |
 | E2E | | Playwright em três dispositivos (Pixel 7, iPad, desktop 1440 px) e três motores (Chromium, WebKit, Firefox) |
 | Acessibilidade | | `@axe-core/playwright` em toda tela, zero violações AA |
-| Visual | | Capturas do Storybook e das telas principais comparadas por dispositivo |
+| Visual | | Capturas do guia vivo `/design` e das telas principais comparadas por dispositivo (`@visual`) |
 | Desempenho | | Lighthouse CI com os orçamentos do RNF-08; limite de tamanho de bundle |
 | Segurança | `pnpm audit`, gitleaks, Semgrep | `pnpm audit`, Semgrep |
 

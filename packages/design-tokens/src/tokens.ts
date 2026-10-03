@@ -29,7 +29,18 @@ export const palette = {
     900: '#1C2026',
     950: '#14181F',
   },
-  frost: { 200: '#BAE6FD', 300: '#7DD3FC', 400: '#38BDF8', 500: '#0EA5E9', 600: '#0284C7' },
+  frost: {
+    50: '#F0F9FF',
+    100: '#E0F2FE',
+    200: '#BAE6FD',
+    300: '#7DD3FC',
+    400: '#38BDF8',
+    500: '#0EA5E9',
+    600: '#0284C7',
+    700: '#0369A1',
+    800: '#075985',
+    900: '#0C4A6E',
+  },
   success: { 100: '#DCFCE7', 400: '#4ADE80', 600: '#15803D', 800: '#166534' },
   warning: { 100: '#FEF3C7', 400: '#FBBF24', 500: '#F59E0B', 800: '#92400E' },
   danger: { 100: '#FEE2E2', 400: '#F87171', 600: '#DC2626', 800: '#991B1B' },
@@ -52,6 +63,10 @@ export type SemanticName =
   | 'brand-band'
   | 'on-brand-band'
   | 'accent'
+  | 'accent-soft'
+  | 'on-accent-soft'
+  | 'info-soft'
+  | 'on-info-soft'
   | 'focus'
   | 'link'
   | 'success'
@@ -61,6 +76,7 @@ export type SemanticName =
   | 'warning-soft'
   | 'on-warning-soft'
   | 'danger'
+  | 'on-danger'
   | 'danger-soft'
   | 'on-danger-soft';
 
@@ -82,6 +98,10 @@ export const light: SemanticColors = {
   'brand-band': palette.castro[700],
   'on-brand-band': palette.white,
   accent: palette.frost[600],
+  'accent-soft': palette.frost[100],
+  'on-accent-soft': palette.frost[900],
+  'info-soft': palette.castro[100],
+  'on-info-soft': palette.castro[800],
   focus: palette.frost[600],
   link: palette.castro[700],
   success: palette.success[600],
@@ -91,6 +111,7 @@ export const light: SemanticColors = {
   'warning-soft': palette.warning[100],
   'on-warning-soft': palette.warning[800],
   danger: palette.danger[600],
+  'on-danger': palette.white,
   'danger-soft': palette.danger[100],
   'on-danger-soft': palette.danger[800],
 };
@@ -111,6 +132,10 @@ export const dark: SemanticColors = {
   'brand-band': palette.castro[800],
   'on-brand-band': palette.white,
   accent: palette.frost[300],
+  'accent-soft': '#0B3550',
+  'on-accent-soft': palette.frost[200],
+  'info-soft': '#173A63',
+  'on-info-soft': palette.castro[100],
   focus: palette.frost[300],
   link: palette.castro[300],
   success: palette.success[400],
@@ -120,6 +145,7 @@ export const dark: SemanticColors = {
   'warning-soft': '#3D2A06',
   'on-warning-soft': palette.warning[100],
   danger: palette.danger[400],
+  'on-danger': palette.castro[950],
   'danger-soft': '#45141A',
   'on-danger-soft': palette.danger[100],
 };
@@ -160,6 +186,14 @@ export const contrastPairs: ReadonlyArray<{ fg: SemanticName; bg: SemanticName; 
   { fg: 'on-success-soft', bg: 'success-soft', min: 4.5 },
   { fg: 'on-warning-soft', bg: 'warning-soft', min: 4.5 },
   { fg: 'on-danger-soft', bg: 'danger-soft', min: 4.5 },
+  { fg: 'on-accent-soft', bg: 'accent-soft', min: 4.5 },
+  { fg: 'on-info-soft', bg: 'info-soft', min: 4.5 },
+  { fg: 'text-muted', bg: 'surface-sunken', min: 4.5 },
+  { fg: 'text-muted', bg: 'surface-raised', min: 4.5 },
+  { fg: 'link', bg: 'bg', min: 4.5 },
+  { fg: 'danger', bg: 'bg', min: 3 },
+  { fg: 'danger', bg: 'surface', min: 4.5 },
+  { fg: 'on-danger', bg: 'danger', min: 4.5 },
   { fg: 'focus', bg: 'surface', min: 3 },
   { fg: 'border-strong', bg: 'surface', min: 3 },
   { fg: 'danger', bg: 'surface', min: 3 },

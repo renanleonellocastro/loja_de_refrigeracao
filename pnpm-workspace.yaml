@@ -3,6 +3,7 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  vue-demi: true
 # Advisories without a patched release that only reach build or dev tooling, never the production runtime.
 # Reviewed on 2026-10-03; see docs/SEGURANCA.md section 5.
 auditConfig:
