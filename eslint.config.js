@@ -31,6 +31,16 @@ export default tseslint.config(
     rules: { 'no-undef': 'off' },
   },
   {
+    // The logo is a trusted SVG from app/assets/brand, inlined so it can follow currentColor.
+    files: ['apps/web/app/components/AppLogo.vue'],
+    rules: { 'vue/no-v-html': 'off' },
+  },
+  {
+    // Tests declare small probe components next to each other.
+    files: ['apps/web/test/**/*.ts'],
+    rules: { 'vue/one-component-per-file': 'off' },
+  },
+  {
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
