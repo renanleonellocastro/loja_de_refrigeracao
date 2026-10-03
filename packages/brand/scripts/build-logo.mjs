@@ -206,4 +206,4 @@ fs.copyFileSync(new URL('icone-app.svg', out), new URL('favicon.svg', pub));
 const maskable = symbol({ fill: '#FFFFFF', background: '#184E86', maskable: true });
 fs.writeFileSync(new URL('icon-maskable.svg', out), maskable);
 png('icon-maskable.svg', new URL('icon-maskable-512.png', pub), 512);
-console.log('brand assets written');
+console.warn('brand assets written');
