@@ -9,6 +9,7 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { AppContext } from './context.js';
 import { auditRoutes } from './modules/audit/routes.js';
+import { catalogRoutes } from './modules/catalog/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
 import { userRoutes } from './modules/users/routes.js';
@@ -73,6 +74,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(mediaRoutes(ctx.storage));
       await api.register(userRoutes(ctx));
       await api.register(serviceRoutes(ctx));
+      await api.register(catalogRoutes(ctx));
     },
     { prefix: API_PREFIX },
   );
