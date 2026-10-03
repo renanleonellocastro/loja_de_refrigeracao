@@ -1326,6 +1326,39 @@
           }
         }
       }
+    },
+    "/api/v1/media/{key}/{file}": {
+      "get": {
+        "summary": "Variante de uma foto (imutável)",
+        "tags": [
+          "Imagens"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            },
+            "in": "path",
+            "name": "key",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{3,4}\\.webp$"
+            },
+            "in": "path",
+            "name": "file",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
     }
   },
   "servers": [
