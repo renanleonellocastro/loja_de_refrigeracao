@@ -12,7 +12,7 @@ flowchart LR
   subgraph Servidor
     N[Nuxt server<br/>SSR das páginas públicas]
     A[apps/api<br/>Fastify 5 REST /api/v1]
-    J[Worker<br/>pg-boss: emails, vencimentos, imagens]
+    J[Worker<br/>outbox: emails, vencimentos, imagens]
   end
   DB[(PostgreSQL 17)]
   S[(Armazenamento de imagens<br/>disco ou S3 compatível)]
@@ -29,7 +29,7 @@ flowchart LR
 
 * **apps/web**: Nuxt 4 (Vue 3, Composition API, `<script setup lang="ts">`). Páginas públicas (início, catálogo, produto, serviços, contato) renderizadas no servidor para SEO local e carregamento rápido; área logada (cliente e equipe) como SPA.
 * **apps/api**: Fastify 5 em TypeScript. API REST única para tudo, inclusive para o próprio site. Esquemas Zod geram validação, tipos e a especificação OpenAPI 3.1.
-* **Worker**: mesmo pacote da API, outro processo, consumindo a fila `pg-boss` (no próprio PostgreSQL, sem Redis): envio de emails, geração de variantes de imagem, vencimento de orçamentos, lembretes de visita.
+* **Worker**: mesmo pacote da API, outro processo, consumindo a tabela `outbox` do próprio PostgreSQL com `FOR UPDATE SKIP LOCKED` (sem Redis nem biblioteca de filas): envio de emails, geração de variantes de imagem, vencimento de orçamentos, lembretes de visita.
 * **packages/contracts**: OpenAPI gerada, cliente TypeScript gerado (`openapi-typescript` + `openapi-fetch`), matriz de permissões, enums de estado. Fonte única para API e web.
 * **packages/design-tokens**: cores, tipografia, espaçamentos, raios, sombras e movimento da marca, exportados para CSS (Tailwind CSS v4) e para os templates de email.
 

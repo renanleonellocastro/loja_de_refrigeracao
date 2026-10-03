@@ -200,6 +200,8 @@ png('icone-app.svg', new URL('icon-192.png', pub), 192);
 png('icone-app.svg', new URL('icon-512.png', pub), 512);
 png('icone-app.svg', new URL('apple-touch-icon.png', pub), 180);
 png('icone-app.svg', new URL('favicon-32.png', pub), 32);
+// Emails cannot rely on SVG: a white PNG logo for the blue email header.
+png('logo-branco.svg', new URL('logo-email.png', out), 440);
 fs.copyFileSync(new URL('icone-app.svg', out), new URL('favicon.svg', pub));
 
 // Maskable icon: symbol inside the safe zone on a full bleed blue square.

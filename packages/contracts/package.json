@@ -13,14 +13,17 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate": "pnpm --filter @rc/api openapi && openapi-typescript openapi.json -o src/generated/api.ts"
   },
   "dependencies": {
+    "openapi-fetch": "^0.17.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
     "@vitest/coverage-v8": "^5.0.3",
+    "openapi-typescript": "^7.13.0",
     "typescript": "6.0.3",
     "vitest": "^5.0.3"
   }
