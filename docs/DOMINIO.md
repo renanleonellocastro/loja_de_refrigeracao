@@ -104,7 +104,8 @@ stateDiagram-v2
   RESPONDIDO --> ACEITO: cliente aceita (gera solicitação de agendamento)
   RESPONDIDO --> RECUSADO: cliente recusa
   RESPONDIDO --> VENCIDO: validade expira (tarefa agendada)
-  SOLICITADO --> CANCELADO: cliente
+  SOLICITADO --> CANCELADO: cliente ou gerente
+  RESPONDIDO --> CANCELADO: gerente
 ```
 
 Código: `REQUESTED`, `ANSWERED`, `ACCEPTED`, `DECLINED`, `EXPIRED`, `CANCELED`.
