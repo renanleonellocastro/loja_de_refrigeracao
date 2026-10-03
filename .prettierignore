@@ -1,0 +1,12 @@
+server/
+client/
+pnpm-lock.yaml
+**/dist/
+**/.nuxt/
+**/.output/
+**/coverage/
+**/playwright-report/
+**/test-results/
+**/generated/
+**/drizzle/meta/
+*.md

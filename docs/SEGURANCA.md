@@ -30,7 +30,7 @@ HTTPS obrigatório com HSTS; Content Security Policy sem `unsafe-inline` em scri
 
 ## 5. Segredos e repositório
 
-* Nenhum segredo no Git; `.env.example` documenta as variáveis.
+* Nenhum segredo no Git; `infra/env.sample` documenta as variáveis.
 * gitleaks no CI e em hook de pre commit.
 * Os arquivos `.http` com tokens e o script com hash de senha do protótipo saem do repositório no M0. Os tokens antigos já expiraram, mas o `JWT_KEY` usado na época deve ser considerado comprometido e não reaproveitado.
 

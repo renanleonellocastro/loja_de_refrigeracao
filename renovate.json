@@ -1,0 +1,7 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits", "group:allNonMajor"],
+  "timezone": "America/Sao_Paulo",
+  "schedule": ["before 6am on monday"],
+  "ignorePaths": ["server/**", "client/**"]
+}

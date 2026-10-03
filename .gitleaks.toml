@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Development only placeholders"
+paths = ['''infra/env\.sample$''', '''infra/compose\.yaml$''']

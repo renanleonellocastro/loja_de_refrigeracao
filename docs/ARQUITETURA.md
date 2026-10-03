@@ -112,7 +112,7 @@ Solicitação (`REQUESTED`) → conversa → aprovação → `POST /api/v1/appoi
 
 ## 5. Configuração
 
-Todas as variáveis em `.env` (modelo em `.env.example`), validadas na inicialização; o processo não sobe com configuração inválida. Nenhum segredo no repositório.
+Todas as variáveis em `.env` (modelo em `infra/env.sample`), validadas na inicialização; o processo não sobe com configuração inválida. Nenhum segredo no repositório.
 
 | Variável | Uso |
 |---|---|
