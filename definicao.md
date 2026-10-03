@@ -1,5 +1,7 @@
 # Definição do Sistema
 
+> Complementado em 03/10/2026 por [docs/REQUISITOS.md](docs/REQUISITOS.md) (decisões sobre ambiguidades, matriz de permissões, requisitos não funcionais) e [docs/CASOS_DE_USO_NOVOS.md](docs/CASOS_DE_USO_NOVOS.md). A seção de ferramentas abaixo foi atualizada pelas ADRs em [docs/adr](docs/adr/README.md).
+
 Este documento contém uma descrição mais detalhada de como o sistema se comporta para cada cenário de uso pelos seus usuários. Também contém informações
 sobre a prioridade de implementação, desenvolvimento e produção das funcionalidades do sistema além de detalhar as ferramentas que são usadas no desenvolvimento do mesmo.
 
