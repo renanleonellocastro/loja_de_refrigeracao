@@ -1,5 +1,6 @@
 // Public surface of the users module for other modules (docs/ARQUITETURA.md: modules talk through services).
 export {
+  activeEmailsByRole,
   anonymizeUser,
   exportUserData,
   findActiveUserByCpf,

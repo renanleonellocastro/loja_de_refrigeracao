@@ -26,6 +26,28 @@ describe('email templates', () => {
     expect(email.text).not.toContain('<');
   });
 
+  it('renders generic notices with an optional action', () => {
+    const withLink = templates.notice(
+      {
+        name: 'Ana Souza',
+        subject: 'Pedido pronto',
+        heading: 'Pode retirar',
+        paragraphs: ['Seu pedido <RC-1> está pronto.'],
+        link: 'https://x/p/1',
+      },
+      footer,
+    );
+    expect(withLink.html).toContain('Seu pedido &lt;RC-1&gt; está pronto.');
+    expect(withLink.text).toContain('Ver detalhes: https://x/p/1');
+    const custom = templates.notice(
+      { name: 'Ana', subject: 's', heading: 'h', paragraphs: [], link: 'l', actionLabel: 'Responder' },
+      footer,
+    );
+    expect(custom.text).toContain('Responder: l');
+    const plain = templates.notice({ name: 'Ana', subject: 's', heading: 'h', paragraphs: ['p'] }, footer);
+    expect(plain.text).not.toContain('Ver detalhes');
+  });
+
   it('covers every template', () => {
     const all = [
       templates.invitation({ name: 'Ana', link: 'l', roleLabel: 'Gerente' }, footer),
