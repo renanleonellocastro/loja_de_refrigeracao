@@ -6,9 +6,24 @@ Um software, de código aberto, que está em desenvolvimento utilizando a lingua
   <img width="500" height="330" src="imagens/logo.png">
 </p>
 
-## Como Executar
+## Como executar
 
-O sistema ainda está em fase de planejamento, mas em breve começara a ser desenvolvido. As instruções de como executar serão adicionadas assim que o desenvolvimento começar.
+Requisitos: Node.js 24 ou mais recente, pnpm 12 e Docker.
+
+```
+pnpm install
+pnpm dev
+```
+
+O comando sobe o PostgreSQL e o Mailpit no Docker, compila os pacotes e inicia a API e o site.
+
+* Site: http://localhost:3000
+* API: http://localhost:3001 (documentação em `/api/docs`)
+* Emails enviados em desenvolvimento: http://localhost:8025
+
+Testes: `pnpm test` (unitários e integração, cobertura de 100% exigida) e `pnpm test:e2e` (celular, tablet e desktop). Veja [CONTRIBUTING.md](CONTRIBUTING.md).
+
+O código antigo em `server/` e `client/` é o protótipo de 2022, congelado e com remoção prevista no M5 (ADR 0008).
 
 ## Documentação
 

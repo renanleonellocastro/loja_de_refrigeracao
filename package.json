@@ -1,0 +1,35 @@
+{
+  "name": "refrigeracao-castro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema da Refrigeração Castro, Mogi Mirim/SP: site, loja, serviços e agenda com API RESTful.",
+  "license": "MIT",
+  "author": "Renan Leonello Castro",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24.11"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "node infra/dev.mjs",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r --filter '!@rc/e2e' run test",
+    "test:e2e": "pnpm --filter @rc/e2e run test",
+    "lint": "eslint . --max-warnings 0 && prettier --check .",
+    "format": "prettier --write .",
+    "typecheck": "pnpm -r --workspace-concurrency=1 run typecheck",
+    "depcruise": "depcruise apps/api/src --config .dependency-cruiser.cjs",
+    "db:up": "docker compose -f infra/compose.yaml up -d --wait",
+    "db:down": "docker compose -f infra/compose.yaml down"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "dependency-cruiser": "^18.5.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-vue": "^10.11.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.71.0"
+  }
+}

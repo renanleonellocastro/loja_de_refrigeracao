@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TZ: America/Sao_Paulo
+
+jobs:
+  quality:
+    name: Lint, tipos, testes e cobertura
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: castro
+          POSTGRES_PASSWORD: castro
+          POSTGRES_DB: castro
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U castro" --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      TEST_DATABASE_URL: postgres://castro:castro@localhost:5432/castro
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter './packages/*' run build
+      - run: pnpm lint
+      - run: pnpm depcruise
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @rc/web run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: '**/coverage/'
+          retention-days: 7
+
+  e2e:
+    name: E2E (celular, tablet, desktop)
+    runs-on: ubuntu-latest
+    needs: quality
+    env:
+      E2E_ENGINES: ${{ github.event_name == 'schedule' && 'chromium,firefox,webkit' || 'chromium' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter './packages/*' run build
+      - run: pnpm --filter @rc/e2e exec playwright install --with-deps ${E2E_ENGINES//,/ }
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/e2e/playwright-report/
+          retention-days: 7
+
+  secrets:
+    name: Segredos e dependências
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
