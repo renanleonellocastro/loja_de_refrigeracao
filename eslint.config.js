@@ -27,6 +27,11 @@ export default tseslint.config(
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
   {
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     // TypeScript already reports undefined names, including Nuxt auto imports.
     files: ['**/*.ts', '**/*.vue'],
     rules: { 'no-undef': 'off' },

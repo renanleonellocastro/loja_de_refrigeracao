@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Refrigeração Castro logo generator (Montserrat outlines plus the mascot) and brand assets.",
   "scripts": {
-    "logo": "node scripts/build-logo.mjs"
+    "logo": "node scripts/build-logo.mjs",
+    "illustrations": "node illustrations/build.cjs"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
