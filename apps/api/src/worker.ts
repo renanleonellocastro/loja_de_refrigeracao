@@ -1,6 +1,8 @@
 import { loadConfig } from './config.js';
+import type { AppContext } from './context.js';
 import { connect } from './infra/db/client.js';
 import { createSmtpMailer } from './infra/mail/mailer.js';
+import { createLocalStorage } from './infra/storage/storage.js';
 import { EMAIL_TOPIC, emailHandler } from './modules/mail/service.js';
 import { processOutboxBatch } from './modules/outbox/service.js';
 import { expireQuotes } from './modules/quotes/service.js';
@@ -10,6 +12,14 @@ const config = loadConfig(process.env);
 const database = connect(config.DATABASE_URL, 2);
 const mailer = createSmtpMailer(config.SMTP_URL, config.MAIL_FROM);
 const handlers = { [EMAIL_TOPIC]: emailHandler({ mailer, config }) };
+const ctx: AppContext = {
+  config,
+  db: database.db,
+  mailer,
+  storage: createLocalStorage(config.STORAGE_PATH),
+  fetch: globalThis.fetch,
+  clock: systemClock,
+};
 
 let running = true;
 const stop = () => {
@@ -23,7 +33,7 @@ let lastExpiration = 0;
 while (running) {
   if (Date.now() - lastExpiration >= HOUR) {
     lastExpiration = Date.now();
-    await expireQuotes({ db: database.db, clock: systemClock, config }).catch((error: unknown) => {
+    await expireQuotes(ctx).catch((error: unknown) => {
       console.error('quote expiration failed', error);
     });
   }

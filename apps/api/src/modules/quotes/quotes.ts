@@ -6,8 +6,8 @@ import { pageOf } from '../../shared/pagination.js';
 import { formatBrl, formatDateBr } from '../../shared/text.js';
 import { recordAudit } from '../audit/service.js';
 import type { AccessClaims } from '../auth/service.js';
-import { queueEmail } from '../mail/service.js';
 import { imageView, storeImage } from '../media/service.js';
+import * as notifications from '../notifications/service.js';
 import * as services from '../services/service.js';
 import * as users from '../users/service.js';
 import * as repo from './repository.js';
@@ -23,50 +23,44 @@ import {
 
 export const MAX_QUOTE_PHOTOS = 6;
 
-type MailContext = Pick<AppContext, 'db' | 'clock' | 'config'>;
-
 const isManagement = (role: Role) => role === 'MANAGER' || role === 'ADMIN';
 
-function customerLink(ctx: MailContext, id: number) {
-  return `${ctx.config.APP_ORIGIN}/minha-conta/orcamentos/${id}`;
+const customerPath = (id: number) => `/minha-conta/orcamentos/${id}`;
+
+interface Message {
+  subject: string;
+  heading: string;
+  paragraphs: string[];
 }
 
-function staffLink(ctx: MailContext, id: number) {
-  return `${ctx.config.APP_ORIGIN}/orcamentos/${id}`;
-}
-
-/** Emails every manager and super user (except the author of the change). */
-async function notifyManagement(
-  ctx: MailContext,
+/** Notifies every manager and super user (except the author of the change), in the app and by email. */
+function notifyManagement(
+  ctx: AppContext,
   db: Executor,
   exceptUserId: number | null,
   quoteId: number,
-  message: { subject: string; heading: string; paragraphs: string[] },
+  message: Message,
 ) {
-  for (const person of await users.activeEmailsByRole(db, ['MANAGER', 'ADMIN'])) {
-    if (person.id === exceptUserId) continue;
-    await queueEmail(db, person.email, 'notice', {
-      name: person.name,
-      ...message,
-      link: staffLink(ctx, quoteId),
-      actionLabel: 'Abrir orçamento',
-    });
-  }
+  return notifications.notifyManagement(ctx, db, exceptUserId, {
+    type: 'quote',
+    ...message,
+    path: `/orcamentos/${quoteId}`,
+    actionLabel: 'Abrir orçamento',
+  });
 }
 
-async function notifyCustomer(
-  ctx: MailContext,
+/** Notifies the customer of the quote; removed accounts are skipped. */
+function notifyCustomer(
+  ctx: AppContext,
   db: Executor,
   quote: repo.QuoteRow,
-  message: { subject: string; heading: string; paragraphs: string[]; actionLabel?: string },
+  message: Message & { actionLabel?: string },
 ) {
-  const customer = await users.findActiveUserById(db, quote.customerId);
-  if (!customer) return;
-  await queueEmail(db, customer.email, 'notice', {
-    name: customer.name,
+  return notifications.notifyUserById(ctx, db, quote.customerId, {
+    type: 'quote',
     actionLabel: 'Ver meu orçamento',
     ...message,
-    link: customerLink(ctx, quote.id),
+    path: customerPath(quote.id),
   });
 }
 
@@ -138,8 +132,8 @@ export async function createQuote(ctx: AppContext, actor: AccessClaims, input: Q
       createdAt: now,
       updatedAt: now,
     });
-    await queueEmail(tx, customer.email, 'notice', {
-      name: customer.name,
+    await notifications.notifyUser(ctx, tx, customer, {
+      type: 'quote',
       subject: `Recebemos seu pedido de orçamento nº ${quote.id}`,
       heading: 'Recebemos seu pedido de orçamento',
       paragraphs: [
@@ -148,7 +142,7 @@ export async function createQuote(ctx: AppContext, actor: AccessClaims, input: Q
         `Situação: ${QUOTE_STATUS_LABELS[quote.status]}.`,
         'Assim que a loja analisar o pedido, você recebe por email o valor e a validade do orçamento.',
       ],
-      link: customerLink(ctx, quote.id),
+      path: customerPath(quote.id),
       actionLabel: 'Acompanhar orçamento',
     });
     await notifyManagement(ctx, tx, actor.userId, quote.id, {
@@ -461,7 +455,7 @@ export async function cancelQuote(
  * Scheduled task: every answered quote whose last valid day (São Paulo) is before today becomes EXPIRED,
  * and the customer and the management are told. Returns how many quotes expired.
  */
-export async function expireQuotes(ctx: MailContext): Promise<number> {
+export async function expireQuotes(ctx: AppContext): Promise<number> {
   return ctx.db.transaction(async (tx) => {
     const now = ctx.clock.now();
     const expired = await repo.expireAnsweredBefore(tx, services.saoPauloDate(now), now);

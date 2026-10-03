@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
-import { auditLogs, messages, quotes, serviceRequests, serviceTypes } from '../../infra/db/schema.js';
+import {
+  auditLogs,
+  messages,
+  notifications,
+  quotes,
+  serviceRequests,
+  serviceTypes,
+} from '../../infra/db/schema.js';
 import { jpeg } from '../../../test/images.js';
 import { multipart } from '../../../test/multipart.js';
 import { useTestApp } from '../../../test/harness.js';
@@ -336,6 +343,12 @@ describe('quote routes', () => {
       expect(email.text).toContain('Válido até 15/10/2026.');
       expect(email.text).toContain('Observações: Pagamento na conclusão.');
       expect(email.text).toContain(`http://localhost:3000/minha-conta/orcamentos/${id}`);
+      const inbox = await t.db.select().from(notifications).where(eq(notifications.userId, owner.user.id));
+      expect(inbox.map((n) => [n.type, n.title, n.link])).toContainEqual([
+        'quote',
+        `Seu orçamento nº ${id} está pronto`,
+        `/minha-conta/orcamentos/${id}`,
+      ]);
       const [audit] = await t.db.select().from(auditLogs);
       expect(audit).toMatchObject({ action: 'quote.answer', resourceType: 'quote', actorId: manager.id });
 
