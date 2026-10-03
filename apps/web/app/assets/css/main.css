@@ -1,20 +1,48 @@
 @import 'tailwindcss';
 @import '@rc/design-tokens/tokens.css';
 
+/* Theme switch through the data-theme attribute set by the head script and useTheme(). */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+}
+
 @layer base {
   html {
     background-color: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-sans);
+    font-size: clamp(1rem, 0.96rem + 0.18vw, 1.0625rem);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+    }
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-bg);
   }
 
   h1,
   h2,
-  h3 {
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+    text-wrap: balance;
   }
 
   :focus-visible {
@@ -22,13 +50,121 @@
     outline-offset: 2px;
   }
 
+  ::selection {
+    background-color: var(--color-info-soft);
+    color: var(--color-on-info-soft);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
   }
+}
+
+/* Centered page width: 1280 px max with 16 px gutters on phones and 32 px from tablets up. */
+@utility rc-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left));
+  @media (width >= 48rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* The storefront wall: brand blue with a soft light falloff and a faint plaster grain. */
+@utility rc-wall {
+  background-color: var(--color-brand-band);
+  background-image:
+    radial-gradient(120% 140% at 15% -20%, rgb(255 255 255 / 0.14), transparent 55%),
+    radial-gradient(90% 120% at 100% 120%, rgb(6 22 42 / 0.35), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: var(--color-on-brand-band);
+}
+
+/* Silver relief lettering of the sign, for hero and header titles only. */
+@utility rc-relief {
+  background-image: linear-gradient(180deg, #ffffff 0%, #e9ecef 55%, #c8ccd2 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 1.5px rgb(6 22 42 / 0.55));
+}
+
+@utility rc-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@keyframes rc-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+@keyframes rc-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rc-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rc-slide-left {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes rc-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes rc-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+@theme {
+  --animate-rc-rise: rc-rise var(--duration-base) var(--ease-brand) both;
+  --animate-rc-fade: rc-fade var(--duration-base) var(--ease-brand) both;
+  --animate-rc-slide-left: rc-slide-left var(--duration-slow) var(--ease-brand) both;
+  --animate-rc-slide-up: rc-slide-up var(--duration-slow) var(--ease-brand) both;
+  --animate-rc-shimmer: rc-shimmer 1.4s ease-in-out infinite;
+  --animate-rc-indeterminate: rc-indeterminate 1.2s var(--ease-brand) infinite;
 }
