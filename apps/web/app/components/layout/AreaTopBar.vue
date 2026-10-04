@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Bell } from 'lucide-vue-next';
-
 defineProps<{ title: string }>();
 </script>
 
@@ -20,7 +18,7 @@ defineProps<{ title: string }>();
         {{ title }}
       </h1>
       <slot name="notifications">
-        <BaseIconButton label="Notificações" to="/notificacoes"><Bell /></BaseIconButton>
+        <LayoutNotificationBell />
       </slot>
       <LayoutUserMenu />
     </div>

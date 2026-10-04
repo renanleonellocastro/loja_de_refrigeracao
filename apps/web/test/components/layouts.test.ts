@@ -12,11 +12,11 @@ import UserMenu from '~/components/layout/UserMenu.vue';
 import AreaLayout from '~/layouts/area.vue';
 import DefaultLayout from '~/layouts/default.vue';
 import { useCartCount } from '~/composables/useCartCount';
-import { useCurrentActor } from '~/composables/useCurrentActor';
+import { useActorPreview } from '~/composables/useCurrentActor';
 import { navigationFor } from '~/utils/navigation';
 
 afterEach(() => {
-  useCurrentActor().value = 'GUEST';
+  useActorPreview().value = null;
   useCartCount().value = 0;
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
@@ -102,7 +102,7 @@ describe('SiteFooter', () => {
 
 describe('area layout', () => {
   it('builds the menus for the current actor and titles from the route', async () => {
-    useCurrentActor().value = 'MANAGER';
+    useActorPreview().value = 'MANAGER';
     const wrapper = await mountSuspended(AreaLayout, {
       slots: { default: () => 'Conteúdo' },
       route: '/design/area',
@@ -114,7 +114,7 @@ describe('area layout', () => {
   });
 
   it('uses the menu label or the store name as title', async () => {
-    useCurrentActor().value = 'CLIENT';
+    useActorPreview().value = 'CLIENT';
     const known = await mountSuspended(AreaLayout, { route: '/produtos' });
     expect(known.get('h1').text()).toBe('Produtos');
     const unknown = await mountSuspended(AreaLayout, { route: '/sem-titulo' });
@@ -178,7 +178,7 @@ describe('AreaTopBar and UserMenu', () => {
   });
 
   it('switches the theme from the account menu', async () => {
-    useCurrentActor().value = 'EMPLOYEE';
+    useActorPreview().value = 'EMPLOYEE';
     const wrapper = await mountSuspended(UserMenu, { attachTo: document.body });
     const trigger = wrapper.get('button[aria-label="Menu da conta"]');
     expect(trigger.text()).toContain('Colaborador');

@@ -20,7 +20,7 @@ const button = (text: string) =>
 afterEach(() => {
   useToast().clear();
   useConfirm().settle(false);
-  useCurrentActor().value = 'GUEST';
+  useActorPreview().value = null;
 });
 
 describe('home page', () => {
@@ -64,7 +64,7 @@ describe('preview-actor middleware', () => {
 
 describe('design area preview', () => {
   it('switches roles and goes back to guest on leave', async () => {
-    useCurrentActor().value = 'EMPLOYEE';
+    useActorPreview().value = 'EMPLOYEE';
     const page = await mountSuspended(DesignAreaPage);
     expect(page.get('[aria-current="true"]').text()).toBe('Colaborador');
     expect(page.findAll('tbody tr')).toHaveLength(3);

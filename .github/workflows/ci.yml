@@ -57,6 +57,19 @@ jobs:
     name: E2E (celular, tablet, desktop)
     runs-on: ubuntu-latest
     needs: quality
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: castro
+          POSTGRES_PASSWORD: castro
+          POSTGRES_DB: castro
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U castro" --health-interval 2s --health-timeout 3s --health-retries 30
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ['1025:1025']
     env:
       E2E_ENGINES: ${{ github.event_name == 'schedule' && 'chromium,firefox,webkit' || 'chromium' }}
     steps:

@@ -85,6 +85,23 @@ export function formatMoney(cents: number): string {
   return moneyFormatter.format(cents / 100).replace(/\s/g, ' ');
 }
 
+const dateFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'America/Sao_Paulo' });
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  dateStyle: 'short',
+  timeStyle: 'short',
+  timeZone: 'America/Sao_Paulo',
+});
+
+/** Formats an ISO instant as a long date in the store time zone, for example "3 de outubro de 2026". */
+export function formatDate(iso: string): string {
+  return dateFormatter.format(new Date(iso));
+}
+
+/** Formats an ISO instant as date and time in the store time zone, for example "03/10/2026, 14:30". */
+export function formatDateTime(iso: string): string {
+  return dateTimeFormatter.format(new Date(iso));
+}
+
 /** Reads typed money where every digit enters from the right as cents: "1.234,56" becomes 123456. */
 export function parseMoney(value: string): number {
   const digits = onlyDigits(value).replace(/^0+/, '').slice(0, 13);
@@ -100,3 +117,6 @@ export const MASKS: Record<
   phone: { format: formatPhone, inputmode: 'tel', placeholder: '(19) 99999-9999', maxLength: 15 },
   cep: { format: formatCep, inputmode: 'numeric', placeholder: '00000-000', maxLength: 9 },
 };
+
+/** Same idea as the API check: something@domain.tld, no spaces. */
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
