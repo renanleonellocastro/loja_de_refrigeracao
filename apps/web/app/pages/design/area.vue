@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { GUEST, ROLE_LABELS, ROLES } from '@rc/contracts';
+import { ROLE_LABELS, ROLES } from '@rc/contracts';
 import { CalendarClock, Package, Receipt, Wrench } from 'lucide-vue-next';
 
 /**
  * Preview of the signed in layout for each role, used by the style guide and the layout E2E tests.
- * The preview-actor middleware picks the role from ?papel=; leaving the page goes back to a guest.
+ * The preview-actor middleware picks the role from ?papel=; leaving the page goes back to the real actor.
  */
 definePageMeta({ layout: 'area', title: 'Prévia da área', middleware: 'preview-actor' });
 useHead({ title: 'Prévia da área | Refrigeração Castro', meta: [{ name: 'robots', content: 'noindex' }] });
 
 const actor = useCurrentActor();
+const preview = useActorPreview();
 onBeforeUnmount(() => {
-  actor.value = GUEST;
+  preview.value = null;
 });
 
 const STATS = [

@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
 const engines = (process.env.E2E_ENGINES ?? 'chromium').split(',');
+// E2E_API=0 skips the API for runs that only need the site, like the visual baselines.
+const withApi = process.env.E2E_API !== '0';
 
 const viewports = [
   { name: 'celular', use: { ...devices['Pixel 7'] } },
@@ -25,7 +27,20 @@ export default defineConfig({
       use: { ...viewport.use, browserName: engine as 'chromium' | 'firefox' | 'webkit' },
     })),
   ),
+  // The API runs on a dedicated database recreated with the development seed (apps/api/scripts/e2e-stack.ts).
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: 'pnpm --filter @rc/web dev', url: baseURL, reuseExistingServer: true, timeout: 180_000 },
+    : [
+        ...(withApi
+          ? [
+              {
+                command: 'pnpm --filter @rc/api e2e:stack',
+                url: 'http://localhost:3001/health',
+                reuseExistingServer: !process.env.CI,
+                timeout: 180_000,
+              },
+            ]
+          : []),
+        { command: 'pnpm --filter @rc/web dev', url: baseURL, reuseExistingServer: true, timeout: 180_000 },
+      ],
 });

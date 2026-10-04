@@ -16,8 +16,19 @@ import {
 
 /** Account menu of the top bar: who is signed in, profile, theme and sign out. */
 const actor = useCurrentActor();
+const auth = useAuthStore();
+const toast = useToast();
 const { preference, setPreference } = useTheme();
 const roleLabel = computed(() => ROLE_LABELS[actor.value]);
+// The style guide preview has no person, only a role.
+const displayName = computed(() => auth.user?.name ?? roleLabel.value);
+const subtitle = computed(() => (auth.user ? roleLabel.value : 'Refrigeração Castro'));
+
+async function signOut(): Promise<void> {
+  await auth.logout();
+  toast.success({ title: 'Você saiu da sua conta. Até logo!' });
+  await navigateTo('/');
+}
 
 const theme = computed({
   get: () => preference.value,
@@ -34,8 +45,8 @@ const ITEM =
       class="flex h-11 items-center gap-2 rounded-full pr-2 pl-1 transition-colors hover:bg-surface-sunken data-[state=open]:bg-surface-sunken"
       aria-label="Menu da conta"
     >
-      <BaseAvatar :name="roleLabel" size="sm" />
-      <span class="hidden text-sm font-semibold text-text lg:block">{{ roleLabel }}</span>
+      <BaseAvatar :name="displayName" size="sm" />
+      <span class="hidden max-w-40 truncate text-sm font-semibold text-text lg:block">{{ displayName }}</span>
       <ChevronDown class="hidden size-4 text-text-muted lg:block" aria-hidden="true" />
     </DropdownMenuTrigger>
     <DropdownMenuPortal>
@@ -45,10 +56,10 @@ const ITEM =
         class="z-50 w-64 rounded-lg border border-border bg-surface-raised p-1.5 shadow-lg data-[state=open]:animate-rc-rise"
       >
         <DropdownMenuLabel class="flex items-center gap-3 px-3 py-2.5">
-          <BaseAvatar :name="roleLabel" />
-          <span class="flex flex-col">
-            <span class="font-semibold text-text">{{ roleLabel }}</span>
-            <span class="text-xs text-text-muted">Refrigeração Castro</span>
+          <BaseAvatar :name="displayName" />
+          <span class="flex min-w-0 flex-col">
+            <span class="truncate font-semibold text-text">{{ displayName }}</span>
+            <span class="text-xs text-text-muted">{{ subtitle }}</span>
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator class="my-1 h-px bg-border" />
@@ -78,8 +89,7 @@ const ITEM =
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator class="my-1 h-px bg-border" />
-        <!-- Sign out arrives with authentication in milestone M2. -->
-        <DropdownMenuItem disabled :class="ITEM">
+        <DropdownMenuItem :disabled="!auth.signedIn" :class="ITEM" @select="signOut">
           <LogOut class="size-4.5" aria-hidden="true" />
           Sair
         </DropdownMenuItem>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { accountHomeFor } from '~/utils/session';
 import { PUBLIC_NAV, STORE_INFO } from '~/utils/store';
 import { ChevronRight, Clock, MapPin, Phone, X } from 'lucide-vue-next';
 import { DialogClose, DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui';
@@ -7,6 +8,14 @@ import { DialogClose, DialogContent, DialogOverlay, DialogPortal, DialogRoot, Di
 const open = defineModel<boolean>('open', { default: false });
 
 const route = useRoute();
+const auth = useAuthStore();
+const toast = useToast();
+
+async function signOut(): Promise<void> {
+  await auth.logout();
+  open.value = false;
+  toast.success({ title: 'Você saiu da sua conta. Até logo!' });
+}
 watch(
   () => route.fullPath,
   () => {
@@ -48,7 +57,11 @@ watch(
               </NuxtLink>
             </li>
           </ul>
-          <div class="mt-4 grid gap-2 px-1">
+          <div v-if="auth.user" class="mt-4 grid gap-2 px-1">
+            <BaseButton :to="accountHomeFor(auth.user.role)" block>Minha conta</BaseButton>
+            <BaseButton variant="secondary" block @click="signOut">Sair</BaseButton>
+          </div>
+          <div v-else class="mt-4 grid gap-2 px-1">
             <BaseButton to="/entrar" block>Entrar</BaseButton>
             <BaseButton to="/criar-conta" variant="secondary" block>Criar conta</BaseButton>
           </div>

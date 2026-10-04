@@ -22,6 +22,8 @@ jobs:
       - run: pnpm --filter './packages/*' run build
       - run: pnpm --filter @rc/e2e exec playwright install --with-deps chromium
       - run: pnpm --filter @rc/e2e exec playwright test --grep @visual --update-snapshots
+        env:
+          E2E_API: '0'
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
