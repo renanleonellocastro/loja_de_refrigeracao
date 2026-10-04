@@ -8,14 +8,7 @@ import { storeImage, type StoredImage } from '../../modules/media/service.js';
 import { slugify } from '../../shared/text.js';
 import type { Storage } from '../storage/storage.js';
 import type { Database } from './client.js';
-import {
-  categories,
-  productImages,
-  products,
-  serviceTypes,
-  stockMovements,
-  users,
-} from './schema.js';
+import { categories, productImages, products, serviceTypes, stockMovements, users } from './schema.js';
 
 export const CATEGORIES = [
   'Geladeiras e refrigeradores',
