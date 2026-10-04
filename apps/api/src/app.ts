@@ -12,6 +12,7 @@ import { agendaRoutes } from './modules/agenda/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
+import { orderRoutes } from './modules/orders/routes.js';
 import { notificationRoutes } from './modules/notifications/routes.js';
 import { quoteRoutes } from './modules/quotes/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
@@ -80,6 +81,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(serviceRoutes(ctx));
       await api.register(catalogRoutes(ctx));
       await api.register(agendaRoutes(ctx));
+      await api.register(orderRoutes(ctx));
       await api.register(quoteRoutes(ctx));
       await api.register(notificationRoutes(ctx));
       await api.register(storeRoutes(ctx));
