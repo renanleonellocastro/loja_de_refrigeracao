@@ -91,18 +91,21 @@ describe('catalog page', () => {
     });
     expect(wrapper.get('h1').text()).toBe('Resultados para “geladera”');
     expect(wrapper.text()).toContain('Filtros (3)');
-    const chips = wrapper.get('ul[aria-label="Filtros ativos"]').findAll('button');
-    expect(chips.map((chip) => chip.text())).toEqual([
-      'Peças e acessórios , remover filtro',
-      'Novo , remover filtro',
-      'Embraco , remover filtro',
-    ]);
-    await chips[2]!.trigger('click');
-    await settle();
-    await wrapper.get('ul[aria-label="Filtros ativos"]').findAll('button')[1]!.trigger('click');
-    await settle();
-    await wrapper.get('ul[aria-label="Filtros ativos"]').findAll('button')[0]!.trigger('click');
-    await settle();
+    expect(
+      wrapper
+        .get('ul[aria-label="Filtros ativos"]')
+        .findAll('button')
+        .map((chip) => chip.text()),
+    ).toEqual(['Peças e acessórios , remover filtro', 'Novo , remover filtro', 'Embraco , remover filtro']);
+    // Each chip removes its own filter; the next one is read after the address changes.
+    for (const label of ['Embraco', 'Novo', 'Peças e acessórios']) {
+      const chip = wrapper
+        .get('ul[aria-label="Filtros ativos"]')
+        .findAll('button')
+        .find((item) => item.text().startsWith(label))!;
+      await chip.trigger('click');
+      await vi.waitFor(() => expect(wrapper.text()).not.toContain(`${label} , remover filtro`));
+    }
     expect(router.currentRoute.value.query).toEqual({ q: 'geladera', ordem: 'menor-preco' });
 
     window.scrollTo = vi.fn();

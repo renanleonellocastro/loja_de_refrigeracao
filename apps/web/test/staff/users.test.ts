@@ -68,26 +68,28 @@ describe('customers list', () => {
     await flushPromises();
     expect(page.text()).toContain('Cliente 1');
     expect(page.text()).toContain('—');
+    // Signing in also loads the cart, so only the calls of this list are checked.
+    const users = () => api.called('GET /api/v1/users');
     expect(page.find('a[href="/clientes/1"]').exists()).toBe(true);
-    expect(api.calls[0]!.url.searchParams.get('role')).toBe('CLIENT');
+    expect(users()[0]!.url.searchParams.get('role')).toBe('CLIENT');
 
     (document.querySelector('button[aria-label="Próxima página"]') as HTMLButtonElement).click();
     await flushPromises();
-    expect(api.calls[1]!.url.searchParams.get('page')).toBe('2');
+    expect(users()[1]!.url.searchParams.get('page')).toBe('2');
 
     await fill('Buscar clientes', 'zzz');
     await fill('Buscar clientes', 'zzzz');
     await wait(350);
     await flushPromises();
     expect(api.called('GET /api/v1/users')).toHaveLength(3);
-    expect(api.calls[2]!.url.searchParams.get('q')).toBe('zzzz');
-    expect(api.calls[2]!.url.searchParams.get('page')).toBe('1');
+    expect(users()[2]!.url.searchParams.get('q')).toBe('zzzz');
+    expect(users()[2]!.url.searchParams.get('page')).toBe('1');
     expect(page.text()).toContain('Nada encontrado para “zzzz”');
 
     await fill('Buscar clientes', ' ');
     await wait(350);
     await flushPromises();
-    expect(api.calls[3]!.url.searchParams.has('q')).toBe(false);
+    expect(users()[3]!.url.searchParams.has('q')).toBe(false);
     expect(page.text()).toContain('Nenhum cliente por aqui ainda');
 
     await fill('Buscar clientes', 'x');
