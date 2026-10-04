@@ -1,6 +1,8 @@
 import { BRAZILIAN_STATES, type ApiSchemas } from '@rc/contracts';
 
 export type ApiAddress = ApiSchemas['Address'];
+/** Address as the API accepts it: the UF is one of the 27 states. */
+export type AddressInput = Omit<ApiAddress, 'state'> & { state: (typeof BRAZILIAN_STATES)[number] };
 
 /** Address as edited in forms: every field is text, the CEP holds digits only. */
 export interface AddressForm {
@@ -30,9 +32,13 @@ export function isAddressBlank(address: AddressForm): boolean {
 }
 
 /** Body for the API: null when blank, so optional addresses can be skipped or removed. */
-export function addressToApi(address: AddressForm): ApiAddress | null {
+export function addressToApi(address: AddressForm): AddressInput | null {
   if (isAddressBlank(address)) return null;
-  return { ...address, complement: address.complement.trim() || null };
+  return {
+    ...address,
+    state: address.state as AddressInput['state'],
+    complement: address.complement.trim() || null,
+  };
 }
 
 /** Checks a filled address. With `required`, a blank one is an error too. */

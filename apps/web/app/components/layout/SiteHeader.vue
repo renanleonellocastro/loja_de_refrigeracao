@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { accountHomeFor } from '~/utils/session';
 import { PUBLIC_NAV } from '~/utils/store';
 import { Menu, ShoppingCart } from 'lucide-vue-next';
 
 const cartCount = useCartCount();
 const auth = useAuthStore();
-const accountLink = computed(() => (auth.user ? accountHomeFor(auth.user.role) : '/entrar'));
 const drawerOpen = ref(false);
 
 const cartLabel = computed(() =>
@@ -55,7 +55,7 @@ const cartLabel = computed(() =>
         </NuxtLink>
         <NuxtLink
           v-if="auth.user"
-          :to="accountLink"
+          :to="accountHomeFor(auth.user.role)"
           class="hidden h-11 items-center gap-2 rounded-full bg-white/10 pr-4 pl-1 text-[0.9375rem] font-semibold text-white ring-1 ring-white/25 transition-colors hover:bg-white/20 sm:inline-flex"
         >
           <BaseAvatar :name="auth.user.name" size="sm" />

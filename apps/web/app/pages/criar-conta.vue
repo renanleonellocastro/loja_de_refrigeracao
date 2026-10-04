@@ -31,7 +31,9 @@ const form = useForm(
       ...validatePerson(values, { cpfRequired: false }),
       ...validateNewPassword(values.password, values.confirmation, 'password', 'confirmation'),
       ...validateAddress(values.address, false),
-      ...(values.acceptPrivacy ? {} : { acceptPrivacy: 'Para criar a conta, aceite a política de privacidade.' }),
+      ...(values.acceptPrivacy
+        ? {}
+        : { acceptPrivacy: 'Para criar a conta, aceite a política de privacidade.' }),
     }),
   },
 );
@@ -160,7 +162,10 @@ async function submit(): Promise<void> {
 
     <p class="mt-6 text-center text-text-muted">
       Já tem conta?
-      <NuxtLink :to="loginLink" class="inline-flex min-h-11 items-center font-semibold text-link hover:underline">
+      <NuxtLink
+        :to="loginLink"
+        class="inline-flex min-h-11 items-center font-semibold text-link hover:underline"
+      >
         Entrar
       </NuxtLink>
     </p>

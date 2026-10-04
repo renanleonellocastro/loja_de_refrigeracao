@@ -37,17 +37,23 @@ onMounted(confirm);
       <h1 class="mt-5 text-2xl font-extrabold text-text">Confirmando seu email…</h1>
     </template>
     <template v-else-if="state === 'done'">
-      <span class="flex size-16 items-center justify-center rounded-full bg-success-soft text-on-success-soft">
+      <span
+        class="flex size-16 items-center justify-center rounded-full bg-success-soft text-on-success-soft"
+      >
         <MailCheck class="size-7" aria-hidden="true" />
       </span>
       <h1 class="mt-5 text-3xl font-extrabold text-text">Email confirmado!</h1>
-      <p class="mt-3 text-text-muted">A partir de agora, use o novo email para entrar e receber nossos avisos.</p>
+      <p class="mt-3 text-text-muted">
+        A partir de agora, use o novo email para entrar e receber nossos avisos.
+      </p>
       <BaseButton :to="auth.signedIn ? '/perfil' : '/entrar'" size="lg" block class="mt-7">
         {{ auth.signedIn ? 'Voltar ao perfil' : 'Entrar' }}
       </BaseButton>
     </template>
     <template v-else>
-      <span class="flex size-16 items-center justify-center rounded-full bg-warning-soft text-on-warning-soft">
+      <span
+        class="flex size-16 items-center justify-center rounded-full bg-warning-soft text-on-warning-soft"
+      >
         <LinkIcon class="size-7" aria-hidden="true" />
       </span>
       <h1 class="mt-5 text-3xl font-extrabold text-text">

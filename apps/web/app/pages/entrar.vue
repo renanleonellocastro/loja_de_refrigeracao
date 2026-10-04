@@ -1,7 +1,10 @@
 <script setup lang="ts">
 /** UC Autenticar (RF-01): email and password, back to where the person came from or to the role's home. */
 definePageMeta({ layout: 'auth' });
-useSeoMeta({ title: 'Entrar | Refrigeração Castro', description: 'Entre na sua conta da Refrigeração Castro.' });
+useSeoMeta({
+  title: 'Entrar | Refrigeração Castro',
+  description: 'Entre na sua conta da Refrigeração Castro.',
+});
 
 const auth = useAuthStore();
 const route = useRoute();
@@ -17,7 +20,8 @@ const form = useForm(
   {
     validate: (values) => {
       const errors: FieldErrors = {};
-      if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = 'Digite um email válido, como nome@exemplo.com.';
+      if (!EMAIL_PATTERN.test(values.email.trim()))
+        errors.email = 'Digite um email válido, como nome@exemplo.com.';
       if (!values.password) errors.password = 'Digite sua senha.';
       return errors;
     },
@@ -85,9 +89,7 @@ watch(
           Esqueci minha senha
         </NuxtLink>
       </div>
-      <BaseButton type="submit" size="lg" block :loading="form.pending.value">
-        Entrar
-      </BaseButton>
+      <BaseButton type="submit" size="lg" block :loading="form.pending.value"> Entrar </BaseButton>
     </form>
 
     <div class="mt-8 flex items-center gap-3 text-sm text-text-muted">

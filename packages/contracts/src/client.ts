@@ -5,8 +5,6 @@ export type ApiPaths = paths;
 export type ApiClient = Client<paths>;
 /** Named schemas of the API, for example `ApiSchemas['UserDetail']`. */
 export type ApiSchemas = components['schemas'];
-/** The typed client widened with paths that are documented but not generated yet. */
-export type ApiClientWith<Extra extends object> = Client<paths & Extra>;
 
 export interface ApiClientOptions {
   /** Origin of the API, for example http://localhost:3001 (paths already include /api/v1). */

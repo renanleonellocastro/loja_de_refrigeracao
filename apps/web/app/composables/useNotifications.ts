@@ -12,10 +12,8 @@ export function useUnreadCount(): { count: Ref<number>; refresh: () => Promise<v
       return;
     }
     try {
-      const page = await unwrap(
-        api.GET('/api/v1/me/notifications', { params: { query: { unread: true, pageSize: 1 } } }),
-      );
-      count.value = page.meta.total;
+      const page = await unwrap(api.GET('/api/v1/me/notifications', { params: { query: { pageSize: 1 } } }));
+      count.value = page.meta.unread;
     } catch {
       // The badge is a hint; the page itself reports problems.
     }

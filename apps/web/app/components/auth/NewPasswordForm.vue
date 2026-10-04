@@ -20,7 +20,8 @@ const COPY = {
     text: 'Escolha uma senha que você não usa em outros sites. Depois disso, as outras sessões são encerradas.',
     button: 'Salvar nova senha',
     success: 'Senha nova salva! Você já está dentro.',
-    expiredText: 'Os links de recuperação valem por 30 minutos e funcionam uma vez só. Peça outro e use o mais recente.',
+    expiredText:
+      'Os links de recuperação valem por 30 minutos e funcionam uma vez só. Peça outro e use o mais recente.',
   },
   invitation: {
     eyebrow: 'Convite',
@@ -36,7 +37,10 @@ const copy = computed(() => COPY[props.kind]);
 
 const form = useForm(
   { password: '', confirmation: '' },
-  { validate: (values) => validateNewPassword(values.password, values.confirmation, 'password', 'confirmation') },
+  {
+    validate: (values) =>
+      validateNewPassword(values.password, values.confirmation, 'password', 'confirmation'),
+  },
 );
 
 async function submit(): Promise<void> {

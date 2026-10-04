@@ -15,7 +15,8 @@ export function validatePerson(
 ): FieldErrors {
   const errors: FieldErrors = {};
   if (values.name.trim().length < 3) errors.name = 'Informe o nome completo.';
-  if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = 'Digite um email válido, como nome@exemplo.com.';
+  if (!EMAIL_PATTERN.test(values.email.trim()))
+    errors.email = 'Digite um email válido, como nome@exemplo.com.';
   const phoneRequired = options.phoneRequired ?? true;
   if ((phoneRequired || values.phone) && !isValidPhone(values.phone)) {
     errors.phone = 'Digite o telefone com DDD, como (19) 99999-9999.';

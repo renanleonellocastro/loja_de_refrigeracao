@@ -11,8 +11,10 @@ const sentTo = ref('');
 const form = useForm(
   { email: '' },
   {
-    validate: (values) =>
-      EMAIL_PATTERN.test(values.email.trim()) ? {} : { email: 'Digite um email válido, como nome@exemplo.com.' },
+    validate: (values): FieldErrors =>
+      EMAIL_PATTERN.test(values.email.trim())
+        ? {}
+        : { email: 'Digite um email válido, como nome@exemplo.com.' },
   },
 );
 
@@ -31,8 +33,8 @@ async function submit(): Promise<void> {
     </span>
     <h1 class="mt-5 text-3xl font-extrabold text-text">Confira seu email</h1>
     <p class="mt-3 text-text-muted">
-      Se o email <strong class="font-semibold break-all text-text">{{ sentTo }}</strong> estiver cadastrado, você
-      receberá um link em instantes.
+      Se o email <strong class="font-semibold break-all text-text">{{ sentTo }}</strong> estiver cadastrado,
+      você receberá um link em instantes.
     </p>
     <ul class="mt-6 w-full rounded-lg bg-surface-sunken/70 p-4 text-left text-sm text-text-muted">
       <li class="flex gap-2">
@@ -68,7 +70,10 @@ async function submit(): Promise<void> {
     </form>
     <p class="mt-6 text-center text-text-muted">
       Lembrou?
-      <NuxtLink to="/entrar" class="inline-flex min-h-11 items-center font-semibold text-link hover:underline">
+      <NuxtLink
+        to="/entrar"
+        class="inline-flex min-h-11 items-center font-semibold text-link hover:underline"
+      >
         Entrar
       </NuxtLink>
     </p>

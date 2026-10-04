@@ -18,7 +18,10 @@ onMounted(() => {
   timer = setInterval(() => void refresh(), POLL_MS);
 });
 onBeforeUnmount(() => clearInterval(timer));
-watch(() => [route.path, auth.signedIn], () => void refresh());
+watch(
+  () => [route.path, auth.signedIn],
+  () => void refresh(),
+);
 </script>
 
 <template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { accountHomeFor } from '~/utils/session';
 import { PUBLIC_NAV, STORE_INFO } from '~/utils/store';
 import { ChevronRight, Clock, MapPin, Phone, X } from 'lucide-vue-next';
 import { DialogClose, DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui';

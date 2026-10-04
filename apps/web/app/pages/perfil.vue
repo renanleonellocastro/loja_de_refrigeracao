@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ROLE_LABELS, type ApiSchemas } from '@rc/contracts';
 import { BadgeCheck, CalendarDays, Mail } from 'lucide-vue-next';
+import { formatDate } from '~/utils/masks';
 
 /** UCs Consultar e Editar Perfil, Alterar Senha, Exportar e Excluir (RF-03, RF-06, RF-10). */
 definePageMeta({ layout: 'area', permission: 'profile.manage', title: 'Meu perfil' });
@@ -16,9 +17,6 @@ const router = useRouter();
 const profile = ref<Profile | null>(null);
 const failed = ref(false);
 
-const TAB_VALUES = ['dados', 'endereco', 'seguranca', 'privacidade'] as const;
-type TabValue = (typeof TAB_VALUES)[number];
-
 const tabs = computed<TabItem[]>(() => [
   { value: 'dados', label: 'Dados' },
   { value: 'endereco', label: 'Endereço' },
@@ -31,9 +29,10 @@ const tabs = computed<TabItem[]>(() => [
 const tab = computed<string>({
   get: () => {
     const asked = route.query.aba;
-    return tabs.value.some((item) => item.value === asked) ? (asked as TabValue) : 'dados';
+    return tabs.value.some((item) => item.value === asked) ? (asked as string) : 'dados';
   },
-  set: (value) => void router.replace({ query: { ...route.query, aba: value === 'dados' ? undefined : value } }),
+  set: (value) =>
+    void router.replace({ query: { ...route.query, aba: value === 'dados' ? undefined : value } }),
 });
 
 async function load(): Promise<void> {
@@ -50,8 +49,6 @@ function onSaved(next: Profile): void {
   auth.updateUser({ name: next.name, email: next.email });
 }
 
-const since = computed(() => (profile.value ? formatDate(profile.value.createdAt) : ''));
-
 onMounted(load);
 </script>
 
@@ -60,7 +57,10 @@ onMounted(load);
     <ErrorState v-if="failed" kind="server" :heading-level="2" @retry="load" />
 
     <template v-else-if="!profile">
-      <div class="flex items-center gap-4 rounded-xl border border-border bg-surface p-5 sm:p-6" role="status">
+      <div
+        class="flex items-center gap-4 rounded-xl border border-border bg-surface p-5 sm:p-6"
+        role="status"
+      >
         <span class="sr-only">Carregando seu perfil…</span>
         <BaseSkeleton class="size-16 rounded-full" />
         <div class="flex flex-1 flex-col gap-2">
@@ -91,7 +91,7 @@ onMounted(load);
               </span>
               <span class="inline-flex items-center gap-1.5">
                 <CalendarDays class="size-4 shrink-0" aria-hidden="true" />
-                Conta criada em {{ since }}
+                Conta criada em {{ formatDate(profile.createdAt) }}
               </span>
             </p>
           </div>

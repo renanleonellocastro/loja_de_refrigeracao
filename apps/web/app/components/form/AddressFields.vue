@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CONTROL_INPUT_CLASSES, controlFrameClasses } from '~/utils/ui';
-import type { AddressForm } from '~/utils/address';
+import { UF_OPTIONS, type AddressForm } from '~/utils/address';
 
 /**
  * Address inputs with CEP autocomplete (GET /addresses/lookup): typing the 8 digits fills street, district,
@@ -51,7 +51,6 @@ watch(
     }
   },
 );
-
 </script>
 
 <template>

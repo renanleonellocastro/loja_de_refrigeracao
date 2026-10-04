@@ -1,7 +1,6 @@
-import { createApiClient, type ApiClientWith } from '@rc/contracts';
-import type { ExtraPaths } from '~/utils/api-extra';
+import { createApiClient, type ApiClient } from '@rc/contracts';
 
-export type Api = ApiClientWith<ExtraPaths>;
+export type Api = ApiClient;
 
 /**
  * Typed API client of the signed in person. Sends the access token, renews it once when the API answers 401
@@ -20,7 +19,8 @@ export function useApi(): Api {
     await navigateTo({ path: '/entrar', query: { redirect: route.fullPath } });
   }
 
-  async function send(request: Request): Promise<Response> {
+  async function send(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const request = new Request(input, init);
     const retry = request.clone();
     const response = await globalThis.fetch(request);
     if (response.status !== 401 || !request.headers.has('authorization')) return response;
@@ -37,5 +37,5 @@ export function useApi(): Api {
     baseUrl: config.public.apiBase,
     getAccessToken: () => auth.accessToken,
     fetch: send,
-  }) as unknown as Api;
+  });
 }
