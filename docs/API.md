@@ -76,19 +76,24 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 
 | Método e caminho | Descrição | Acesso |
 |---|---|---|
-| `GET /categories` | Listar | público |
-| `POST /categories`, `PATCH /categories/{id}`, `DELETE /categories/{id}` | Gerenciar | super |
-| `PUT /categories/order` | Reordenar | super |
-| `GET /products?q=&categoryId=&condition=&brand=&minPriceCents=&maxPriceCents=&available=&sort=` | Catálogo | público |
-| `GET /products/{idOrSlug}` | Detalhes | público |
-| `POST /products` | Cadastrar | gerente |
-| `PATCH /products/{id}` | Editar (com `If-Match`) | gerente |
-| `DELETE /products/{id}` | Excluir ou arquivar | super |
-| `POST /products/{id}/images` | Enviar foto (multipart) | gerente |
+| `GET /categories` | Listar com a quantidade de produtos não arquivados, por posição e nome | público |
+| `POST /categories`, `PATCH /categories/{id}` | Cadastrar e renomear | super |
+| `DELETE /categories/{id}?moveTo=` | Excluir; com produtos responde `409` (`category-in-use`) a menos que `moveTo` indique a categoria que recebe os produtos | super |
+| `PUT /categories/order` | Reordenar (todas as categorias, uma vez cada) | super |
+| `GET /products?q=&categoryId=&condition=&brand=&minPriceCents=&maxPriceCents=&available=&sort=&page=&pageSize=` | Catálogo; `sort` aceita `relevance`, `name`, `newest`, `priceAsc`, `priceDesc` (padrão: relevância com `q`, mais novos sem) | público |
+| `GET /products/facets` | Contagens por marca, categoria, condição, disponibilidade e faixa de preço; cada faceta ignora o próprio filtro | público |
+| `GET /products/{id}` | Detalhes por id ou slug, com `ETag` | público |
+| `POST /products` | Cadastrar (estoque inicial vira uma entrada no histórico) | gerente |
+| `PATCH /products/{id}` | Editar (com `If-Match`; o slug não muda) | gerente |
+| `DELETE /products/{id}` | Excluir ou arquivar: `{ "result": "archived" }` quando já foi vendido, `{ "result": "deleted" }` caso contrário | super |
+| `POST /products/{id}/unarchive` | Desarquivar | super |
+| `POST /products/{id}/images` | Enviar fotos (multipart, até 10 por envio e 20 por produto) | gerente |
 | `PUT /products/{id}/images/order` | Ordenar e escolher capa | gerente |
-| `DELETE /products/{id}/images/{imageId}` | Remover foto | gerente |
+| `DELETE /products/{id}/images/{imageId}` | Remover foto (a próxima vira capa se a capa sair) | gerente |
 | `GET /products/{id}/stock-movements` | Histórico de estoque | gerente |
 | `POST /products/{id}/stock-movements` | Entrada, ajuste ou perda | gerente |
+
+A busca do catálogo ignora acentos e maiúsculas (coluna `search_text` com nome, marca, modelo e categoria normalizados) e tolera erros de digitação com `word_similarity` do `pg_trgm`: cada palavra digitada precisa aparecer no produto, exatamente ou com semelhança mínima de 0,5. Produtos arquivados só aparecem para gerente e super usuário com `includeArchived=true`.
 
 ### Carrinho, pedidos e balcão
 
@@ -136,15 +141,17 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 
 | Método e caminho | Descrição | Acesso |
 |---|---|---|
-| `POST /quotes` | Solicitar | cliente; equipe em nome de cliente |
-| `GET /me/quotes` | Meus orçamentos | cliente |
-| `GET /quotes?status=` | Fila | gerente |
-| `GET /quotes/{id}` | Detalhes | dono, gerente |
-| `GET /quotes/{id}/messages`, `POST /quotes/{id}/messages` | Conversa | dono e gerente |
-| `POST /quotes/{id}/answer` | Responder com valor e validade | gerente |
-| `POST /quotes/{id}/acceptance` | Aceitar (cria solicitação de agendamento) | dono |
-| `POST /quotes/{id}/decline` | Recusar | dono |
-| `POST /quotes/{id}/cancellation` | Cancelar | dono |
+| `POST /quotes` | Solicitar (JSON, com `Idempotency-Key`) | cliente; gerente em nome de cliente (`customerId`) |
+| `POST /quotes/{id}/photos` | Enviar fotos (multipart, até 6) | dono enquanto solicitado, gerente enquanto aberto |
+| `GET /quotes?status=&q=` | Orçamentos visíveis: os seus (cliente), todos (gerente; `q` busca cliente ou número) | cliente, gerente |
+| `GET /quotes/{id}` | Detalhes com fotos, valor, validade e `canAccept`, `canDecline`, `canCancel` de quem pergunta | dono, gerente |
+| `GET /quotes/{id}/messages`, `POST /quotes/{id}/messages` | Conversa enquanto aberto | dono e gerente |
+| `POST /quotes/{id}/answer` | Responder com `amountCents`, `validityDays` (1 a 90, contados em São Paulo), `included` e `notes` | gerente |
+| `POST /quotes/{id}/acceptance` | Aceitar até o último dia da validade, com `windows` e `address` como em `POST /service-requests`; cria a solicitação de agendamento na mesma transação e devolve `serviceRequestId` | dono |
+| `POST /quotes/{id}/decline` | Recusar com motivo opcional | dono |
+| `POST /quotes/{id}/cancellation` | Cancelar com motivo opcional | dono enquanto solicitado, gerente enquanto aberto |
+
+Orçamentos respondidos vencem sozinhos: o worker roda `expireQuotes` a cada hora e marca como vencidos os que passaram do último dia de validade no horário de São Paulo, avisando o cliente e a gerência.
 
 ### Painel, notificações e administração
 
@@ -154,6 +161,7 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 | `GET /me/notifications?unread=` | Notificações | logado |
 | `POST /me/notifications/{id}/read`, `POST /me/notifications/read-all` | Marcar como lidas | logado |
 | `GET /store` | Dados públicos da loja (endereço, horários, contatos) | público |
+| `GET /store/settings` | Configurações completas (inclui emails de aviso e estoque mínimo padrão) | super |
 | `PATCH /store` | Configurar a loja | super |
 | `GET /audit-logs` | Auditoria | super |
 | `GET /health`, `GET /ready` | Saúde do processo e das dependências | público (fora de `/api/v1`) |

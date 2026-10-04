@@ -29,6 +29,13 @@
       "when": 1791065809451,
       "tag": "0003_users_search_text",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791067467197,
+      "tag": "0004_store_settings_default",
+      "breakpoints": true
     }
   ]
 }

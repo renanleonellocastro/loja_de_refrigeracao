@@ -6,7 +6,7 @@ import { conflict, forbidden, notFound, unprocessable } from '../../shared/error
 import { pageOf } from '../../shared/pagination.js';
 import { recordAudit } from '../audit/service.js';
 import type { AccessClaims } from '../auth/service.js';
-import { queueEmail } from '../mail/service.js';
+import * as notifications from '../notifications/service.js';
 import { imageView, storeImage } from '../media/service.js';
 import * as users from '../users/service.js';
 import * as repo from './repository.js';
@@ -26,43 +26,31 @@ export const MAX_WINDOW_DAYS_AHEAD = 60;
 
 const isManagement = (role: Role) => role === 'MANAGER' || role === 'ADMIN';
 
-function customerLink(ctx: AppContext, id: number) {
-  return `${ctx.config.APP_ORIGIN}/minha-conta/agendamentos/${id}`;
-}
-
-function staffLink(ctx: AppContext, id: number) {
-  return `${ctx.config.APP_ORIGIN}/solicitacoes/${id}`;
-}
-
-/** Emails every manager and super user (except the author of the change). */
-async function notifyManagement(
+function notifyManagement(
   ctx: AppContext,
   db: Executor,
   exceptUserId: number | null,
-  message: { subject: string; heading: string; paragraphs: string[]; link: string },
+  message: { type?: string; subject: string; heading: string; paragraphs: string[]; requestId: number },
 ) {
-  for (const person of await users.activeEmailsByRole(db, ['MANAGER', 'ADMIN'])) {
-    if (person.id === exceptUserId) continue;
-    await queueEmail(db, person.email, 'notice', {
-      name: person.name,
-      ...message,
-      actionLabel: 'Abrir solicitação',
-    });
-  }
+  const { requestId, type = 'serviceRequest', ...notice } = message;
+  return notifications.notifyManagement(ctx, db, exceptUserId, {
+    ...notice,
+    type,
+    path: `/solicitacoes/${requestId}`,
+    actionLabel: 'Abrir solicitação',
+  });
 }
 
-async function notifyCustomer(
+function notifyCustomer(
   ctx: AppContext,
   db: Executor,
   request: repo.RequestRow,
   message: { subject: string; heading: string; paragraphs: string[] },
 ) {
-  const customer = await users.findActiveUserById(db, request.customerId);
-  if (!customer) return;
-  await queueEmail(db, customer.email, 'notice', {
-    name: customer.name,
+  return notifications.notifyUserById(ctx, db, request.customerId, {
+    type: 'serviceRequest',
     ...message,
-    link: customerLink(ctx, request.id),
+    path: `/minha-conta/agendamentos/${request.id}`,
     actionLabel: 'Ver minha solicitação',
   });
 }
@@ -179,13 +167,18 @@ function validateWindows(windows: RequestCreation['windows'], now: Date) {
   });
 }
 
-/** UC Solicitar Agendamento: by the customer or by the staff on behalf of a customer (decision D7). */
+/**
+ * UC Solicitar Agendamento: by the customer or by the staff on behalf of a customer (decision D7).
+ * Runs in its own transaction, or inside `executor` when the caller needs it to be part of a larger one
+ * (an accepted quote and its request are created together or not at all).
+ */
 export async function createRequest(
   ctx: AppContext,
   actor: AccessClaims,
   input: RequestCreation,
   ip: string,
   quoteId: number | null = null,
+  executor?: Executor,
 ) {
   const onBehalf = actor.role !== 'CLIENT';
   if (!onBehalf && input.customerId !== undefined && input.customerId !== actor.userId) {
@@ -204,7 +197,7 @@ export async function createRequest(
   const customerId = onBehalf ? input.customerId! : actor.userId;
   validateWindows(input.windows, ctx.clock.now());
 
-  return ctx.db.transaction(async (tx) => {
+  const work = async (tx: Executor) => {
     const customer = await users.findActiveUserById(tx, customerId);
     if (!customer || customer.role !== 'CLIENT') throw notFound('Cliente não encontrado.');
     const type = await repo.findServiceType(tx, input.serviceTypeId);
@@ -256,15 +249,15 @@ export async function createRequest(
       updatedAt: now,
     });
     await repo.insertWindows(tx, request.id, input.windows);
-    await queueEmail(tx, customer.email, 'notice', {
-      name: customer.name,
+    await notifications.notifyUser(ctx, tx, customer, {
+      type: 'serviceRequest',
       subject: `Recebemos sua solicitação nº ${request.id}`,
       heading: 'Solicitação recebida',
       paragraphs: [
         `Recebemos o pedido de ${type.name.toLowerCase()} para ${input.productKind}.`,
         'A gente responde em até 1 dia útil para confirmar a data da visita.',
       ],
-      link: customerLink(ctx, request.id),
+      path: `/minha-conta/agendamentos/${request.id}`,
       actionLabel: 'Acompanhar solicitação',
     });
     await notifyManagement(ctx, tx, actor.userId, {
@@ -274,7 +267,7 @@ export async function createRequest(
         `${customer.name} pediu ${type.name.toLowerCase()} (${input.productKind}).`,
         input.problem,
       ],
-      link: staffLink(ctx, request.id),
+      requestId: request.id,
     });
     if (onBehalf) {
       await recordAudit(tx, {
@@ -287,7 +280,8 @@ export async function createRequest(
       });
     }
     return request;
-  });
+  };
+  return executor ? work(executor) : ctx.db.transaction(work);
 }
 
 export async function addPhotos(ctx: AppContext, viewer: AccessClaims, id: number, files: Buffer[]) {
@@ -362,7 +356,7 @@ export async function postRequestMessage(ctx: AppContext, viewer: AccessClaims, 
         subject: `Resposta do cliente na solicitação nº ${id}`,
         heading: 'O cliente respondeu',
         paragraphs: [body],
-        link: staffLink(ctx, id),
+        requestId: id,
       });
     } else {
       await notifyCustomer(ctx, tx, request, {
@@ -458,7 +452,7 @@ export async function cancelRequest(
         subject: `Solicitação nº ${id} cancelada pelo cliente`,
         heading: 'Cancelamento do cliente',
         paragraphs: [reason ?? 'O cliente não informou o motivo.'],
-        link: staffLink(ctx, id),
+        requestId: id,
       });
     } else {
       await notifyCustomer(ctx, tx, request, {
@@ -477,8 +471,8 @@ export async function cancelRequest(
     if (appointment) {
       const employee = await users.findActiveUserById(tx, appointment.employeeId);
       if (employee) {
-        await queueEmail(tx, employee.email, 'notice', {
-          name: employee.name,
+        await notifications.notifyUser(ctx, tx, employee, {
+          type: 'appointment',
           subject: `Visita cancelada: solicitação nº ${id}`,
           heading: 'Visita cancelada',
           paragraphs: ['Esta visita saiu da sua agenda.'],

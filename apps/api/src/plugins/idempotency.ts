@@ -48,10 +48,12 @@ export const idempotencyPlugin = fp<{ ctx: AppContext }>(async (app, { ctx }) =>
           'Esta chave já foi usada com outros dados. Gere uma nova chave.',
         );
       }
+      // Sent already serialized: the stored body has dates as strings, which the response schema would reject.
       return reply
         .code(stored.responseStatus)
         .header('idempotent-replayed', 'true')
-        .send(stored.responseBody);
+        .type('application/json; charset=utf-8')
+        .send(JSON.stringify(stored.responseBody));
     }
     request.idempotency = { key, hash, userId: request.auth.userId };
   });
