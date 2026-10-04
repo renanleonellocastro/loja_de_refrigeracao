@@ -1,10 +1,11 @@
 import tailwindcss from '@tailwindcss/vite';
 import { THEME_BOOT_SCRIPT } from './app/utils/theme';
+import { PRIVATE_ROUTES } from './app/utils/routes';
 
 export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
   devtools: { enabled: false },
-  modules: ['@nuxt/fonts', '@nuxt/image'],
+  modules: ['@nuxt/fonts', '@nuxt/image', '@pinia/nuxt'],
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()],
@@ -39,7 +40,16 @@ export default defineNuxtConfig({
     ],
   },
   runtimeConfig: {
-    public: { apiBase: 'http://localhost:3001/api/v1' },
+    // Origin of the API; the typed client paths already start with /api/v1. Set NUXT_PUBLIC_API_BASE in production.
+    public: { apiBase: 'http://localhost:3001' },
   },
+  // Public pages render on the server for speed and search engines; signed in areas render in the browser,
+  // where the session lives (the access token is kept in memory only).
+  routeRules: Object.fromEntries(
+    PRIVATE_ROUTES.flatMap((path) => [
+      [path, { ssr: false }],
+      [`${path}/**`, { ssr: false }],
+    ]),
+  ),
   typescript: { strict: true },
 });

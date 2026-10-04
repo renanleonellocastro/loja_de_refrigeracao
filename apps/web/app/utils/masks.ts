@@ -100,3 +100,6 @@ export const MASKS: Record<
   phone: { format: formatPhone, inputmode: 'tel', placeholder: '(19) 99999-9999', maxLength: 15 },
   cep: { format: formatCep, inputmode: 'numeric', placeholder: '00000-000', maxLength: 9 },
 };
+
+/** Same idea as the API check: something@domain.tld, no spaces. */
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

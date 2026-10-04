@@ -7,7 +7,7 @@ withDefaults(
     label: string;
     hint?: string;
     error?: string;
-    type?: 'text' | 'email' | 'tel' | 'search' | 'url' | 'number' | 'password';
+    type?: 'text' | 'email' | 'tel' | 'search' | 'url' | 'number' | 'password' | 'date' | 'time';
     inputmode?: 'text' | 'email' | 'tel' | 'numeric' | 'decimal' | 'search' | 'url' | 'none';
     placeholder?: string;
     autocomplete?: string;

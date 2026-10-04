@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "openapi": "tsx --conditions=@rc/source scripts/export-openapi.ts",
     "db:generate": "drizzle-kit generate",
-    "seed": "tsx --conditions=@rc/source --env-file-if-exists=../../.env src/seed.ts"
+    "seed": "tsx --conditions=@rc/source --env-file-if-exists=../../.env src/seed.ts",
+    "e2e:stack": "tsx --conditions=@rc/source scripts/e2e-stack.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
