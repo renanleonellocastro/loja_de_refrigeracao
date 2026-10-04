@@ -54,7 +54,7 @@ describe('request queue', () => {
     await fill('Estado', 'TODOS');
     await settle();
     expect(calls()[2]!.url.searchParams.has('status')).toBe(false);
-    expect(useRouter().currentRoute.value.query.estado).toBe('TODOS');
+    await vi.waitFor(() => expect(useRouter().currentRoute.value.query.estado).toBe('TODOS'));
     expect(text()).toContain('Nenhuma solicitação');
 
     await fill('Estado', 'CANCELED');

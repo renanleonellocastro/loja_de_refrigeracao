@@ -270,7 +270,7 @@ describe('product edit page', () => {
 
     openTab('Estoque');
     await settle();
-    expect(useRouter().currentRoute.value.query.aba).toBe('estoque');
+    await vi.waitFor(() => expect(useRouter().currentRoute.value.query.aba).toBe('estoque'));
     openTab('Dados');
     await settle();
     page.findComponent({ name: 'ProductsFields' }).vm.$emit('update:modelValue', productFormFrom(null));
