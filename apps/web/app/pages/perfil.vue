@@ -104,6 +104,8 @@ onMounted(load);
         </div>
       </section>
 
+      <ProfileRecentOrders v-if="auth.actor === 'CLIENT'" />
+
       <BaseTabs v-model="tab" :tabs="tabs" label="Seções do perfil">
         <template #dados><ProfileDataTab :profile="profile" @saved="onSaved" /></template>
         <template #endereco><ProfileAddressTab :profile="profile" @saved="onSaved" /></template>

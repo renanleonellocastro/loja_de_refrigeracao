@@ -1,6 +1,11 @@
-/** Sections of the signed in area. They render only in the browser (routeRules in nuxt.config.ts). */
+/**
+ * Sections that depend on this browser: the signed in area and the cart (kept in localStorage for visitors).
+ * They render only in the browser (routeRules in nuxt.config.ts).
+ */
 export const PRIVATE_ROUTES = [
   '/perfil',
+  '/carrinho',
+  '/minha-conta',
   '/notificacoes',
   '/painel',
   '/hoje',

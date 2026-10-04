@@ -9,9 +9,9 @@ import WhatsAppButton from '~/components/WhatsAppButton.vue';
 import IllustrationEmptyBox from '~/components/illustration/EmptyBox.vue';
 import IllustrationLock from '~/components/illustration/Lock.vue';
 import IllustrationThermometer from '~/components/illustration/Thermometer.vue';
-import { useCartCount } from '~/composables/useCartCount';
 import { useCurrentActor } from '~/composables/useCurrentActor';
 import { useOnline } from '~/composables/useOnline';
+import { useCartStore } from '~/stores/cart';
 import { defineComponent, h } from 'vue';
 
 describe('AppLogo', () => {
@@ -124,8 +124,8 @@ describe('state composables', () => {
     const Probe = defineComponent({
       setup: () => {
         const actor = useCurrentActor();
-        const cart = useCartCount();
-        return () => h('p', `${actor.value}:${cart.value}`);
+        const cart = useCartStore();
+        return () => h('p', `${actor.value}:${cart.count}`);
       },
     });
     const wrapper = await mountSuspended(Probe);

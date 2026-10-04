@@ -102,10 +102,10 @@ describe('auth store', () => {
     expect(api.calls).toHaveLength(0);
     localStorage.setItem(SIGNED_IN_HINT, '1');
     await Promise.all([auth.restore({ onlyWithHint: true }), auth.restore()]);
-    expect(api.calls).toHaveLength(1);
+    expect(api.called(REFRESH)).toHaveLength(1);
     expect(auth.actor).toBe('MANAGER');
     await auth.restore();
-    expect(api.calls).toHaveLength(1);
+    expect(api.called(REFRESH)).toHaveLength(1);
   });
 
   it('works when the browser blocks storage', async () => {

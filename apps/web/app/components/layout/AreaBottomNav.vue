@@ -28,7 +28,11 @@ const PILL =
     <ul class="flex px-1 pt-1">
       <li v-for="item in navigation.bottom" :key="item.to" class="flex flex-1">
         <NuxtLink :to="item.to" :class="ITEM">
-          <span :class="PILL"><component :is="item.icon" class="size-5.5" aria-hidden="true" /></span>
+          <span :class="PILL"
+            ><span class="relative"
+              ><component :is="item.icon" class="size-5.5" aria-hidden="true" /><LayoutCartBadge
+                v-if="item.to === '/carrinho'" /></span
+          ></span>
           {{ item.label }}
         </NuxtLink>
       </li>
