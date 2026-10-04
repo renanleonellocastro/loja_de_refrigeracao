@@ -32,6 +32,7 @@
     "fastify-type-provider-zod": "^7.0.0",
     "jose": "^6.2.12",
     "nodemailer": "^10.0.13",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.23.1",
     "sharp": "^0.35.5",
     "zod": "^4.6.5"
