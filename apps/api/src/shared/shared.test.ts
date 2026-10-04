@@ -4,7 +4,7 @@ import { assertIfMatch, etagFor } from './concurrency.js';
 import { AppError, conflict, forbidden, notFound, tooManyRequests, unauthorized } from './errors.js';
 import { pageOf, pageQuerySchema, paginated, toLimitOffset } from './pagination.js';
 import { emailSchema } from './schemas.js';
-import { normalizeEmail, normalizeText, onlyDigits, slugify } from './text.js';
+import { formatBrl, formatDateBr, normalizeEmail, normalizeText, onlyDigits, slugify } from './text.js';
 import { z } from 'zod';
 
 describe('errors', () => {
@@ -60,6 +60,12 @@ describe('text', () => {
   it('normalizes emails and digits', () => {
     expect(normalizeEmail(' Ana@Exemplo.COM ')).toBe('ana@exemplo.com');
     expect(onlyDigits('(19) 3804-1658')).toBe('1938041658');
+  });
+
+  it('formats reais and Brazilian dates', () => {
+    expect(formatBrl(123456)).toBe('R$ 1.234,56');
+    expect(formatBrl(5)).toBe('R$ 0,05');
+    expect(formatDateBr('2026-10-15')).toBe('15/10/2026');
   });
 
   it('validates emails with Portuguese messages', () => {

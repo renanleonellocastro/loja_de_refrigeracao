@@ -541,7 +541,7 @@ export async function findAuthorName(db: Executor, userId: number): Promise<stri
 /** The store wide minimum stock (store settings), 1 when the store was not configured yet. */
 export async function defaultStockMin(db: Executor): Promise<number> {
   const [row] = await db.select({ value: storeSettings.defaultStockMin }).from(storeSettings).limit(1);
-  return row?.value ?? 1;
+  return row!.value;
 }
 
 export async function findProductsByIds(db: Executor, ids: number[]): Promise<ProductRow[]> {

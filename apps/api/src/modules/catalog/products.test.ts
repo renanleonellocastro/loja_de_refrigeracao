@@ -9,7 +9,6 @@ import {
   stockMovements,
   storeSettings,
 } from '../../infra/db/schema.js';
-import { STORE } from '../../infra/db/seed.js';
 import { createCategory, createProduct } from '../../../test/catalog.js';
 import { useTestApp } from '../../../test/harness.js';
 import { jpeg } from '../../../test/images.js';
@@ -204,7 +203,7 @@ describe('product routes', () => {
       });
       expect(own).toMatchObject({ lowStock: true });
       expect(store).toMatchObject({ lowStock: false });
-      await t.db.insert(storeSettings).values({ ...STORE, notificationEmails: [], defaultStockMin: 5 });
+      await t.db.update(storeSettings).set({ defaultStockMin: 5 });
       const detail = await t.app.inject({ method: 'GET', url: `/api/v1/products/${store.id}` });
       expect(detail.json().lowStock).toBe(true);
     });

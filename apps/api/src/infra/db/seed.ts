@@ -14,39 +14,8 @@ import {
   products,
   serviceTypes,
   stockMovements,
-  storeSettings,
   users,
 } from './schema.js';
-
-/** Real store data from docs/LOJA.md. */
-export const STORE = {
-  name: 'Refrigeração Castro',
-  legalName: 'Refrigeração Castro Ltda ME',
-  cnpj: '63060560000151',
-  phone: '1938041658',
-  whatsapp: null,
-  email: 'refrigeracaocastro@yahoo.com.br',
-  address: {
-    cep: '13800061',
-    street: 'Rua Doutor Ulhoa Cintra',
-    number: '91',
-    complement: null,
-    district: 'Centro',
-    city: 'Mogi Mirim',
-    state: 'SP',
-  },
-  openingHours: {
-    '0': null,
-    '1': { opens: '09:00', closes: '18:00' },
-    '2': { opens: '09:00', closes: '18:00' },
-    '3': { opens: '09:00', closes: '18:00' },
-    '4': { opens: '09:00', closes: '18:00' },
-    '5': { opens: '09:00', closes: '18:00' },
-    '6': null,
-  },
-  notificationEmails: ['refrigeracaocastro@yahoo.com.br'],
-  defaultStockMin: 1,
-} as const;
 
 export const CATEGORIES = [
   'Geladeiras e refrigeradores',
@@ -366,17 +335,16 @@ async function seedProducts(db: Database, storage: Storage | undefined): Promise
 }
 
 /**
- * Fills a development database. The base data (store, accounts, categories, service types) goes
+ * Fills a development database. The base data (accounts, categories, service types) goes
  * into an empty database; the sample catalog goes in whenever there are no products, with photos
  * when a storage is given. Returns false when there was nothing to add.
  */
 export async function seedDevelopment(db: Database, storage?: Storage): Promise<boolean> {
-  const [existing] = await db.select({ value: count() }).from(storeSettings);
+  const [existing] = await db.select({ value: count() }).from(users);
   const seedBase = existing!.value === 0;
   if (seedBase) {
     const passwordHash = await hashPassword(SAMPLE_PASSWORD);
     await db.transaction(async (tx) => {
-      await tx.insert(storeSettings).values({ ...STORE, notificationEmails: [...STORE.notificationEmails] });
       await tx
         .insert(users)
         .values(SAMPLE_USERS.map((u) => ({ ...u, passwordHash, emailVerifiedAt: new Date() })));

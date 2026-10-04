@@ -12,7 +12,10 @@ import { agendaRoutes } from './modules/agenda/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
+import { notificationRoutes } from './modules/notifications/routes.js';
+import { quoteRoutes } from './modules/quotes/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
+import { storeRoutes } from './modules/store/routes.js';
 import { userRoutes } from './modules/users/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { authPlugin } from './plugins/auth.js';
@@ -77,6 +80,9 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(serviceRoutes(ctx));
       await api.register(catalogRoutes(ctx));
       await api.register(agendaRoutes(ctx));
+      await api.register(quoteRoutes(ctx));
+      await api.register(notificationRoutes(ctx));
+      await api.register(storeRoutes(ctx));
     },
     { prefix: API_PREFIX },
   );
