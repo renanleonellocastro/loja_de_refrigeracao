@@ -70,7 +70,7 @@ describe('order queue', () => {
     openTab('Cancelado');
     await settle();
     expect(calls()[2]!.url.searchParams.get('status')).toBe('CANCELED');
-    expect(useRouter().currentRoute.value.query.estado).toBe('CANCELED');
+    await vi.waitFor(() => expect(useRouter().currentRoute.value.query.estado).toBe('CANCELED'));
     expect(text()).toContain('Nenhum pedido cancelado');
 
     await fill('Buscar pedidos', '2026-000099');

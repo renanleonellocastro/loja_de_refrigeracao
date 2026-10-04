@@ -70,13 +70,13 @@ describe('catalog page', () => {
     await wrapper.get('input[type="search"]').setValue('  geladera ');
     await wrapper.get('form[role="search"]').trigger('submit');
     await settle();
-    expect(router.currentRoute.value.fullPath).toBe('/produtos?q=geladera');
+    await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/produtos?q=geladera'));
     expect(wrapper.get('h1').text()).toBe('Resultados para “geladera”');
     expect(wrapper.findAll('option').map((option) => option.text())).toContain('Mais relevantes');
 
     await wrapper.get('select').setValue('menor-preco');
     await settle();
-    expect(router.currentRoute.value.query.ordem).toBe('menor-preco');
+    await vi.waitFor(() => expect(router.currentRoute.value.query.ordem).toBe('menor-preco'));
 
     await wrapper.findAll('input[name="lateral-categoria"]')[1]!.trigger('change');
     await settle();
@@ -84,11 +84,13 @@ describe('catalog page', () => {
     await settle();
     await wrapper.findAll('input[name="lateral-marca"]')[1]!.trigger('change');
     await settle();
-    expect(router.currentRoute.value.query).toMatchObject({
-      categoria: '7',
-      condicao: 'novo',
-      marca: 'Embraco',
-    });
+    await vi.waitFor(() =>
+      expect(router.currentRoute.value.query).toMatchObject({
+        categoria: '7',
+        condicao: 'novo',
+        marca: 'Embraco',
+      }),
+    );
     expect(wrapper.get('h1').text()).toBe('Resultados para “geladera”');
     expect(wrapper.text()).toContain('Filtros (3)');
     expect(
@@ -106,12 +108,14 @@ describe('catalog page', () => {
       await chip.trigger('click');
       await vi.waitFor(() => expect(wrapper.text()).not.toContain(`${label} , remover filtro`));
     }
-    expect(router.currentRoute.value.query).toEqual({ q: 'geladera', ordem: 'menor-preco' });
+    await vi.waitFor(() =>
+      expect(router.currentRoute.value.query).toEqual({ q: 'geladera', ordem: 'menor-preco' }),
+    );
 
     window.scrollTo = vi.fn();
     wrapper.findAll('nav[aria-label="Páginas de produtos"] button').at(-1)!.element.click();
     await settle();
-    expect(router.currentRoute.value.query.pagina).toBe('2');
+    await vi.waitFor(() => expect(router.currentRoute.value.query.pagina).toBe('2'));
     expect(window.scrollTo).toHaveBeenCalled();
 
     // Phones open the filters in a sheet; clearing keeps the search.
@@ -133,7 +137,7 @@ describe('catalog page', () => {
     await settle();
     buttonByText('Limpar filtros')!.click();
     await settle();
-    expect(router.currentRoute.value.fullPath).toBe('/produtos?q=geladera');
+    await vi.waitFor(() => expect(router.currentRoute.value.fullPath).toBe('/produtos?q=geladera'));
     wrapper.unmount();
   });
 
