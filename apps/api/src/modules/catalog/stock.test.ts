@@ -285,6 +285,7 @@ describe('stock for orders (catalog service)', () => {
         priceCents: 59_900,
         stockAvailable: 3,
         archived: false,
+        cover: null,
       },
       {
         id: b.id,
@@ -293,6 +294,7 @@ describe('stock for orders (catalog service)', () => {
         priceCents: 59_900,
         stockAvailable: 1,
         archived: true,
+        cover: null,
       },
     ]);
     expect(await productsForOrder(t.db, [])).toEqual([]);

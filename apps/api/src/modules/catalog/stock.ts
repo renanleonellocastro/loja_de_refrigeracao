@@ -1,3 +1,4 @@
+import { imageView } from '../media/service.js';
 import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
 import { conflict } from '../../shared/errors.js';
@@ -175,15 +176,20 @@ export async function releaseStock(
   await repo.insertMovements(tx, released);
 }
 
-/** Name, price and availability of the products of an order, by id (missing ids are left out). */
+/** Name, price, availability and cover photo of products, by id (missing ids are left out). */
 export async function productsForOrder(db: Executor, ids: number[]) {
-  const rows = await repo.findProductsByIds(db, [...new Set(ids)]);
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    priceCents: row.priceCents,
-    stockAvailable: row.stockAvailable,
-    archived: row.archivedAt !== null,
-  }));
+  const unique = [...new Set(ids)];
+  const [rows, covers] = await Promise.all([repo.findProductsByIds(db, unique), repo.coversOf(db, unique)]);
+  return rows.map((row) => {
+    const cover = covers.find((image) => image.productId === row.id);
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      priceCents: row.priceCents,
+      stockAvailable: row.stockAvailable,
+      archived: row.archivedAt !== null,
+      cover: cover ? imageView({ key: cover.storageKey, width: cover.width, height: cover.height }) : null,
+    };
+  });
 }

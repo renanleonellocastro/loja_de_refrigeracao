@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 import { getTableName, sql } from 'drizzle-orm';
 import { isTable } from 'drizzle-orm';
 import pg from 'pg';
-import { afterAll, beforeAll } from 'vitest';
+import { afterAll, beforeAll, inject } from 'vitest';
 import { connect, type DatabaseHandle } from '../src/infra/db/client.js';
 import * as schema from '../src/infra/db/schema.js';
-import { TEMPLATE_DB, adminUrl, urlFor } from './global-setup.js';
+import { adminUrl, urlFor } from './global-setup.js';
 
 // Reapplied after every truncate so tests start with the real store settings row.
 const STORE_DEFAULTS_SQL = readFileSync(
@@ -37,7 +37,7 @@ export function useTestDatabase() {
   const state: { handle?: DatabaseHandle } = {};
 
   beforeAll(async () => {
-    await admin((client) => client.query(`CREATE DATABASE ${name} TEMPLATE ${TEMPLATE_DB}`));
+    await admin((client) => client.query(`CREATE DATABASE ${name} TEMPLATE ${inject('templateDb')}`));
     state.handle = connect(urlFor(name), 5);
   });
 
