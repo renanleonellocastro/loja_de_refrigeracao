@@ -11,16 +11,22 @@ export async function readMultipart(request: FastifyRequest, maxFiles: number): 
   if (!request.isMultipart()) {
     throw unprocessable('multipart-required', 'Formato inválido', 'Envie os dados como multipart/form-data.');
   }
+  const tooManyFiles = () =>
+    unprocessable('too-many-files', 'Fotos demais', `Envie no máximo ${maxFiles} fotos.`);
   const form: MultipartForm = { files: [], fields: {} };
-  for await (const part of request.parts()) {
-    if (part.type === 'file') {
-      form.files.push(await part.toBuffer());
-    } else {
-      form.fields[part.fieldname] = String(part.value);
+  try {
+    for await (const part of request.parts()) {
+      if (part.type === 'file') {
+        form.files.push(await part.toBuffer());
+      } else {
+        form.fields[part.fieldname] = String(part.value);
+      }
     }
+  } catch (error) {
+    // More files than the plugin accepts per request (app.ts) is the same mistake as above maxFiles.
+    if (error instanceof request.server.multipartErrors.FilesLimitError) throw tooManyFiles();
+    throw error;
   }
-  if (form.files.length > maxFiles) {
-    throw unprocessable('too-many-files', 'Fotos demais', `Envie no máximo ${maxFiles} fotos.`);
-  }
+  if (form.files.length > maxFiles) throw tooManyFiles();
   return form;
 }
