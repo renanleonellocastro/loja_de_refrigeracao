@@ -20,6 +20,8 @@ export function orderTimeline(order: Order): TimelineEvent[] {
     .reverse();
 }
 
+export const ORDERS_PAGE_SIZE = 20;
+
 /** What happens next, in the words of the counter, for each status of an order. */
 export const ORDER_NEXT_STEP: Record<Order['status'], string> = {
   PENDING_REVIEW: 'A loja está conferindo seu pedido. Você recebe um aviso quando ele estiver separado.',
