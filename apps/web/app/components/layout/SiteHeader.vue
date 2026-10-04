@@ -3,7 +3,8 @@ import { accountHomeFor } from '~/utils/session';
 import { PUBLIC_NAV } from '~/utils/store';
 import { Menu, ShoppingCart } from 'lucide-vue-next';
 
-const cartCount = useCartCount();
+const cart = useCartStore();
+const cartCount = computed(() => cart.count);
 const auth = useAuthStore();
 const drawerOpen = ref(false);
 

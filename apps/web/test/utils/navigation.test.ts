@@ -14,6 +14,7 @@ describe('navigationFor', () => {
     expect(routes('CLIENT')).toEqual([
       '/',
       '/produtos',
+      '/carrinho',
       '/minha-conta/pedidos',
       '/minha-conta/agendamentos',
       '/minha-conta/orcamentos',

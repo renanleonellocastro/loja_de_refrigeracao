@@ -11,13 +11,14 @@ import SiteHeader from '~/components/layout/SiteHeader.vue';
 import UserMenu from '~/components/layout/UserMenu.vue';
 import AreaLayout from '~/layouts/area.vue';
 import DefaultLayout from '~/layouts/default.vue';
-import { useCartCount } from '~/composables/useCartCount';
+import { useCartStore } from '~/stores/cart';
 import { useActorPreview } from '~/composables/useCurrentActor';
 import { navigationFor } from '~/utils/navigation';
+import { guestCart } from '../support/shop';
 
 afterEach(() => {
   useActorPreview().value = null;
-  useCartCount().value = 0;
+  useCartStore().guest = [];
   localStorage.clear();
   document.documentElement.removeAttribute('data-theme');
 });
@@ -40,14 +41,14 @@ describe('SiteHeader', () => {
   it('labels the cart by item count', async () => {
     const wrapper = await mountSuspended(SiteHeader);
     expect(wrapper.get('a[href="/carrinho"]').attributes('aria-label')).toBe('Carrinho vazio');
-    useCartCount().value = 1;
+    useCartStore().guest = guestCart(1);
     await flushPromises();
     expect(wrapper.get('a[href="/carrinho"]').attributes('aria-label')).toBe('Carrinho com 1 item');
-    useCartCount().value = 120;
+    useCartStore().guest = guestCart(120);
     await flushPromises();
     expect(wrapper.get('a[href="/carrinho"]').attributes('aria-label')).toBe('Carrinho com 120 itens');
     expect(wrapper.get('a[href="/carrinho"]').text()).toBe('99+');
-    useCartCount().value = 3;
+    useCartStore().guest = guestCart(3);
     await flushPromises();
     expect(wrapper.get('a[href="/carrinho"]').text()).toBe('3');
   });

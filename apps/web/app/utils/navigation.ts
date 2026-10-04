@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldCheck,
   ShoppingBag,
+  ShoppingCart,
   Store,
   Sun,
   UserCog,
@@ -61,6 +62,7 @@ const GROUPS: ReadonlyArray<{ label: string; entries: Entry[] }> = [
     entries: [
       { label: 'Início', to: '/', icon: Home, visible: isCustomer },
       { label: 'Produtos', to: '/produtos', icon: ShoppingBag, visible: isCustomer },
+      { label: 'Carrinho', to: '/carrinho', icon: ShoppingCart, visible: isCustomer },
       { label: 'Pedidos', to: '/minha-conta/pedidos', icon: Package, visible: isCustomer },
       {
         label: 'Agendamentos',

@@ -34,7 +34,10 @@ defineProps<{ navigation: AreaNavigation }>();
             class="absolute top-2 bottom-2 -left-2 w-1 rounded-r-full bg-frost-300 opacity-0 transition-opacity group-aria-[current=page]:opacity-100 lg:-left-4"
             aria-hidden="true"
           />
-          <component :is="item.icon" class="size-5.5 shrink-0 lg:size-5" aria-hidden="true" />
+          <span class="relative shrink-0"
+            ><component :is="item.icon" class="size-5.5 lg:size-5" aria-hidden="true" /><LayoutCartBadge
+              v-if="item.to === '/carrinho'"
+          /></span>
           <span class="max-w-full truncate lg:max-w-none">{{ item.label }}</span>
         </NuxtLink>
       </div>
