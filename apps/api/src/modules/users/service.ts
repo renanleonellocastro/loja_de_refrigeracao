@@ -8,6 +8,8 @@ export {
   findActiveUserById,
   findAddress,
   insertUser,
+  recentCustomerActivity,
+  recentEmployeeAppointments,
   saveAddress,
   searchUsers,
   updateUser,

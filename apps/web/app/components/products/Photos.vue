@@ -196,6 +196,7 @@ async function remove(image: ProductImageItem, index: number): Promise<void> {
         <BasePhotoUpload
           v-model="files"
           label="Novas fotos"
+          prompt="Adicione fotos do produto."
           :max="uploadMax"
           type="image/webp"
           :hint="`JPEG, PNG ou WebP. Cabem mais ${remaining}.`"
