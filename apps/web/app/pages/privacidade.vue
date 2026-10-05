@@ -2,9 +2,10 @@
 import { STORE_INFO } from '~/utils/store';
 
 /** Public privacy policy (docs/SEGURANCA.md section 6). The version is recorded with the consent at sign up. */
-useSeoMeta({
+usePageSeo({
   title: 'Política de privacidade | Refrigeração Castro',
   description: 'Como a Refrigeração Castro usa, guarda e protege os seus dados pessoais.',
+  path: '/privacidade',
 });
 
 const VERSION = '03/10/2026';

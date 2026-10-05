@@ -11,6 +11,7 @@ import type { AppContext } from './context.js';
 import { agendaRoutes } from './modules/agenda/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
 import { catalogRoutes } from './modules/catalog/routes.js';
+import { dashboardRoutes } from './modules/dashboard/routes.js';
 import { mediaRoutes } from './modules/media/routes.js';
 import { orderRoutes } from './modules/orders/routes.js';
 import { notificationRoutes } from './modules/notifications/routes.js';
@@ -85,6 +86,7 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
       await api.register(quoteRoutes(ctx));
       await api.register(notificationRoutes(ctx));
       await api.register(storeRoutes(ctx));
+      await api.register(dashboardRoutes(ctx));
     },
     { prefix: API_PREFIX },
   );

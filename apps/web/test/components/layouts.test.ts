@@ -1,6 +1,6 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import { flushPromises } from '@vue/test-utils';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { h } from 'vue';
 import AreaBottomNav from '~/components/layout/AreaBottomNav.vue';
 import AreaSideNav from '~/components/layout/AreaSideNav.vue';
@@ -14,7 +14,10 @@ import DefaultLayout from '~/layouts/default.vue';
 import { useCartStore } from '~/stores/cart';
 import { useActorPreview } from '~/composables/useCurrentActor';
 import { navigationFor } from '~/utils/navigation';
+import { mockApi } from '../support/api';
+import { storeData } from '../support/home';
 import { guestCart } from '../support/shop';
+import { settle } from '../support/staff';
 
 afterEach(() => {
   useActorPreview().value = null;
@@ -24,7 +27,7 @@ afterEach(() => {
 });
 
 describe('default layout', () => {
-  it('has skip link, header, main, footer and WhatsApp', async () => {
+  it('has skip link, header, main and footer, with WhatsApp only when the store has one', async () => {
     const wrapper = await mountSuspended(DefaultLayout, { slots: { default: () => h('h1', 'Oi') } });
     expect(wrapper.get('a[href="#conteudo"]').text()).toBe('Pular para o conteúdo');
     expect(wrapper.get('main#conteudo').text()).toBe('Oi');
@@ -32,8 +35,17 @@ describe('default layout', () => {
     expect(wrapper.get('footer').text()).toContain('Rua Doutor Ulhoa Cintra, 91');
     expect(wrapper.get('footer').text()).toContain('(19) 3804-1658');
     expect(wrapper.get('footer').text()).toContain('Segunda a sexta, das 9h às 18h');
-    expect(wrapper.get('footer').text()).toContain('Desde 1990');
-    expect(wrapper.find('a[href^="https://wa.me/"]').exists()).toBe(true);
+    expect(wrapper.get('footer').text()).toContain('Há mais de 40 anos');
+    expect(wrapper.get('footer').text()).toContain('CNPJ 63.060.560/0001-51');
+    expect(wrapper.find('a[href^="https://wa.me/"]').exists()).toBe(false);
+    wrapper.unmount();
+    clearNuxtData();
+
+    mockApi().on('GET /api/v1/store', { body: storeData({ whatsapp: '19999998888' }) });
+    const withWhatsApp = await mountSuspended(DefaultLayout, { slots: { default: () => h('h1', 'Oi') } });
+    await settle();
+    expect(withWhatsApp.find('a[href^="https://wa.me/5519999998888"]').exists()).toBe(true);
+    vi.unstubAllGlobals();
   });
 });
 

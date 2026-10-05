@@ -8,16 +8,21 @@ import {
   storeDay,
   REPORT_STATUS_LABELS,
 } from '~/utils/agenda';
+import { formatDateTime } from '~/utils/masks';
+import { readDay, saveDay } from '~/utils/offline-day';
 
 /** The technician's day: today's visits in order with call, route and finalize at thumb reach. */
 definePageMeta({ layout: 'area', permission: 'appointments.complete', title: 'Hoje' });
 
 const api = useApi();
+const auth = useAuthStore();
 
 const today = storeDay();
 const visits = ref<Appointment[]>([]);
 const loading = ref(true);
 const failed = ref(false);
+/** When the visits come from the copy saved on this phone, the time of that copy. */
+const savedAt = ref<string | null>(null);
 
 async function load(): Promise<void> {
   loading.value = true;
@@ -25,8 +30,16 @@ async function load(): Promise<void> {
   try {
     const result = await unwrap(api.GET('/api/v1/appointments', { params: { query: dayRange(today) } }));
     visits.value = result.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+    savedAt.value = null;
+    saveDay({ userId: auth.user!.id, day: today, savedAt: new Date().toISOString(), visits: visits.value });
   } catch {
-    failed.value = true;
+    const saved = readDay(auth.user!.id, today);
+    if (saved) {
+      visits.value = saved.visits;
+      savedAt.value = saved.savedAt;
+    } else {
+      failed.value = true;
+    }
   } finally {
     loading.value = false;
   }
@@ -52,6 +65,10 @@ onMounted(load);
       </p>
     </div>
 
+    <BaseAlert v-if="savedAt" tone="warning" title="Sem conexão com a loja">
+      Mostrando as visitas salvas neste aparelho em {{ formatDateTime(savedAt) }}.
+      <button type="button" class="font-semibold underline" @click="load">Tentar de novo</button>
+    </BaseAlert>
     <p class="sr-only" role="status">{{ loading ? 'Carregando as visitas de hoje…' : '' }}</p>
     <ErrorState v-if="failed" kind="server" :heading-level="2" @retry="load" />
     <div v-else-if="loading" class="flex flex-col gap-4">
