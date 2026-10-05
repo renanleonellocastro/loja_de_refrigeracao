@@ -31,9 +31,9 @@ jobs:
     env:
       TEST_DATABASE_URL: postgres://castro:castro@localhost:5432/castro
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -46,7 +46,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm --filter @rc/web run build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: coverage
@@ -73,9 +73,9 @@ jobs:
     env:
       E2E_ENGINES: ${{ github.event_name == 'schedule' && 'chromium,firefox,webkit' || 'chromium' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -83,25 +83,78 @@ jobs:
       - run: pnpm --filter './packages/*' run build
       - run: pnpm --filter @rc/e2e exec playwright install --with-deps ${E2E_ENGINES//,/ }
       - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: failure()
         with:
           name: playwright-report
           path: apps/e2e/playwright-report/
           retention-days: 7
 
+  contract:
+    name: Contrato (Schemathesis)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: castro
+          POSTGRES_PASSWORD: castro
+          POSTGRES_DB: castro
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U castro" --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://castro:castro@localhost:5432/castro
+      STORAGE_PATH: ./storage
+      LOG_LEVEL: warn
+      SCHEMATHESIS: schemathesis
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter './packages/*' run build
+      - name: Migrar e semear o banco
+        run: pnpm --filter @rc/api seed
+      - name: Subir a API
+        working-directory: apps/api
+        run: nohup node --import tsx --conditions=@rc/source src/server.ts > api.log 2>&1 &
+      - run: curl --retry 30 --retry-connrefused --retry-delay 1 -fsS http://localhost:3001/health
+      - run: pipx install schemathesis==4.29.3
+      - name: Schemathesis anônimo e como gerente
+        run: infra/schemathesis.sh http://localhost:3001
+      - name: Log da API
+        if: failure()
+        run: cat apps/api/api.log
+
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    container: semgrep/semgrep:1.179.0
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      # The release age rule is enforced by Renovate (renovate.json), not by pnpm: see pnpm-workspace.yaml.
+      - run: >-
+          semgrep scan --error --metrics off
+          --config p/javascript --config p/typescript --config p/nodejs --config p/owasp-top-ten
+          --config p/secrets --config p/github-actions
+          --exclude-rule package_managers.pnpm.pnpm-missing-minimum-release-age.pnpm-minimum-release-age
+
   secrets:
     name: Segredos e dependências
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
