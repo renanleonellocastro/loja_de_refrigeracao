@@ -1,5 +1,6 @@
 import { BRAZILIAN_STATES, ROLES, digits, isValidCep, isValidCpf, isValidPhone } from '@rc/contracts';
 import { z } from 'zod';
+import { orderStatusEnum, serviceRequestStatusEnum } from '../../infra/db/schema.js';
 import { emailSchema } from '../../shared/schemas.js';
 
 export const userSummarySchema = z
@@ -124,6 +125,48 @@ export const userDetailSchema = z
     createdAt: z.date(),
   })
   .meta({ id: 'UserDetail' });
+
+/** Number of recent orders, service requests or appointments shown on a user detail. */
+export const RECENT_ACTIVITY_LIMIT = 5;
+
+export const userWithActivitySchema = userDetailSchema
+  .extend({
+    recentOrders: z
+      .array(
+        z.object({
+          id: z.number().int(),
+          number: z.string(),
+          status: z.enum(orderStatusEnum.enumValues),
+          totalCents: z.number().int(),
+          createdAt: z.date(),
+        }),
+      )
+      .describe('Últimos pedidos do cliente (vazio para a equipe ou sem permissão de gerenciar pedidos)'),
+    recentServiceRequests: z
+      .array(
+        z.object({
+          id: z.number().int(),
+          status: z.enum(serviceRequestStatusEnum.enumValues),
+          serviceType: z.string(),
+          productKind: z.string(),
+          createdAt: z.date(),
+        }),
+      )
+      .describe('Últimas solicitações de serviço do cliente (vazio sem permissão de gerenciar solicitações)'),
+    recentAppointments: z
+      .array(
+        z.object({
+          id: z.number().int(),
+          startsAt: z.date(),
+          endsAt: z.date(),
+          status: z.enum(serviceRequestStatusEnum.enumValues),
+          serviceType: z.string(),
+          customerName: z.string(),
+        }),
+      )
+      .describe('Últimos atendimentos do colaborador (vazio para os demais papéis)'),
+  })
+  .meta({ id: 'UserWithActivity' });
 
 export const userListItemSchema = z
   .object({

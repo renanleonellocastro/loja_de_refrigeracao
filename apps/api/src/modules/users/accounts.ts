@@ -8,8 +8,9 @@ import { recordAudit } from '../audit/service.js';
 import * as auth from '../auth/service.js';
 import { hashPassword, passwordProblem, verifyPassword, type AccessClaims } from '../auth/service.js';
 import { queueEmail } from '../mail/service.js';
+import { orderNumber } from '../orders/service.js';
 import * as users from './service.js';
-import type { ProfileUpdate, STAFF_CREATABLE_ROLES } from './schemas.js';
+import { RECENT_ACTIVITY_LIMIT, type ProfileUpdate, type STAFF_CREATABLE_ROLES } from './schemas.js';
 
 export const PRIVACY_POLICY_VERSION = '2026-10-03';
 
@@ -195,8 +196,27 @@ async function visibleUser(ctx: AppContext, actorRole: Role, id: number): Promis
   return user;
 }
 
-export async function getUser(ctx: AppContext, actorRole: Role, id: number): Promise<UserDetail> {
-  return detailOf(ctx.db, await visibleUser(ctx, actorRole, id));
+/** Recent history shown on the user detail; each list only when the actor may open its records. */
+async function recentActivity(ctx: AppContext, actorRole: Role, user: users.UserRow) {
+  const none = { recentOrders: [], recentServiceRequests: [], recentAppointments: [] };
+  if (user.role === 'EMPLOYEE') {
+    const appointments = await users.recentEmployeeAppointments(ctx.db, user.id, RECENT_ACTIVITY_LIMIT);
+    return { ...none, recentAppointments: appointments };
+  }
+  if (user.role !== 'CLIENT') return none;
+  const activity = await users.recentCustomerActivity(ctx.db, user.id, RECENT_ACTIVITY_LIMIT);
+  return {
+    ...none,
+    recentOrders: can(actorRole, 'orders.manage')
+      ? activity.orders.map((order) => ({ ...order, number: orderNumber(order.id) }))
+      : [],
+    recentServiceRequests: can(actorRole, 'serviceRequests.manage') ? activity.serviceRequests : [],
+  };
+}
+
+export async function getUser(ctx: AppContext, actorRole: Role, id: number) {
+  const user = await visibleUser(ctx, actorRole, id);
+  return { ...(await detailOf(ctx.db, user)), ...(await recentActivity(ctx, actorRole, user)) };
 }
 
 async function applyChanges(tx: Executor, user: users.UserRow, changes: ProfileUpdate, now: Date) {

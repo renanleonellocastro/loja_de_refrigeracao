@@ -176,6 +176,7 @@ async function send(): Promise<void> {
       v-if="photoLimit > 0"
       v-model="photos"
       label="Fotos do serviço"
+      prompt="Mostre o serviço feito com fotos."
       hint="Tire fotos do aparelho e das peças trocadas."
       :max="photoLimit"
     />

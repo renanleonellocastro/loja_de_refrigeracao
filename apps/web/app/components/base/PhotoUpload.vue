@@ -9,11 +9,20 @@ const props = withDefaults(
   defineProps<{
     label?: string;
     hint?: string;
+    /** Short call to action shown on phones, where there is no drag and drop. */
+    prompt?: string;
     error?: string;
     max?: number;
     type?: 'image/jpeg' | 'image/webp';
   }>(),
-  { label: 'Fotos', hint: undefined, error: undefined, max: 6, type: 'image/jpeg' },
+  {
+    label: 'Fotos',
+    hint: undefined,
+    prompt: 'Mostre o problema com fotos.',
+    error: undefined,
+    max: 6,
+    type: 'image/jpeg',
+  },
 );
 
 const model = defineModel<File[]>({ default: () => [] });
@@ -126,7 +135,7 @@ function remove(index: number): void {
       </span>
       <p class="text-sm text-text-muted">
         <span class="hidden md:inline">Arraste as fotos para cá ou </span>
-        <span class="md:hidden">Mostre o problema com fotos. </span>
+        <span class="md:hidden">{{ prompt }} </span>
       </p>
       <div class="flex flex-wrap justify-center gap-2">
         <label
