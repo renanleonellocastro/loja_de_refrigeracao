@@ -67,7 +67,7 @@ Recurso de outro cliente responde `404`, não `403`, para não revelar existênc
 | `POST /customers` | Autocadastro de cliente | público |
 | `POST /users` | Cadastro pela equipe com `role` (cliente com convite, colaborador, gerente) | gerente para cliente; super para equipe |
 | `GET /users?role=&q=` | Listar e buscar | colaborador (clientes), gerente (clientes e colaboradores), super (todos) |
-| `GET /users/{id}` | Detalhes com últimos pedidos e serviços | conforme matriz |
+| `GET /users/{id}` | Detalhes com a atividade recente (`UserWithActivity`): para clientes, `recentOrders` e `recentServiceRequests` (5 mais recentes de cada, preenchidos só para quem gerencia pedidos e solicitações); para colaboradores, `recentAppointments` (5 atendimentos mais recentes por horário). Listas que não se aplicam vêm vazias | conforme matriz |
 | `PATCH /users/{id}` | Editar | super |
 | `DELETE /users/{id}` | Excluir com anonimização | super |
 | `GET /addresses/lookup?cep=` | Consulta de CEP (ViaCEP com cache) | público, com limite de taxa |
