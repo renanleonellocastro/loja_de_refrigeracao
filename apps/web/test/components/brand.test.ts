@@ -43,7 +43,7 @@ describe('decorations', () => {
 
 describe('WhatsAppButton', () => {
   it('opens WhatsApp in a new tab with a prefilled message', async () => {
-    const wrapper = await mountSuspended(WhatsAppButton);
+    const wrapper = await mountSuspended(WhatsAppButton, { props: { phone: '1938041658' } });
     const href = wrapper.attributes('href')!;
     expect(href).toContain('https://wa.me/551938041658?text=');
     expect(decodeURIComponent(href)).toContain('Vim pelo site');
@@ -54,7 +54,7 @@ describe('WhatsAppButton', () => {
 
   it('accepts another number and message', async () => {
     const wrapper = await mountSuspended(WhatsAppButton, {
-      props: { phone: '5511999999999', message: 'Oi' },
+      props: { phone: '11999999999', message: 'Oi' },
     });
     expect(wrapper.attributes('href')).toBe('https://wa.me/5511999999999?text=Oi');
   });

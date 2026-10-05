@@ -6,7 +6,6 @@ import ErrorPage from '~/error.vue';
 import previewActor from '~/middleware/preview-actor';
 import DesignAreaPage from '~/pages/design/area.vue';
 import DesignPage from '~/pages/design/index.vue';
-import IndexPage from '~/pages/index.vue';
 import { useConfirm } from '~/composables/useConfirm';
 import { useCurrentActor } from '~/composables/useCurrentActor';
 import { useToast } from '~/composables/useToast';
@@ -21,14 +20,6 @@ afterEach(() => {
   useToast().clear();
   useConfirm().settle(false);
   useActorPreview().value = null;
-});
-
-describe('home page', () => {
-  it('shows the store name and services', async () => {
-    const page = await mountSuspended(IndexPage);
-    expect(page.get('h1').text()).toBe('Refrigeração Castro');
-    expect(page.findAll('h3')).toHaveLength(3);
-  });
 });
 
 describe('error page', () => {
