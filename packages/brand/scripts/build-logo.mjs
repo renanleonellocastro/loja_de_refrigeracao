@@ -137,10 +137,11 @@ function mascot(fill) {
   ].join('');
 }
 
+// Silver letters with the drop shadow of the sign, for the blue header, hero and footer.
+const RELIEF_DEFS = `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.55" stop-color="#E9ECEF"/><stop offset="1" stop-color="#C8CCD2"/></linearGradient><filter id="relief" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="2.5" dy="4" stdDeviation="2.2" flood-color="#06162A" flood-opacity="0.55"/></filter></defs>`;
+
 function logo({ fill, background, relief, title = 'Refrigeração Castro' }) {
-  const defs = relief
-    ? `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.55" stop-color="#E9ECEF"/><stop offset="1" stop-color="#C8CCD2"/></linearGradient><filter id="relief" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="2.5" dy="4" stdDeviation="2.2" flood-color="#06162A" flood-opacity="0.55"/></filter></defs>`
-    : '';
+  const defs = relief ? RELIEF_DEFS : '';
   const paint = relief ? 'url(#silver)' : fill;
   const bg = background
     ? `<rect x="${fmt(minX - 40)}" y="${fmt(minY - 40)}" width="${fmt(maxX - minX + 80)}" height="${fmt(maxY - minY + 80)}" fill="${background}"/>`
@@ -151,7 +152,7 @@ function logo({ fill, background, relief, title = 'Refrigeração Castro' }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="${title}"><title>${title}</title>${defs}${bg}<g fill="${paint}"${relief ? ' filter="url(#relief)"' : ''}>${['C', 'S', 'T', 'R', 'O'].map((c) => `<path d="${letters[c].d}"/>`).join('')}<path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}${smallPaths.map((d) => `<path d="${d}"/>`).join('')}</g></svg>\n`;
 }
 
-function symbol({ fill, background, relief, maskable = false }) {
+function symbol({ fill, background, relief, shadow = false, maskable = false }) {
   const pad = 30;
   const sMinX = w1[0] - jawR - pad;
   const sMaxX = Math.max(bx + bw, A.box.x2) + pad;
@@ -162,13 +163,15 @@ function symbol({ fill, background, relief, maskable = false }) {
   const cy = (sMinY + sMaxY) / 2;
   const vb = [cx - side / 2, cy - side / 2, side, side].map(fmt).join(' ');
   const paint = relief ? 'url(#silver)' : fill;
-  const defs = relief
-    ? `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D5D9DE"/></linearGradient></defs>`
-    : '';
+  const defs = shadow
+    ? RELIEF_DEFS
+    : relief
+      ? `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D5D9DE"/></linearGradient></defs>`
+      : '';
   const bg = background
     ? `<rect x="${fmt(cx - side / 2)}" y="${fmt(cy - side / 2)}" width="${fmt(side)}" height="${fmt(side)}" rx="${maskable ? 0 : fmt(side * 0.22)}" fill="${background}"/>`
     : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="Refrigeração Castro"><title>Refrigeração Castro</title>${defs}${bg}<g fill="${paint}"><path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}</g></svg>\n`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="Refrigeração Castro"><title>Refrigeração Castro</title>${defs}${bg}<g fill="${paint}"${shadow ? ' filter="url(#relief)"' : ''}><path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}</g></svg>\n`;
 }
 
 const out = new URL('../../../apps/web/public/brand/', here);
@@ -181,15 +184,10 @@ const files = {
   'logo-mono.svg': logo({ fill: '#000000' }),
   'simbolo-azul.svg': symbol({ fill: '#184E86' }),
   'simbolo-branco.svg': symbol({ fill: '#FFFFFF' }),
+  'simbolo-prata.svg': symbol({ relief: true, shadow: true }),
   'icone-app.svg': symbol({ background: '#184E86', relief: true }),
 };
 for (const [name, svg] of Object.entries(files)) fs.writeFileSync(new URL(name, out), svg);
-
-// Inline friendly variants for Vue components (currentColor), without width or height.
-const components = new URL('../../../apps/web/app/assets/brand/', here);
-fs.mkdirSync(components, { recursive: true });
-fs.writeFileSync(new URL('logo.svg', components), logo({ fill: 'currentColor' }));
-fs.writeFileSync(new URL('simbolo.svg', components), symbol({ fill: 'currentColor' }));
 
 function png(svgName, file, width) {
   const svg = fs.readFileSync(new URL(svgName, out), 'utf8');

@@ -75,7 +75,7 @@ useSeoMeta({
   ogType: 'website',
   ogUrl: canonical,
   ogImage: computed(() =>
-    cover.value ? mediaUrl(config.public.apiBase, cover.value.url) : `${useRequestURL().origin}/og-image.png`,
+    cover.value ? mediaUrl(config.public.apiBase, cover.value.url) : `${requestUrl.origin}/og-image.png`,
   ),
 });
 

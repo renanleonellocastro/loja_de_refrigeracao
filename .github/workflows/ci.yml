@@ -90,6 +90,54 @@ jobs:
           path: apps/e2e/playwright-report/
           retention-days: 7
 
+  lighthouse:
+    name: Lighthouse e orçamento de JavaScript
+    runs-on: ubuntu-latest
+    needs: quality
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: castro
+          POSTGRES_PASSWORD: castro
+          POSTGRES_DB: castro
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U castro" --health-interval 2s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter './packages/*' run build
+      - run: pnpm --filter @rc/web run build
+      - name: API com os dados de exemplo e site em modo produção
+        run: |
+          nohup pnpm --filter @rc/api e2e:stack > api.log 2>&1 &
+          PORT=3000 NUXT_PUBLIC_API_BASE=http://localhost:3001 nohup node apps/web/.output/server/index.mjs > web.log 2>&1 &
+          for url in http://localhost:3001/health http://localhost:3000/; do
+            timeout 180 bash -c "until curl -sf $url > /dev/null; do sleep 2; done"
+          done
+      - name: JavaScript inicial das páginas públicas (RNF-09, até 150 KB comprimido)
+        run: node apps/web/scripts/check-bundle-size.mjs http://localhost:3000 / /produtos /produtos/compressor-embraco-1-4-hp /servicos
+      # Mobile emulation with simulated 4G. The shared runner is noisier than a developer machine, so
+      # performance asserts 90 here; the 95 of RNF-08 is measured locally and recorded in the pull request.
+      - name: Lighthouse CI (desempenho, acessibilidade, boas práticas e SEO)
+        working-directory: apps/web
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse
+          path: |
+            apps/web/.lighthouseci/
+            api.log
+            web.log
+          retention-days: 7
+
   secrets:
     name: Segredos e dependências
     runs-on: ubuntu-latest

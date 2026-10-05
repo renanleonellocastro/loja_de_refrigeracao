@@ -22,3 +22,4 @@ server/package-lock.json
 server/uploads/*
 client/node_modules/
 client/package-lock.json
+.lighthouseci/

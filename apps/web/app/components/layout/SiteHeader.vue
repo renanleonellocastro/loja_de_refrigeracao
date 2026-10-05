@@ -7,6 +7,12 @@ const cart = useCartStore();
 const cartCount = computed(() => cart.count);
 const auth = useAuthStore();
 const drawerOpen = ref(false);
+// The drawer code (dialog, focus trap) downloads on the first tap on the menu button, not with the page.
+const drawerUsed = ref(false);
+function openDrawer(): void {
+  drawerUsed.value = true;
+  drawerOpen.value = true;
+}
 
 const cartLabel = computed(() =>
   cartCount.value === 0
@@ -75,12 +81,12 @@ const cartLabel = computed(() =>
           class="lg:hidden"
           aria-haspopup="dialog"
           :aria-expanded="drawerOpen"
-          @click="drawerOpen = true"
+          @click="openDrawer"
         >
           <Menu />
         </BaseIconButton>
       </div>
     </div>
-    <LayoutSiteDrawer v-model:open="drawerOpen" />
+    <LazyLayoutSiteDrawer v-if="drawerUsed" v-model:open="drawerOpen" />
   </header>
 </template>

@@ -10,7 +10,7 @@ const store = useStoreInfo();
     <main id="conteudo" tabindex="-1" class="flex-1 outline-none">
       <slot />
     </main>
-    <LayoutSiteFooter />
-    <WhatsAppButton v-if="store.whatsapp" :phone="store.whatsapp" />
+    <LazyLayoutSiteFooter hydrate-on-visible />
+    <LazyWhatsAppButton v-if="store.whatsapp" hydrate-on-idle :phone="store.whatsapp" />
   </div>
 </template>

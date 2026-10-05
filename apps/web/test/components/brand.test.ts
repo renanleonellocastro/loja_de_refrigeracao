@@ -15,20 +15,23 @@ import { useCartStore } from '~/stores/cart';
 import { defineComponent, h } from 'vue';
 
 describe('AppLogo', () => {
-  it('has the store name and inlines the full sign', async () => {
+  it('follows the text color with the full sign as a mask', async () => {
     const wrapper = await mountSuspended(AppLogo);
     expect(wrapper.attributes('role')).toBe('img');
     expect(wrapper.attributes('aria-label')).toBe('Refrigeração Castro');
-    const svg = wrapper.get('svg');
-    expect(svg.attributes('aria-hidden')).toBe('true');
-    expect(svg.find('title').exists()).toBe(false);
-    expect(wrapper.html()).toContain('fill="currentColor"');
+    expect(wrapper.classes()).toContain('bg-current');
+    expect(wrapper.attributes('style')).toContain('/brand/logo-mono.svg');
+    expect(wrapper.find('svg').exists()).toBe(false);
   });
 
-  it('renders the symbol with the silver relief', async () => {
-    const wrapper = await mountSuspended(AppLogo, { props: { variant: 'symbol', relief: true } });
-    expect(wrapper.html()).toContain('-silver');
-    expect(wrapper.html()).not.toContain('fill="currentColor"');
+  it('loads the silver relief sign and symbol as images', async () => {
+    const full = await mountSuspended(AppLogo, { props: { relief: true } });
+    expect(full.element.tagName).toBe('IMG');
+    expect(full.attributes('src')).toBe('/brand/logo-prata.svg');
+    expect(full.attributes('alt')).toBe('Refrigeração Castro');
+    const symbol = await mountSuspended(AppLogo, { props: { variant: 'symbol', relief: true } });
+    expect(symbol.attributes('src')).toBe('/brand/simbolo-prata.svg');
+    expect(symbol.attributes('width')).toBe('480');
   });
 });
 

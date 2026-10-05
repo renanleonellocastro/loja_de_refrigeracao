@@ -34,6 +34,8 @@ describe('CatalogProductImage', () => {
     await img.trigger('error');
     expect(wrapper.get('img').attributes('src')).toBe('/illustrations/produto-sem-foto.svg');
     expect(wrapper.get('img').attributes('alt')).toBe('Compressor, sem foto');
+    expect(wrapper.get('img').attributes('loading')).toBe('eager');
+    expect(wrapper.get('img').attributes('fetchpriority')).toBe('high');
     await wrapper.setProps({ image: { ...IMAGE, url: '/outra.webp' }, eager: false });
     expect(wrapper.get('img').attributes('loading')).toBe('lazy');
     expect(wrapper.get('img').attributes('fetchpriority')).toBeUndefined();
