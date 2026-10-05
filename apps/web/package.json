@@ -13,6 +13,12 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/daygrid": "^6.1.21",
+    "@fullcalendar/interaction": "^6.1.21",
+    "@fullcalendar/list": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
+    "@fullcalendar/vue3": "^6.1.21",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/image": "^2.1.0",
     "@pinia/nuxt": "^1.0.2",
