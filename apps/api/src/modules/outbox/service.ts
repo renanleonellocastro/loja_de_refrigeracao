@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lte, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm';
 import type { Database, Executor } from '../../infra/db/client.js';
 import { outbox } from '../../infra/db/schema.js';
 import type { Clock } from '../../shared/clock.js';
@@ -37,7 +37,8 @@ export async function processOutboxBatch(
       .where(
         and(
           isNull(outbox.processedAt),
-          lte(outbox.availableAt, now),
+          // New events are due at once (their availableAt comes from the database clock); retries wait.
+          or(eq(outbox.attempts, 0), lte(outbox.availableAt, now)),
           sql`${outbox.attempts} < ${MAX_ATTEMPTS}`,
         ),
       )

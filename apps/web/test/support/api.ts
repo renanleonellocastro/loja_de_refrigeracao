@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 
 /** Answer of a mocked endpoint: a status and JSON body, or an error to simulate no connection. */
-export type Reply = { status?: number; body?: unknown } | Error;
+export type Reply = { status?: number; body?: unknown; headers?: Record<string, string> } | Error;
 type Handler = (request: Request) => Reply;
 
 export interface RecordedCall {
@@ -35,7 +35,7 @@ export function mockApi(): ApiMock {
     if (reply instanceof Error) throw reply;
     const status = reply.status ?? 200;
     const body = status === 204 ? null : JSON.stringify(reply.body ?? {});
-    return new Response(body, { status, headers: { 'content-type': 'application/json' } });
+    return new Response(body, { status, headers: { 'content-type': 'application/json', ...reply.headers } });
   });
 
   const mock: ApiMock = {

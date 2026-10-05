@@ -16,4 +16,6 @@ export const PRIVATE_ROUTES = [
   '/configuracoes',
   '/agendar',
   '/solicitacoes',
+  '/agenda',
+  '/aprovacoes',
 ] as const;
