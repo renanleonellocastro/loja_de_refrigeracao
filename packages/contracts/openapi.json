@@ -947,6 +947,223 @@
           "lowStock"
         ]
       },
+      "DashboardInput": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Dia da loja (America/Sao_Paulo), AAAA-MM-DD"
+          },
+          "management": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ordersByStatus": {
+                    "type": "object",
+                    "properties": {
+                      "PENDING_REVIEW": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "READY_FOR_PICKUP": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "PICKED_UP": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "CANCELED": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "PENDING_REVIEW",
+                      "READY_FOR_PICKUP",
+                      "PICKED_UP",
+                      "CANCELED"
+                    ]
+                  },
+                  "openServiceRequests": {
+                    "type": "object",
+                    "properties": {
+                      "REQUESTED": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "AWAITING_CUSTOMER": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "REQUESTED",
+                      "AWAITING_CUSTOMER"
+                    ]
+                  },
+                  "quotesAwaitingAnswer": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "reportsAwaitingApproval": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "serviceRevenueMonthCents": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Serviços aprovados no mês corrente, em centavos"
+                  },
+                  "agendaToday": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ]
+                        },
+                        "appointments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AppointmentInput"
+                          }
+                        }
+                      },
+                      "required": [
+                        "employee",
+                        "appointments"
+                      ]
+                    }
+                  },
+                  "lowStock": {
+                    "type": "object",
+                    "properties": {
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "stockAvailable": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "stockMin": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "description": "Mínimo do produto ou, sem ele, o padrão da loja"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "slug",
+                            "name",
+                            "stockAvailable",
+                            "stockMin"
+                          ]
+                        }
+                      },
+                      "total": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "items",
+                      "total"
+                    ]
+                  }
+                },
+                "required": [
+                  "ordersByStatus",
+                  "openServiceRequests",
+                  "quotesAwaitingAnswer",
+                  "reportsAwaitingApproval",
+                  "serviceRevenueMonthCents",
+                  "agendaToday",
+                  "lowStock"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Indicadores da gerência; nulo para o colaborador"
+          },
+          "employee": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "visitsToday": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AppointmentInput"
+                    }
+                  },
+                  "pendingReports": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Visitas até hoje que ainda esperam a finalização"
+                  }
+                },
+                "required": [
+                  "visitsToday",
+                  "pendingReports"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "O dia do colaborador; nulo para a gerência"
+          }
+        },
+        "required": [
+          "date",
+          "management",
+          "employee"
+        ]
+      },
       "CartInput": {
         "type": "object",
         "properties": {
@@ -3491,6 +3708,232 @@
           "movement",
           "stockAvailable",
           "lowStock"
+        ],
+        "additionalProperties": false
+      },
+      "Dashboard": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Dia da loja (America/Sao_Paulo), AAAA-MM-DD"
+          },
+          "management": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "ordersByStatus": {
+                    "type": "object",
+                    "properties": {
+                      "PENDING_REVIEW": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "READY_FOR_PICKUP": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "PICKED_UP": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "CANCELED": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "PENDING_REVIEW",
+                      "READY_FOR_PICKUP",
+                      "PICKED_UP",
+                      "CANCELED"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "openServiceRequests": {
+                    "type": "object",
+                    "properties": {
+                      "REQUESTED": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "AWAITING_CUSTOMER": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "REQUESTED",
+                      "AWAITING_CUSTOMER"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "quotesAwaitingAnswer": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "reportsAwaitingApproval": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "serviceRevenueMonthCents": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Serviços aprovados no mês corrente, em centavos"
+                  },
+                  "agendaToday": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "employee": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "appointments": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Appointment"
+                          }
+                        }
+                      },
+                      "required": [
+                        "employee",
+                        "appointments"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "lowStock": {
+                    "type": "object",
+                    "properties": {
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "slug": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "stockAvailable": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "stockMin": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991,
+                              "description": "Mínimo do produto ou, sem ele, o padrão da loja"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "slug",
+                            "name",
+                            "stockAvailable",
+                            "stockMin"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "total": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "items",
+                      "total"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "ordersByStatus",
+                  "openServiceRequests",
+                  "quotesAwaitingAnswer",
+                  "reportsAwaitingApproval",
+                  "serviceRevenueMonthCents",
+                  "agendaToday",
+                  "lowStock"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Indicadores da gerência; nulo para o colaborador"
+          },
+          "employee": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "visitsToday": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Appointment"
+                    }
+                  },
+                  "pendingReports": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991,
+                    "description": "Visitas até hoje que ainda esperam a finalização"
+                  }
+                },
+                "required": [
+                  "visitsToday",
+                  "pendingReports"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "O dia do colaborador; nulo para a gerência"
+          }
+        },
+        "required": [
+          "date",
+          "management",
+          "employee"
         ],
         "additionalProperties": false
       },
@@ -16832,6 +17275,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/StoreSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "summary": "Painel da equipe",
+        "tags": [
+          "Painel"
+        ],
+        "description": "Gerente e super usuário recebem os indicadores da loja; o colaborador recebe as próprias visitas de hoje e as finalizações pendentes.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
                 }
               }
             }

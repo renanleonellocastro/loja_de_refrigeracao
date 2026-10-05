@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#184E86" />
+    <meta name="robots" content="noindex" />
+    <title>Sem conexão | Refrigeração Castro</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f8fb;
+        --surface: #ffffff;
+        --text: #14181f;
+        --muted: #5b6470;
+        --brand: #184e86;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e2e52;
+          --surface: #13385f;
+          --text: #f6f8fb;
+          --muted: #c8ccd2;
+          --brand: #dce8f6;
+        }
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          17px/1.5 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+      }
+      main {
+        max-width: 28rem;
+        text-align: center;
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 32px 24px;
+        box-shadow: 0 8px 24px rgb(14 46 82 / 0.12);
+      }
+      img {
+        width: 160px;
+        height: auto;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 16px 0 8px;
+      }
+      p {
+        color: var(--muted);
+        margin: 0 0 12px;
+      }
+      a,
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 20px;
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 600;
+      }
+      button {
+        border: 0;
+        background: #184e86;
+        color: #fff;
+        cursor: pointer;
+      }
+      a {
+        color: var(--brand);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/illustrations/erro-offline.svg" alt="" width="160" height="160" />
+      <h1>Parece que a internet caiu</h1>
+      <p>Confira a rede sem fio ou os dados móveis e tente de novo.</p>
+      <p>As visitas de hoje que você já abriu continuam em <a href="/hoje">Hoje</a>.</p>
+      <button type="button" onclick="location.reload()">Tentar de novo</button>
+    </main>
+  </body>
+</html>

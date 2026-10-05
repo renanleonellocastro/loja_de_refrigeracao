@@ -9025,6 +9025,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel da equipe
+         * @description Gerente e super usuário recebem os indicadores da loja; o colaborador recebe as próprias visitas de hoje e as finalizações pendentes.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Dashboard"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Problem"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -9227,6 +9329,51 @@ export interface components {
             movement: components["schemas"]["StockMovementInput"];
             stockAvailable: number;
             lowStock: boolean;
+        };
+        DashboardInput: {
+            /** @description Dia da loja (America/Sao_Paulo), AAAA-MM-DD */
+            date: string;
+            /** @description Indicadores da gerência; nulo para o colaborador */
+            management: {
+                ordersByStatus: {
+                    PENDING_REVIEW: number;
+                    READY_FOR_PICKUP: number;
+                    PICKED_UP: number;
+                    CANCELED: number;
+                };
+                openServiceRequests: {
+                    REQUESTED: number;
+                    AWAITING_CUSTOMER: number;
+                };
+                quotesAwaitingAnswer: number;
+                reportsAwaitingApproval: number;
+                /** @description Serviços aprovados no mês corrente, em centavos */
+                serviceRevenueMonthCents: number;
+                agendaToday: {
+                    employee: {
+                        id: number;
+                        name: string;
+                    };
+                    appointments: components["schemas"]["AppointmentInput"][];
+                }[];
+                lowStock: {
+                    items: {
+                        id: number;
+                        slug: string;
+                        name: string;
+                        stockAvailable: number;
+                        /** @description Mínimo do produto ou, sem ele, o padrão da loja */
+                        stockMin: number;
+                    }[];
+                    total: number;
+                };
+            } | null;
+            /** @description O dia do colaborador; nulo para a gerência */
+            employee: {
+                visitsToday: components["schemas"]["AppointmentInput"][];
+                /** @description Visitas até hoje que ainda esperam a finalização */
+                pendingReports: number;
+            } | null;
         };
         CartInput: {
             items: {
@@ -9754,6 +9901,51 @@ export interface components {
             movement: components["schemas"]["StockMovement"];
             stockAvailable: number;
             lowStock: boolean;
+        };
+        Dashboard: {
+            /** @description Dia da loja (America/Sao_Paulo), AAAA-MM-DD */
+            date: string;
+            /** @description Indicadores da gerência; nulo para o colaborador */
+            management: {
+                ordersByStatus: {
+                    PENDING_REVIEW: number;
+                    READY_FOR_PICKUP: number;
+                    PICKED_UP: number;
+                    CANCELED: number;
+                };
+                openServiceRequests: {
+                    REQUESTED: number;
+                    AWAITING_CUSTOMER: number;
+                };
+                quotesAwaitingAnswer: number;
+                reportsAwaitingApproval: number;
+                /** @description Serviços aprovados no mês corrente, em centavos */
+                serviceRevenueMonthCents: number;
+                agendaToday: {
+                    employee: {
+                        id: number;
+                        name: string;
+                    };
+                    appointments: components["schemas"]["Appointment"][];
+                }[];
+                lowStock: {
+                    items: {
+                        id: number;
+                        slug: string;
+                        name: string;
+                        stockAvailable: number;
+                        /** @description Mínimo do produto ou, sem ele, o padrão da loja */
+                        stockMin: number;
+                    }[];
+                    total: number;
+                };
+            } | null;
+            /** @description O dia do colaborador; nulo para a gerência */
+            employee: {
+                visitsToday: components["schemas"]["Appointment"][];
+                /** @description Visitas até hoje que ainda esperam a finalização */
+                pendingReports: number;
+            } | null;
         };
         Cart: {
             items: {

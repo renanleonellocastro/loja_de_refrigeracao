@@ -1,5 +1,6 @@
 import { GUEST, createApiClient, type Actor, type ApiSchemas } from '@rc/contracts';
 import { defineStore } from 'pinia';
+import { forgetDay } from '~/utils/offline-day';
 
 export type Session = ApiSchemas['Session'];
 export type SessionUser = ApiSchemas['UserSummary'];
@@ -121,6 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch {
       // Offline: the local session ends anyway; the cookie expires on its own.
     }
+    forgetDay();
     clear();
   }
 

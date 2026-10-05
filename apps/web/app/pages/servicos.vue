@@ -4,10 +4,11 @@ import { durationLabel, serviceIllustration } from '~/utils/service-requests';
 import { STORE_INFO } from '~/utils/store';
 
 /** Public page of the service types (RF-30): what the store fixes, with the way to book a visit or ask a quote. */
-useSeoMeta({
+usePageSeo({
   title: 'Serviços | Refrigeração Castro',
   description:
     'Conserto de geladeira, freezer, lavadora e bebedouro, instalação e manutenção de ar condicionado em Mogi Mirim.',
+  path: '/servicos',
 });
 
 const api = useApi();

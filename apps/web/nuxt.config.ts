@@ -23,11 +23,18 @@ export default defineNuxtConfig({
             'Refrigeração Castro, Mogi Mirim/SP: conserto de geladeiras, ar condicionado e lavadoras há mais de 40 anos.',
         },
         { name: 'theme-color', content: '#184E86' },
+        { property: 'og:site_name', content: 'Refrigeração Castro' },
+        { property: 'og:locale', content: 'pt_BR' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { name: 'twitter:card', content: 'summary_large_image' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/manifest.webmanifest' },
       ],
       // Applies the saved theme before the first paint, so there is no flash of the other theme.
       script: [{ innerHTML: THEME_BOOT_SCRIPT, tagPosition: 'head' }],
@@ -51,5 +58,7 @@ export default defineNuxtConfig({
       [`${path}/**`, { ssr: false }],
     ]),
   ),
+  // Built CSS, JS and SVG ship with gzip and brotli copies, served without compressing on each request.
+  nitro: { compressPublicAssets: { gzip: true, brotli: true } },
   typescript: { strict: true },
 });

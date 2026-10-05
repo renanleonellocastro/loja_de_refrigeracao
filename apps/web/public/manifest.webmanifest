@@ -1,0 +1,33 @@
+{
+  "name": "Refrigeração Castro",
+  "short_name": "Castro",
+  "description": "Conserto, instalação e venda de refrigeração em Mogi Mirim/SP. Agenda do técnico, pedidos e orçamentos.",
+  "lang": "pt-BR",
+  "id": "/",
+  "start_url": "/?origem=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#184E86",
+  "theme_color": "#184E86",
+  "categories": ["business", "shopping"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hoje",
+      "short_name": "Hoje",
+      "url": "/hoje",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Agendar visita",
+      "short_name": "Agendar",
+      "url": "/agendar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { STORE_INFO } from '~/utils/store';
+import { formatCnpj } from '~/utils/masks';
+import {
+  cityLine,
+  mapsSearchUrl,
+  openingHoursSummary,
+  phoneHref,
+  phoneLabel,
+  PUBLIC_NAV,
+  streetLine,
+} from '~/utils/store';
 import { Clock, Mail, MapPin, Phone } from 'lucide-vue-next';
 
-const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  `${STORE_INFO.street}, ${STORE_INFO.city}, ${STORE_INFO.cep}`,
-)}`;
+const store = useStoreInfo();
 
 const LINKS = [
   ...PUBLIC_NAV.slice(1),
@@ -29,7 +36,7 @@ const LINKS = [
           class="inline-flex items-center gap-2 self-start rounded-full border border-white/15 bg-white/5 px-3 py-1 rc-eyebrow text-white"
         >
           <span class="size-1.5 rounded-full bg-frost-300" aria-hidden="true" />
-          Desde {{ STORE_INFO.since }}
+          Há mais de 40 anos em Mogi Mirim
         </p>
       </div>
 
@@ -37,21 +44,21 @@ const LINKS = [
         <h2 class="rc-eyebrow font-sans text-white">Visite a loja</h2>
         <address class="mt-4 flex flex-col gap-3 text-[0.9375rem] not-italic">
           <a
-            :href="mapsHref"
+            :href="mapsSearchUrl(store.address)"
             target="_blank"
             rel="noopener noreferrer"
             class="group flex items-start gap-2.5 hover:text-white"
           >
             <MapPin class="mt-0.5 size-4.5 shrink-0 text-frost-300" aria-hidden="true" />
             <span>
-              {{ STORE_INFO.street }}, {{ STORE_INFO.district }}<br />
-              {{ STORE_INFO.city }}, CEP {{ STORE_INFO.cep }}
+              {{ streetLine(store.address) }}<br />
+              {{ cityLine(store.address) }}
               <span class="sr-only">(abre o mapa em nova aba)</span>
             </span>
           </a>
           <p class="flex items-start gap-2.5">
             <Clock class="mt-0.5 size-4.5 shrink-0 text-frost-300" aria-hidden="true" />
-            {{ STORE_INFO.hours }}
+            {{ openingHoursSummary(store.openingHours) }}
           </p>
         </address>
       </div>
@@ -61,20 +68,17 @@ const LINKS = [
         <ul class="mt-4 flex flex-col gap-3 text-[0.9375rem]">
           <li>
             <a
-              :href="STORE_INFO.phoneHref"
+              :href="phoneHref(store.phone)"
               class="flex items-center gap-2.5 font-semibold text-white hover:underline"
             >
               <Phone class="size-4.5 text-frost-300" aria-hidden="true" />
-              {{ STORE_INFO.phone }}
+              {{ phoneLabel(store.phone) }}
             </a>
           </li>
           <li>
-            <a
-              :href="`mailto:${STORE_INFO.email}`"
-              class="flex items-center gap-2.5 break-words hover:text-white"
-            >
+            <a :href="`mailto:${store.email}`" class="flex items-center gap-2.5 break-words hover:text-white">
               <Mail class="size-4.5 shrink-0 text-frost-300" aria-hidden="true" />
-              {{ STORE_INFO.email }}
+              {{ store.email }}
             </a>
           </li>
         </ul>
@@ -99,7 +103,7 @@ const LINKS = [
       <div
         class="rc-container flex flex-col gap-4 py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-sm md:flex-row md:items-center md:justify-between md:pr-48 md:pb-6"
       >
-        <p>© {{ STORE_INFO.legalName }} · CNPJ {{ STORE_INFO.cnpj }}</p>
+        <p>© {{ store.legalName }} · CNPJ {{ formatCnpj(store.cnpj) }}</p>
         <ThemeToggle tone="brand" />
       </div>
     </div>

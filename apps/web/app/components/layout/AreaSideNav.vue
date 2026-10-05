@@ -43,7 +43,7 @@ defineProps<{ navigation: AreaNavigation }>();
       </div>
     </nav>
     <div class="hidden border-t border-white/10 px-6 py-4 text-xs text-castro-200 lg:block">
-      {{ STORE_INFO.phone }} · Desde {{ STORE_INFO.since }}
+      {{ STORE_INFO.phone }} · Há mais de 40 anos
     </div>
   </aside>
 </template>

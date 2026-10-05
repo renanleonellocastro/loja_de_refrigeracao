@@ -544,6 +544,31 @@ export async function defaultStockMin(db: Executor): Promise<number> {
   return row!.value;
 }
 
+/** Active products below their minimum (or the store default), lowest stock first, with the total count. */
+export async function lowStockProducts(db: Executor, limit: number) {
+  const storeMin = await defaultStockMin(db);
+  const below = and(
+    isNull(products.archivedAt),
+    sql`${products.stockAvailable} < coalesce(${products.stockMin}, ${storeMin})`,
+  );
+  const [items, [total]] = await Promise.all([
+    db
+      .select({
+        id: products.id,
+        slug: products.slug,
+        name: products.name,
+        stockAvailable: products.stockAvailable,
+        stockMin: sql<number>`coalesce(${products.stockMin}, ${storeMin})`.mapWith(Number),
+      })
+      .from(products)
+      .where(below)
+      .orderBy(asc(products.stockAvailable), asc(products.name))
+      .limit(limit),
+    db.select({ value: count() }).from(products).where(below),
+  ]);
+  return { items, total: total!.value };
+}
+
 export async function findProductsByIds(db: Executor, ids: number[]): Promise<ProductRow[]> {
   if (ids.length === 0) return [];
   return db.select().from(products).where(inArray(products.id, ids));

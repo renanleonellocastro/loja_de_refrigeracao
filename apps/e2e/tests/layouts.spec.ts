@@ -3,13 +3,16 @@ import { expectAccessible } from '../support/a11y.js';
 import { deviceOf, hasHorizontalScroll, open } from '../support/viewport.js';
 
 test.describe('RNF-01 e RNF-02 layout público', () => {
-  test('cabeçalho, rodapé e WhatsApp sem rolagem horizontal @a11y', async ({ page }, testInfo) => {
+  test('cabeçalho e rodapé com os dados da loja, sem rolagem horizontal @a11y', async ({
+    page,
+  }, testInfo) => {
     await open(page, '/');
     await expect(page.getByRole('banner').getByRole('link', { name: /página inicial/ })).toBeVisible();
     const footer = page.getByRole('contentinfo');
     await expect(footer).toContainText('Rua Doutor Ulhoa Cintra, 91');
     await expect(footer).toContainText('(19) 3804-1658');
-    await expect(page.getByRole('link', { name: /WhatsApp/ })).toBeVisible();
+    // The development seed has no WhatsApp number, so the floating button stays hidden.
+    await expect(page.getByRole('link', { name: /WhatsApp/ })).toHaveCount(0);
     const mainNav = page.getByRole('navigation', { name: 'Principal' });
     if (deviceOf(testInfo) === 'desktop') {
       await expect(mainNav).toBeVisible();

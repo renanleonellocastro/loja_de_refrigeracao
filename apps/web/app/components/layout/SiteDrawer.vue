@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { accountHomeFor } from '~/utils/session';
-import { PUBLIC_NAV, STORE_INFO } from '~/utils/store';
+import { cityLine, openingHoursSummary, phoneHref, phoneLabel, PUBLIC_NAV, streetLine } from '~/utils/store';
 import { ChevronRight, Clock, MapPin, Phone, X } from 'lucide-vue-next';
 import { DialogClose, DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui';
 
@@ -10,6 +10,7 @@ const open = defineModel<boolean>('open', { default: false });
 const route = useRoute();
 const auth = useAuthStore();
 const toast = useToast();
+const store = useStoreInfo();
 
 async function signOut(): Promise<void> {
   await auth.logout();
@@ -70,15 +71,17 @@ watch(
         <div class="border-t border-border px-4 py-4 text-sm text-text-muted">
           <p class="flex items-center gap-2">
             <Phone class="size-4 text-link" aria-hidden="true" />
-            <a :href="STORE_INFO.phoneHref" class="font-semibold text-text">{{ STORE_INFO.phone }}</a>
+            <a :href="phoneHref(store.phone)" class="font-semibold text-text">{{
+              phoneLabel(store.phone)
+            }}</a>
           </p>
           <p class="mt-2 flex items-center gap-2">
             <Clock class="size-4 text-link" aria-hidden="true" />
-            {{ STORE_INFO.hours }}
+            {{ openingHoursSummary(store.openingHours) }}
           </p>
           <p class="mt-2 flex items-start gap-2">
             <MapPin class="mt-0.5 size-4 shrink-0 text-link" aria-hidden="true" />
-            {{ STORE_INFO.street }}, {{ STORE_INFO.district }}, {{ STORE_INFO.city }}
+            {{ streetLine(store.address) }}, {{ cityLine(store.address) }}
           </p>
           <div class="mt-4"><ThemeToggle block /></div>
         </div>

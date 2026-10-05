@@ -8,16 +8,17 @@ import { open } from '../support/viewport.js';
 test.describe('Visual', () => {
   test.use({ colorScheme: 'light', reducedMotion: 'reduce' });
 
+  // The home page is captured from the hero, which does not depend on API data (baselines run without it).
   const pages = [
-    { name: 'inicio', path: '/' },
-    { name: 'area-gerente', path: '/design/area?papel=MANAGER' },
+    { name: 'inicio', path: '/', target: '[data-testid="hero"]' },
+    { name: 'area-gerente', path: '/design/area?papel=MANAGER', target: null },
   ];
 
-  for (const { name, path } of pages) {
+  for (const { name, path, target } of pages) {
     test(`${name} @visual`, async ({ page }) => {
       await open(page, path);
       await page.evaluate(() => document.fonts.ready);
-      await expect(page).toHaveScreenshot(`${name}.png`, {
+      await expect(target ? page.locator(target) : page).toHaveScreenshot(`${name}.png`, {
         animations: 'disabled',
         mask: [page.getByRole('link', { name: /WhatsApp/ })],
         maxDiffPixelRatio: 0.01,

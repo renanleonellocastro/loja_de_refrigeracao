@@ -1,10 +1,10 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{ phone?: string; message?: string }>(), {
-  phone: STORE_INFO.whatsapp,
-  message: 'Olá! Vim pelo site da Refrigeração Castro.',
-});
+import { whatsappHref } from '~/utils/store';
 
-const href = computed(() => `https://wa.me/${props.phone}?text=${encodeURIComponent(props.message)}`);
+/** Floating WhatsApp button; `phone` is the store number with area code and no country code. */
+const props = defineProps<{ phone: string; message?: string }>();
+
+const href = computed(() => whatsappHref(props.phone, props.message));
 </script>
 
 <template>

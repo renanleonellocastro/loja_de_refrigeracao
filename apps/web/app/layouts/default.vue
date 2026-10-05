@@ -1,4 +1,8 @@
 <!-- Public site: blue storefront header, content and the store footer, with the floating WhatsApp button. -->
+<script setup lang="ts">
+const store = useStoreInfo();
+</script>
+
 <template>
   <div class="flex min-h-dvh flex-col">
     <LayoutSkipLink />
@@ -7,6 +11,6 @@
       <slot />
     </main>
     <LayoutSiteFooter />
-    <WhatsAppButton />
+    <WhatsAppButton v-if="store.whatsapp" :phone="store.whatsapp" />
   </div>
 </template>

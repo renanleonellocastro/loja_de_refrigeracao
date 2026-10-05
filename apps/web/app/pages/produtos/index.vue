@@ -90,7 +90,7 @@ useSeoMeta({
   description:
     'Geladeiras, freezers, ar condicionado, lavadoras, bebedouros e peças, novos e revisados, na Refrigeração Castro em Mogi Mirim/SP. Reserve pelo site e retire na loja.',
   ogTitle: title,
-  ogImage: '/og-image.svg',
+  ogImage: `${useRequestURL().origin}/og-image.png`,
   // Searches and filtered pages are thin variations of the catalog; only the plain list is indexed.
   robots: computed(() => (filters.value.q || activeCount.value > 0 ? 'noindex, follow' : 'index, follow')),
 });
