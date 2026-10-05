@@ -3,7 +3,7 @@ import { FixedClock, MINUTE, systemClock } from './clock.js';
 import { assertIfMatch, etagFor } from './concurrency.js';
 import { AppError, conflict, forbidden, notFound, tooManyRequests, unauthorized } from './errors.js';
 import { pageOf, pageQuerySchema, paginated, toLimitOffset } from './pagination.js';
-import { emailSchema } from './schemas.js';
+import { dateInput, emailSchema } from './schemas.js';
 import { formatBrl, formatDateBr, normalizeEmail, normalizeText, onlyDigits, slugify } from './text.js';
 import { z } from 'zod';
 
@@ -106,5 +106,17 @@ describe('optimistic concurrency', () => {
     expect(() => assertIfMatch('W/"1"', 2)).toThrowError(expect.objectContaining({ status: 412 }));
     expect(() => assertIfMatch('W/"1", W/"2"', 2)).not.toThrow();
     expect(() => assertIfMatch('*', 9)).not.toThrow();
+  });
+});
+
+describe('dateInput', () => {
+  // Found by Schemathesis: "0.5" used to be coerced into a date.
+  it('accepts ISO 8601 dates and date-times only', () => {
+    const schema = dateInput();
+    expect(schema.parse('2026-10-05')).toEqual(new Date('2026-10-05'));
+    expect(schema.parse('2026-10-05T12:00:00.000Z')).toEqual(new Date('2026-10-05T12:00:00.000Z'));
+    expect(schema.parse('2026-10-05T09:00-03:00')).toEqual(new Date('2026-10-05T12:00:00.000Z'));
+    expect(schema.safeParse('0.5').success).toBe(false);
+    expect(schema.safeParse('2026-13-45').error?.issues[0]?.message).toBe('Data inválida.');
   });
 });

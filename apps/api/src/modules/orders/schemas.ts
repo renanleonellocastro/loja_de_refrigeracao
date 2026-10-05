@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dateInput } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { ORDER_STATUSES } from './status.js';
 
@@ -69,8 +70,8 @@ export const orderListQuerySchema = z.object({
     .transform((value) => (value ? value.split(',') : undefined))
     .pipe(z.array(z.enum(ORDER_STATUSES)).optional()),
   q: z.string().trim().max(100).optional(),
-  from: z.coerce.date().optional(),
-  to: z.coerce.date().optional(),
+  from: dateInput().optional(),
+  to: dateInput().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });
