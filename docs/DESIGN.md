@@ -6,7 +6,7 @@ O sistema precisa parecer a Refrigeração Castro, não um painel genérico. A r
 
 ### Logo
 
-O arquivo atual (`imagens/logo.png`) é uma foto do letreiro. O primeiro trabalho de design é redesenhá-lo em vetor (SVG), fiel ao original:
+O arquivo atual (`assets/logo.png`) é uma foto do letreiro. O primeiro trabalho de design é redesenhá-lo em vetor (SVG), fiel ao original:
 
 * **Logo completo horizontal**: mascote + "EFRIGERAÇÃO" sobre "CASTRO", como na fachada.
 * **Símbolo**: só o mascote com a chave, para favicon, ícone do app instalado, avatar de redes e marcador do mapa.

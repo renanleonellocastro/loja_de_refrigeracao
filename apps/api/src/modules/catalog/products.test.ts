@@ -49,6 +49,25 @@ describe('product routes', () => {
     return { category, manager };
   }
 
+  // Found by Schemathesis: NUL bytes and integers beyond the column range used to answer 500.
+  it('rejects text with NUL bytes and ids out of range with 422', async () => {
+    const { category, manager } = await setup();
+    const nul = await t.app.inject({
+      method: 'POST',
+      url: '/api/v1/products',
+      headers: manager.headers,
+      payload: { ...fridge, categoryId: category.id, name: 'Geladeira\u0000' },
+    });
+    expect(nul.statusCode).toBe(422);
+    expect(nul.json()).toMatchObject({ title: 'Dados inválidos' });
+    const huge = await t.app.inject({
+      method: 'GET',
+      url: '/api/v1/products/141461359549231',
+      headers: manager.headers,
+    });
+    expect(huge.statusCode).toBe(422);
+  });
+
   describe('POST /products', () => {
     it('creates the product with a slug, search text, initial stock movement and audit', async () => {
       const { category, manager } = await setup();

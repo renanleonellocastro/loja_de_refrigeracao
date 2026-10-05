@@ -1,6 +1,13 @@
 packages:
   - apps/*
   - packages/*
+# Supply chain: no git or tarball URLs deep in the tree and no package whose publishing trust went down.
+# The one week wait before a new version is installed lives in renovate.json (minimumReleaseAge), where
+# updates are proposed, so a pinned lockfile still installs.
+blockExoticSubdeps: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@6.3.1 # published in 2023 before npm provenance existed; newer 7.x releases carry it
 allowBuilds:
   esbuild: true
   vue-demi: true

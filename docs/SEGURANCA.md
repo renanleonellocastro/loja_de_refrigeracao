@@ -26,12 +26,14 @@ Referência: OWASP ASVS nível 1, com itens do nível 2 em autenticação e cont
 
 ## 4. Cabeçalhos e transporte
 
-HTTPS obrigatório com HSTS; Content Security Policy sem `unsafe-inline` em scripts; `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Permissions-Policy` restritiva (câmera liberada só nas telas de upload); CORS apenas para `APP_ORIGIN` com credenciais.
+HTTPS obrigatório com HSTS (só no build de produção); Content Security Policy sem `unsafe-inline` em scripts (o site usa nonce por resposta com `strict-dynamic`, em `apps/web/server/plugins/security-headers.ts`; a API usa `default-src 'none'`); `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Permissions-Policy` restritiva (câmera desligada: o envio de fotos usa o campo de arquivo, que abre a câmera nativa); CORS apenas para `APP_ORIGIN` com credenciais.
+
+Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CHECKLIST.md).
 
 ## 5. Segredos e repositório
 
 * Nenhum segredo no Git; `infra/env.sample` documenta as variáveis.
-* gitleaks no CI e em hook de pre commit.
+* gitleaks e Semgrep no CI; gitleaks também em hook de pre commit. Ações do GitHub fixadas por SHA.
 * `pnpm audit` bloqueia o merge com alertas altos. Exceções só para alertas sem versão corrigida que atingem apenas ferramentas de build ou desenvolvimento, listadas com justificativa em `pnpm-workspace.yaml` e revistas a cada atualização de dependências.
 * Os arquivos `.http` com tokens e o script com hash de senha do protótipo saem do repositório no M0. Os tokens antigos já expiraram, mas o `JWT_KEY` usado na época deve ser considerado comprometido e não reaproveitado.
 

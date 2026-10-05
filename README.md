@@ -3,7 +3,7 @@
 Um software, de código aberto, que está em desenvolvimento utilizando a linguagem Javascript e combinação de ferramentas VUE.JS para a código que será executado no navegador e NODE.JS para o código que será executado no servidor. Tem por objetivo gerenciar uma loja de refrigeração chamada Refrigeração Castro, localizada em Mogi Mirim/SP, mas poderá servir como ponto de partida para outras lojas do segmento.
 
 <p align="center">
-  <img width="500" height="330" src="imagens/logo.png">
+  <img width="500" height="330" src="docs/assets/logo.png">
 </p>
 
 ## Como executar
@@ -23,7 +23,7 @@ O comando sobe o PostgreSQL e o Mailpit no Docker, compila os pacotes e inicia a
 
 Testes: `pnpm test` (unitários e integração, cobertura de 100% exigida) e `pnpm test:e2e` (celular, tablet e desktop). Veja [CONTRIBUTING.md](CONTRIBUTING.md).
 
-O código antigo em `server/` e `client/` é o protótipo de 2022, congelado e com remoção prevista no M5 (ADR 0008).
+O protótipo de 2022 (`server/` e `client/`) foi removido conforme a ADR 0008; o histórico do Git o preserva e o diagnóstico está em [docs/DIAGNOSTICO.md](docs/DIAGNOSTICO.md).
 
 ## Documentação
 
@@ -52,7 +52,7 @@ O sistema será dividido em 2 subsistemas como mostrado abaixo:
 ## Casos de Uso
 
 <p align="center">
-  <img width="600" height="400" src="imagens/diagrama_de_casos_de_uso.png">
+  <img width="600" height="400" src="docs/assets/diagrama_de_casos_de_uso.png">
 </p>
 
 ## Quer contribuir?

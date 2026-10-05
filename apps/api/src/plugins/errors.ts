@@ -4,6 +4,16 @@ import { AppError, PROBLEM_BASE_URL } from '../shared/errors.js';
 
 const PROBLEM = 'application/problem+json; charset=utf-8';
 
+/**
+ * PostgreSQL data exceptions caused by input the schemas let through (text too long, number out of the
+ * column range, NUL bytes): the request is wrong, not the server.
+ */
+const INVALID_INPUT_CODES = new Set(['22001', '22003', '22021', '22P05']);
+
+function databaseCode(error: Error): unknown {
+  return (error.cause as { code?: unknown } | undefined)?.code;
+}
+
 function fieldPath(context: string | undefined, instancePath: string): string {
   const path = instancePath.replace(/^\//, '').replaceAll('/', '.');
   return path || String(context);
@@ -39,6 +49,19 @@ export function registerErrorHandling(app: FastifyInstance): void {
         });
     }
 
+    if (INVALID_INPUT_CODES.has(databaseCode(error) as string)) {
+      return reply
+        .code(422)
+        .type(PROBLEM)
+        .send({
+          type: `${PROBLEM_BASE_URL}invalid-input`,
+          title: 'Dados inválidos',
+          status: 422,
+          detail: 'Algum campo tem caracteres ou valores fora do aceito.',
+          ...base,
+        });
+    }
+
     const status = error.statusCode ?? 500;
     if (status >= 400 && status < 500) {
       return reply
@@ -58,7 +81,8 @@ export function registerErrorHandling(app: FastifyInstance): void {
         });
     }
 
-    request.log.error({ err: error }, 'unhandled error');
+    // Query errors carry the bound parameters (personal data); log only the driver's own error.
+    request.log.error({ err: error.cause ?? error }, 'unhandled error');
     return reply
       .code(500)
       .type(PROBLEM)

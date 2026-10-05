@@ -1,7 +1,7 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import type { AppContext } from '../../context.js';
 import { requireAuth } from '../../plugins/auth.js';
-import { errorResponses, idParamSchema } from '../../shared/schemas.js';
+import { errorResponses, fileResponse, idParamSchema } from '../../shared/schemas.js';
 import * as cart from './cart.js';
 import { orderLabelPdf } from './label.js';
 import * as orders from './orders.js';
@@ -197,7 +197,7 @@ export function orderRoutes(ctx: AppContext): FastifyPluginAsyncZod {
           summary: 'Etiqueta de separação em PDF (100 x 150 mm)',
           security,
           params: idParamSchema,
-          produces: ['application/pdf'],
+          response: { 200: fileResponse('application/pdf', 'Etiqueta em PDF'), ...errorResponses },
         },
       },
       async (request, reply) => {

@@ -198,6 +198,14 @@ describe('agenda routes', () => {
         headers,
       });
       expect(long.json().errors[0].message).toBe('Consulte no máximo 62 dias por vez.');
+      // Found by Schemathesis: an empty date used to reach the range checks and answer 500.
+      const empty = await t.app.inject({
+        method: 'GET',
+        url: '/api/v1/appointments?from=2000-01-01T00:00:00Z&to=',
+        headers,
+      });
+      expect(empty.statusCode).toBe(422);
+      expect(empty.json().errors).toEqual([{ path: 'to', message: 'Data final inválida.' }]);
     });
 
     it('lists busy intervals per technician', async () => {
