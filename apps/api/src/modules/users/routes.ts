@@ -171,7 +171,15 @@ export function userRoutes(ctx: AppContext): FastifyPluginAsyncZod {
       '/me/data-export',
       {
         config: { permission: 'account.delete' },
-        schema: { tags, summary: 'Baixar meus dados (LGPD)', security },
+        schema: {
+          tags,
+          summary: 'Baixar meus dados (LGPD)',
+          security,
+          response: {
+            200: z.record(z.string(), z.unknown()).describe('Arquivo JSON com os dados da conta'),
+            ...errorResponses,
+          },
+        },
       },
       async (request, reply) => {
         const data = await accounts.exportOwnData(ctx, requireAuth(request).userId);

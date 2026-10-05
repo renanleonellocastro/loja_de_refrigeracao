@@ -25,7 +25,9 @@ export async function readMultipart(request: FastifyRequest, maxFiles: number): 
   } catch (error) {
     // More files than the plugin accepts per request (app.ts) is the same mistake as above maxFiles.
     if (error instanceof request.server.multipartErrors.FilesLimitError) throw tooManyFiles();
-    throw error;
+    // Size limits carry their own status; anything else is a body the parser cannot read (no boundary, cut off).
+    if ((error as { statusCode?: number }).statusCode) throw error;
+    throw unprocessable('multipart-invalid', 'Formato inválido', 'Não foi possível ler as fotos enviadas.');
   }
   if (form.files.length > maxFiles) throw tooManyFiles();
   return form;

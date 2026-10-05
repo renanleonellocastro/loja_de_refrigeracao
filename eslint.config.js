@@ -7,8 +7,6 @@ export default tseslint.config(
   {
     ignores: [
       '.claude/**',
-      'server/**',
-      'client/**',
       '**/node_modules/**',
       '**/dist/**',
       '**/.nuxt/**',

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { dateInput } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 
 const person = z.object({ id: z.number().int(), name: z.string() });
@@ -48,27 +49,33 @@ export const appointmentSchema = z
 
 export const rangeQuerySchema = z
   .object({
-    from: z.coerce.date({ error: 'Data inicial inválida.' }),
-    to: z.coerce.date({ error: 'Data final inválida.' }),
+    from: dateInput('Data inicial inválida.'),
+    to: dateInput('Data final inválida.'),
     employeeId: z.coerce.number().int().positive().optional(),
   })
-  .refine((q) => q.to > q.from, { error: 'A data final deve ser depois da inicial.', path: ['to'] })
+  // Only compares once both dates parsed; an invalid one already has its own message.
+  .refine((q) => q.to > q.from, {
+    error: 'A data final deve ser depois da inicial.',
+    path: ['to'],
+    when: ({ issues }) => issues.length === 0,
+  })
   .refine((q) => q.to.getTime() - q.from.getTime() <= 62 * 86_400_000, {
     error: 'Consulte no máximo 62 dias por vez.',
     path: ['to'],
+    when: ({ issues }) => issues.length === 0,
   });
 
 export const appointmentCreationSchema = z.object({
   serviceRequestId: z.number().int().positive(),
   employeeId: z.number().int().positive(),
-  startsAt: z.coerce.date({ error: 'Horário inválido.' }),
-  endsAt: z.coerce.date({ error: 'Horário inválido.' }).optional(),
+  startsAt: dateInput('Horário inválido.'),
+  endsAt: dateInput('Horário inválido.').optional(),
 });
 
 export const appointmentUpdateSchema = z.object({
   employeeId: z.number().int().positive().optional(),
-  startsAt: z.coerce.date({ error: 'Horário inválido.' }).optional(),
-  endsAt: z.coerce.date({ error: 'Horário inválido.' }).optional(),
+  startsAt: dateInput('Horário inválido.').optional(),
+  endsAt: dateInput('Horário inválido.').optional(),
 });
 
 export const reportInputSchema = z

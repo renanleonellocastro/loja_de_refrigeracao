@@ -100,6 +100,15 @@ describe('product photos', () => {
 
     const missing = await upload(999999, headers, filesOf(await photos(1)));
     expect(missing.statusCode).toBe(404);
+
+    // Found by Schemathesis: a multipart body without a boundary used to answer 500.
+    const noBoundary = await t.app.inject({
+      method: 'POST',
+      url: `/api/v1/products/${product.id}/images`,
+      headers: { ...headers, 'content-type': 'multipart/form-data' },
+      payload: 'x',
+    });
+    expect(noBoundary.json()).toMatchObject({ status: 422, title: 'Formato inválido' });
   });
 
   it('keeps no files when a photo of the request is not accepted', async () => {

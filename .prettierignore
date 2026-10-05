@@ -1,6 +1,4 @@
 .claude/
-server/
-client/
 pnpm-lock.yaml
 **/dist/
 **/.nuxt/
@@ -12,3 +10,4 @@ pnpm-lock.yaml
 **/drizzle/meta/
 *.md
 packages/contracts/openapi.json
+.schemathesis/

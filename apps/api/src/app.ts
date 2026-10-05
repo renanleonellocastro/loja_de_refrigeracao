@@ -30,6 +30,11 @@ z.config(z.locales.pt());
 export const API_PREFIX = '/api/v1';
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
+/** The API serves JSON and images: nothing may run, embed or be embedded (docs/SEGURANCA.md, section 4). */
+const API_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), payment=(), usb=()';
+const DOCS_PREFIX = '/api/docs';
+
 export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   const { config } = ctx;
   const app = Fastify({
@@ -40,6 +45,8 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
     genReqId: () => crypto.randomUUID(),
     trustProxy: config.TRUST_PROXY,
     bodyLimit: 1024 * 1024,
+    // Long enough for every documented parameter, so an oversized one gets the 422 of the schema.
+    routerOptions: { maxParamLength: 500 },
   }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -47,8 +54,18 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   registerErrorHandling(app);
 
   await app.register(helmet, {
+    // The reference page under /api/docs loads its own scripts; every other response gets API_CSP below.
     contentSecurityPolicy: false,
     crossOriginResourcePolicy: { policy: 'same-site' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    strictTransportSecurity: config.NODE_ENV === 'production' && {
+      maxAge: 63_072_000,
+      includeSubDomains: true,
+    },
+  });
+  app.addHook('onSend', async (request, reply) => {
+    reply.header('permissions-policy', PERMISSIONS_POLICY);
+    if (!request.url.startsWith(DOCS_PREFIX)) reply.header('content-security-policy', API_CSP);
   });
   await app.register(cors, {
     origin: config.APP_ORIGIN,
