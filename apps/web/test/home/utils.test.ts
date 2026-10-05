@@ -62,6 +62,7 @@ describe('sitemap and robots', () => {
     expect(xml).toContain('<loc>https://castro.dev/produtos/geladeira&amp;cia</loc>');
     const robots = robotsTxt('https://castro.dev');
     expect(robots).toContain('Disallow: /painel');
+    expect(robots.match(/Disallow: \/produtos\/gerenciar\n/g)).toHaveLength(1);
     expect(robots).toContain('Sitemap: https://castro.dev/sitemap.xml');
   });
 

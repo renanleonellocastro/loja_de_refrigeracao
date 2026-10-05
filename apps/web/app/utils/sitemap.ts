@@ -13,7 +13,6 @@ export const ROBOTS_DISALLOW = [
   '/definir-senha',
   '/redefinir-senha',
   '/confirmar-email',
-  '/produtos/gerenciar',
 ];
 
 const escapeXml = (value: string) =>

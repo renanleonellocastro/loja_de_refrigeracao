@@ -5,6 +5,11 @@ import type { ApiSchemas, Permission, Role } from '@rc/contracts';
 export type DirectoryKind = 'CLIENT' | 'EMPLOYEE' | 'MANAGER';
 export type UserListItem = ApiSchemas['UserListItem'];
 export type UserDetail = ApiSchemas['UserDetail'];
+export type UserWithActivity = ApiSchemas['UserWithActivity'];
+export type UserActivity = Pick<
+  UserWithActivity,
+  'recentOrders' | 'recentServiceRequests' | 'recentAppointments'
+>;
 
 export interface DirectoryConfig {
   kind: DirectoryKind;

@@ -3,12 +3,14 @@ import type { Role } from '@rc/contracts';
 import type { Executor } from '../../infra/db/client.js';
 import {
   addresses,
+  appointments,
   authTokens,
   cartItems,
   notifications,
   orders,
   quotes,
   serviceRequests,
+  serviceTypes,
   sessions,
   users,
   type AddressSnapshot,
@@ -155,6 +157,57 @@ export async function exportUserData(db: Executor, userId: number) {
     db.select().from(quotes).where(eq(quotes.customerId, userId)).orderBy(desc(quotes.createdAt)),
   ]);
   return { orders: userOrders, serviceRequests: requests, quotes: userQuotes };
+}
+
+/** Latest orders and service requests of a customer, newest first (user detail for the staff). */
+export async function recentCustomerActivity(db: Executor, customerId: number, limit: number) {
+  const [recentOrders, recentRequests] = await Promise.all([
+    db
+      .select({
+        id: orders.id,
+        status: orders.status,
+        totalCents: orders.totalCents,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .where(eq(orders.customerId, customerId))
+      .orderBy(desc(orders.createdAt), desc(orders.id))
+      .limit(limit),
+    db
+      .select({
+        id: serviceRequests.id,
+        status: serviceRequests.status,
+        serviceType: serviceTypes.name,
+        productKind: serviceRequests.productKind,
+        createdAt: serviceRequests.createdAt,
+      })
+      .from(serviceRequests)
+      .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
+      .where(eq(serviceRequests.customerId, customerId))
+      .orderBy(desc(serviceRequests.createdAt), desc(serviceRequests.id))
+      .limit(limit),
+  ]);
+  return { orders: recentOrders, serviceRequests: recentRequests };
+}
+
+/** Latest appointments of a technician by start time, newest first (user detail for the staff). */
+export async function recentEmployeeAppointments(db: Executor, employeeId: number, limit: number) {
+  return db
+    .select({
+      id: appointments.id,
+      startsAt: appointments.startsAt,
+      endsAt: appointments.endsAt,
+      status: serviceRequests.status,
+      serviceType: serviceTypes.name,
+      customerName: users.name,
+    })
+    .from(appointments)
+    .innerJoin(serviceRequests, eq(serviceRequests.id, appointments.serviceRequestId))
+    .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
+    .innerJoin(users, eq(users.id, serviceRequests.customerId))
+    .where(eq(appointments.employeeId, employeeId))
+    .orderBy(desc(appointments.startsAt), desc(appointments.id))
+    .limit(limit);
 }
 
 /** Removes personal data while keeping orders and services for the store records (decision D8). */

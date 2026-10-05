@@ -1306,7 +1306,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Detalhes de um usuário */
+        /**
+         * Detalhes de um usuário
+         * @description Inclui os 5 últimos pedidos e solicitações de serviço (clientes) ou os 5 últimos atendimentos (colaboradores).
+         */
         get: {
             parameters: {
                 query?: never;
@@ -1324,7 +1327,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["UserDetail"];
+                        "application/json": components["schemas"]["UserWithActivity"];
                     };
                 };
                 /** @description Default Response */
@@ -9643,6 +9646,47 @@ export interface components {
             pendingInvitation: boolean;
             createdAt: unknown;
         };
+        UserWithActivityInput: {
+            id: number;
+            /** @enum {string} */
+            role: "ADMIN" | "MANAGER" | "EMPLOYEE" | "CLIENT";
+            name: string;
+            email: string;
+            phone: string | null;
+            cpf: string | null;
+            address: components["schemas"]["AddressInput"] | null;
+            emailVerified: boolean;
+            pendingInvitation: boolean;
+            createdAt: unknown;
+            /** @description Últimos pedidos do cliente (vazio para a equipe ou sem permissão de gerenciar pedidos) */
+            recentOrders: {
+                id: number;
+                number: string;
+                /** @enum {string} */
+                status: "PENDING_REVIEW" | "READY_FOR_PICKUP" | "PICKED_UP" | "CANCELED";
+                totalCents: number;
+                createdAt: unknown;
+            }[];
+            /** @description Últimas solicitações de serviço do cliente (vazio sem permissão de gerenciar solicitações) */
+            recentServiceRequests: {
+                id: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                serviceType: string;
+                productKind: string;
+                createdAt: unknown;
+            }[];
+            /** @description Últimos atendimentos do colaborador (vazio para os demais papéis) */
+            recentAppointments: {
+                id: number;
+                startsAt: unknown;
+                endsAt: unknown;
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                serviceType: string;
+                customerName: string;
+            }[];
+        };
         UserListItemInput: {
             id: number;
             /** @enum {string} */
@@ -10221,6 +10265,52 @@ export interface components {
             pendingInvitation: boolean;
             /** Format: date-time */
             createdAt: string;
+        };
+        UserWithActivity: {
+            id: number;
+            /** @enum {string} */
+            role: "ADMIN" | "MANAGER" | "EMPLOYEE" | "CLIENT";
+            name: string;
+            email: string;
+            phone: string | null;
+            cpf: string | null;
+            address: components["schemas"]["Address"] | null;
+            emailVerified: boolean;
+            pendingInvitation: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Últimos pedidos do cliente (vazio para a equipe ou sem permissão de gerenciar pedidos) */
+            recentOrders: {
+                id: number;
+                number: string;
+                /** @enum {string} */
+                status: "PENDING_REVIEW" | "READY_FOR_PICKUP" | "PICKED_UP" | "CANCELED";
+                totalCents: number;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** @description Últimas solicitações de serviço do cliente (vazio sem permissão de gerenciar solicitações) */
+            recentServiceRequests: {
+                id: number;
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                serviceType: string;
+                productKind: string;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            /** @description Últimos atendimentos do colaborador (vazio para os demais papéis) */
+            recentAppointments: {
+                id: number;
+                /** Format: date-time */
+                startsAt: string;
+                /** Format: date-time */
+                endsAt: string;
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                serviceType: string;
+                customerName: string;
+            }[];
         };
         UserListItem: {
             id: number;

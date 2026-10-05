@@ -1,0 +1,23 @@
+# Reverse proxy of the production stack (infra/compose.production.yaml).
+# Caddy obtains and renews the HTTPS certificate of {$DOMAIN} by itself and compresses the responses.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	@api path /api/* /health /ready
+	handle @api {
+		reverse_proxy api:3001
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -236,7 +236,92 @@ describe('team lists', () => {
 });
 
 describe('user details', () => {
-  const detail = (extra: Record<string, unknown> = {}) => ({ ...PROFILE, id: 7, ...extra });
+  const NO_ACTIVITY = { recentOrders: [], recentServiceRequests: [], recentAppointments: [] };
+  const detail = (extra: Record<string, unknown> = {}) => ({ ...PROFILE, ...NO_ACTIVITY, id: 7, ...extra });
+
+  it('lists the recent orders and requests of a customer with links, or says there are none', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    mockApi()
+      .on('GET /api/v1/users/7', {
+        body: detail({
+          recentOrders: [
+            {
+              id: 12,
+              number: 'RC-000012',
+              status: 'READY_FOR_PICKUP',
+              totalCents: 15990,
+              createdAt: '2026-10-04T15:00:00.000Z',
+            },
+          ],
+          recentServiceRequests: [
+            {
+              id: 5,
+              status: 'SCHEDULED',
+              serviceType: 'Conserto de geladeira',
+              productKind: 'Geladeira',
+              createdAt: '2026-10-02T15:00:00.000Z',
+            },
+          ],
+        }),
+      })
+      .on('GET /api/v1/users/8', { body: detail({ id: 8 }) });
+    const page = await mountSuspended(CustomerPage, { route: '/clientes/7', attachTo: document.body });
+    await flushPromises();
+    expect(page.text()).toContain('Pedido RC-000012');
+    expect(page.text()).toContain('R$ 159,90');
+    expect(page.find('a[href="/pedidos/12"]').exists()).toBe(true);
+    expect(page.text()).toContain('Conserto de geladeira · Geladeira');
+    expect(page.find('a[href="/solicitacoes/5"]').exists()).toBe(true);
+    page.unmount();
+    const empty = await mountSuspended(CustomerPage, { route: '/clientes/8', attachTo: document.body });
+    await flushPromises();
+    expect(empty.text()).toContain('Nenhum pedido ainda.');
+    expect(empty.text()).toContain('Nenhuma solicitação ainda.');
+    empty.unmount();
+  });
+
+  it('hides the customer history from a technician', async () => {
+    useAuthStore().apply(session(EMPLOYEE_USER));
+    mockApi().on('GET /api/v1/users/7', { body: detail() });
+    const page = await mountSuspended(CustomerPage, { route: '/clientes/7', attachTo: document.body });
+    await flushPromises();
+    expect(page.text()).toContain('Carla Cliente');
+    expect(page.text()).not.toContain('Últimos pedidos');
+    expect(page.text()).not.toContain('Últimas solicitações');
+    page.unmount();
+  });
+
+  it('lists the recent visits of an employee with links', async () => {
+    useAuthStore().apply(session(ADMIN_USER));
+    mockApi()
+      .on('GET /api/v1/users/7', {
+        body: detail({
+          role: 'EMPLOYEE',
+          recentAppointments: [
+            {
+              id: 31,
+              startsAt: '2026-10-06T11:00:00.000Z',
+              endsAt: '2026-10-06T13:00:00.000Z',
+              status: 'SCHEDULED',
+              serviceType: 'Instalação de ar condicionado',
+              customerName: 'Carla Cliente',
+            },
+          ],
+        }),
+      })
+      .on('GET /api/v1/users/8', { body: detail({ id: 8, role: 'EMPLOYEE' }) });
+    const page = await mountSuspended(EmployeePage, { route: '/colaboradores/7', attachTo: document.body });
+    await flushPromises();
+    expect(page.text()).toContain('Últimos atendimentos');
+    expect(page.text()).toContain('Carla Cliente · Instalação de ar condicionado');
+    expect(page.text()).toContain('08:00 às 10:00');
+    expect(page.find('a[href="/agenda/31"]').exists()).toBe(true);
+    page.unmount();
+    const empty = await mountSuspended(EmployeePage, { route: '/colaboradores/8', attachTo: document.body });
+    await flushPromises();
+    expect(empty.text()).toContain('Nenhum atendimento ainda.');
+    empty.unmount();
+  });
 
   it('shows a customer to the manager without the super user actions', async () => {
     useAuthStore().apply(session(MANAGER_USER));

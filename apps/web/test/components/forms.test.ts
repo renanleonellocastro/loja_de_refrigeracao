@@ -342,6 +342,7 @@ describe('BasePhotoUpload', () => {
       },
     });
     expect(wrapper.text()).toContain('0 de 2 fotos · Até 2 fotos.');
+    expect(wrapper.text()).toContain('Mostre o problema com fotos.');
     const camera = wrapper.get('input[capture="environment"]');
     expect(camera.attributes('accept')).toBe('image/*');
     const gallery = wrapper.get('input[multiple]');
@@ -374,11 +375,14 @@ describe('BasePhotoUpload', () => {
     const wrapper = await mountSuspended(BasePhotoUpload, {
       props: {
         error: 'Envie pelo menos uma foto.',
+        prompt: 'Adicione fotos do produto.',
         modelValue: [],
         'onUpdate:modelValue': (files: File[]) => wrapper.setProps({ modelValue: files }),
       },
     });
     expect(wrapper.text()).toContain('Envie pelo menos uma foto.');
+    expect(wrapper.text()).toContain('Adicione fotos do produto.');
+    expect(wrapper.text()).not.toContain('Mostre o problema');
     pick(wrapper.get('input[multiple]').element as HTMLInputElement, []);
     await flushPromises();
     expect(wrapper.emitted('change')).toBeUndefined();

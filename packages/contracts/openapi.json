@@ -1725,6 +1725,198 @@
           "createdAt"
         ]
       },
+      "UserWithActivityInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "EMPLOYEE",
+              "CLIENT"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AddressInput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "pendingInvitation": {
+            "type": "boolean"
+          },
+          "createdAt": {},
+          "recentOrders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "number": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING_REVIEW",
+                    "READY_FOR_PICKUP",
+                    "PICKED_UP",
+                    "CANCELED"
+                  ]
+                },
+                "totalCents": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {}
+              },
+              "required": [
+                "id",
+                "number",
+                "status",
+                "totalCents",
+                "createdAt"
+              ]
+            },
+            "description": "Últimos pedidos do cliente (vazio para a equipe ou sem permissão de gerenciar pedidos)"
+          },
+          "recentServiceRequests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "AWAITING_CUSTOMER",
+                    "APPROVED",
+                    "SCHEDULED",
+                    "AWAITING_COMPLETION_APPROVAL",
+                    "COMPLETED",
+                    "REJECTED",
+                    "CANCELED"
+                  ]
+                },
+                "serviceType": {
+                  "type": "string"
+                },
+                "productKind": {
+                  "type": "string"
+                },
+                "createdAt": {}
+              },
+              "required": [
+                "id",
+                "status",
+                "serviceType",
+                "productKind",
+                "createdAt"
+              ]
+            },
+            "description": "Últimas solicitações de serviço do cliente (vazio sem permissão de gerenciar solicitações)"
+          },
+          "recentAppointments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "startsAt": {},
+                "endsAt": {},
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "AWAITING_CUSTOMER",
+                    "APPROVED",
+                    "SCHEDULED",
+                    "AWAITING_COMPLETION_APPROVAL",
+                    "COMPLETED",
+                    "REJECTED",
+                    "CANCELED"
+                  ]
+                },
+                "serviceType": {
+                  "type": "string"
+                },
+                "customerName": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "startsAt",
+                "endsAt",
+                "status",
+                "serviceType",
+                "customerName"
+              ]
+            },
+            "description": "Últimos atendimentos do colaborador (vazio para os demais papéis)"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "name",
+          "email",
+          "phone",
+          "cpf",
+          "address",
+          "emailVerified",
+          "pendingInvitation",
+          "createdAt",
+          "recentOrders",
+          "recentServiceRequests",
+          "recentAppointments"
+        ]
+      },
       "UserListItemInput": {
         "type": "object",
         "properties": {
@@ -4536,6 +4728,217 @@
         ],
         "additionalProperties": false
       },
+      "UserWithActivity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MANAGER",
+              "EMPLOYEE",
+              "CLIENT"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cpf": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Address"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "pendingInvitation": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recentOrders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "number": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING_REVIEW",
+                    "READY_FOR_PICKUP",
+                    "PICKED_UP",
+                    "CANCELED"
+                  ]
+                },
+                "totalCents": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "number",
+                "status",
+                "totalCents",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Últimos pedidos do cliente (vazio para a equipe ou sem permissão de gerenciar pedidos)"
+          },
+          "recentServiceRequests": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "AWAITING_CUSTOMER",
+                    "APPROVED",
+                    "SCHEDULED",
+                    "AWAITING_COMPLETION_APPROVAL",
+                    "COMPLETED",
+                    "REJECTED",
+                    "CANCELED"
+                  ]
+                },
+                "serviceType": {
+                  "type": "string"
+                },
+                "productKind": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "status",
+                "serviceType",
+                "productKind",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Últimas solicitações de serviço do cliente (vazio sem permissão de gerenciar solicitações)"
+          },
+          "recentAppointments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "REQUESTED",
+                    "AWAITING_CUSTOMER",
+                    "APPROVED",
+                    "SCHEDULED",
+                    "AWAITING_COMPLETION_APPROVAL",
+                    "COMPLETED",
+                    "REJECTED",
+                    "CANCELED"
+                  ]
+                },
+                "serviceType": {
+                  "type": "string"
+                },
+                "customerName": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "startsAt",
+                "endsAt",
+                "status",
+                "serviceType",
+                "customerName"
+              ],
+              "additionalProperties": false
+            },
+            "description": "Últimos atendimentos do colaborador (vazio para os demais papéis)"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "name",
+          "email",
+          "phone",
+          "cpf",
+          "address",
+          "emailVerified",
+          "pendingInvitation",
+          "createdAt",
+          "recentOrders",
+          "recentServiceRequests",
+          "recentAppointments"
+        ],
+        "additionalProperties": false
+      },
       "UserListItem": {
         "type": "object",
         "properties": {
@@ -7309,6 +7712,7 @@
         "tags": [
           "Usuários"
         ],
+        "description": "Inclui os 5 últimos pedidos e solicitações de serviço (clientes) ou os 5 últimos atendimentos (colaboradores).",
         "parameters": [
           {
             "schema": {
@@ -7332,7 +7736,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDetail"
+                  "$ref": "#/components/schemas/UserWithActivity"
                 }
               }
             }

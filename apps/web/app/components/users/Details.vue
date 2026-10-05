@@ -4,7 +4,7 @@ import { MailCheck, MailWarning, Pencil, Trash2 } from 'lucide-vue-next';
 import { formatCpf, formatDate, formatPhone } from '~/utils/masks';
 
 /**
- * UC Consultar Usuário (GET /users/{id}). The super user also edits and deletes; deleting anonymizes the
+ * UC Consultar Usuário (GET /users/{id}), with the recent orders, service requests or visits. The super user also edits and deletes; deleting anonymizes the
  * account and keeps the history of orders and services (LGPD).
  */
 const props = defineProps<{ kind: DirectoryKind }>();
@@ -18,6 +18,7 @@ const config = computed(() => DIRECTORIES[props.kind]);
 const canManage = computed(() => can(auth.actor, 'users.manage'));
 
 const user = ref<UserDetail | null>(null);
+const activity = ref<UserActivity | null>(null);
 const state = ref<'loading' | 'ready' | 'not-found' | 'failed'>('loading');
 const editing = ref(false);
 const deleting = ref(false);
@@ -30,6 +31,7 @@ async function load(): Promise<void> {
     );
     // A person of another role opened from the wrong list reads as not found.
     user.value = found;
+    activity.value = found;
     state.value = config.value.roles.includes(found.role) ? 'ready' : 'not-found';
   } catch (caught) {
     const status = toApiError(caught).status;
@@ -135,6 +137,8 @@ onMounted(load);
       <BaseCard title="Dados de contato">
         <BaseDescriptionList :items="details" />
       </BaseCard>
+
+      <UsersActivity :kind="kind" :activity="activity!" />
 
       <UsersEditDialog
         v-if="canManage"

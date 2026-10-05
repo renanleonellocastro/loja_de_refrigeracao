@@ -19,6 +19,7 @@ import {
   userDetailSchema,
   userListItemSchema,
   userListQuerySchema,
+  userWithActivitySchema,
 } from './schemas.js';
 
 const security = [{ bearerAuth: [] }];
@@ -91,9 +92,11 @@ export function userRoutes(ctx: AppContext): FastifyPluginAsyncZod {
         schema: {
           tags,
           summary: 'Detalhes de um usuário',
+          description:
+            'Inclui os 5 últimos pedidos e solicitações de serviço (clientes) ou os 5 últimos atendimentos (colaboradores).',
           security,
           params: idParamSchema,
-          response: { 200: userDetailSchema, ...errorResponses },
+          response: { 200: userWithActivitySchema, ...errorResponses },
         },
       },
       async (request) => accounts.getUser(ctx, requireAuth(request).role, request.params.id),

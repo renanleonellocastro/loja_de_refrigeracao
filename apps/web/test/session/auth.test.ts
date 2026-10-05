@@ -132,6 +132,23 @@ describe('session plugin', () => {
     expect(api.called(REFRESH)).toHaveLength(1);
     expect(useAuthStore().signedIn).toBe(true);
   });
+
+  it('waits for the hydration of a server rendered page before restoring', async () => {
+    localStorage.setItem(SIGNED_IN_HINT, '1');
+    const api = mockApi().on(REFRESH, { body: session() });
+    const nuxtApp = useNuxtApp();
+    nuxtApp.isHydrating = true;
+    try {
+      await (sessionPlugin as unknown as () => unknown)();
+      await flushPromises();
+      expect(api.called(REFRESH)).toHaveLength(0);
+      await nuxtApp.callHook('app:suspense:resolve');
+      await flushPromises();
+      expect(api.called(REFRESH)).toHaveLength(1);
+    } finally {
+      nuxtApp.isHydrating = false;
+    }
+  });
 });
 
 describe('auth middleware', () => {

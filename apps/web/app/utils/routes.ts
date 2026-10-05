@@ -20,4 +20,8 @@ export const PRIVATE_ROUTES = [
   '/aprovacoes',
   '/orcamento',
   '/orcamentos',
+  '/pedidos',
+  '/balcao',
+  '/produtos/gerenciar',
+  '/categorias',
 ] as const;

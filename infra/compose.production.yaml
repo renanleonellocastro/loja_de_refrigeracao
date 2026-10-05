@@ -1,0 +1,94 @@
+# Production stack: PostgreSQL, API, worker, site and Caddy (automatic HTTPS and compression).
+# Usage (docs/OPERACAO.md): copy infra/env.production.sample to infra/.env.production, fill it, then
+#   docker compose -f infra/compose.production.yaml --env-file infra/.env.production up -d --build
+name: refrigeracao-castro-prod
+
+x-api-env: &api-env
+  NODE_ENV: production
+  TZ: America/Sao_Paulo
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  APP_ORIGIN: https://${DOMAIN:?set DOMAIN}
+  DATABASE_URL: postgres://${POSTGRES_USER:-castro}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-castro}
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+  SMTP_URL: ${SMTP_URL:?set SMTP_URL}
+  MAIL_FROM: ${MAIL_FROM:-Refrigeração Castro <nao-responda@refrigeracaocastro.com.br>}
+  STORAGE_PATH: /data/storage
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-castro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-castro}
+      TZ: America/Sao_Paulo
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-castro} -d ${POSTGRES_DB:-castro}']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: ${API_IMAGE:-refrigeracao-castro-api:latest}
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    restart: unless-stopped
+    environment: *api-env
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    image: ${API_IMAGE:-refrigeracao-castro-api:latest}
+    restart: unless-stopped
+    command: ['node', 'dist/worker.js']
+    environment: *api-env
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      disable: true
+    depends_on:
+      api:
+        condition: service_healthy
+
+  web:
+    image: ${WEB_IMAGE:-refrigeracao-castro-web:latest}
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+    restart: unless-stopped
+    environment:
+      NUXT_PUBLIC_API_BASE: https://${DOMAIN:?set DOMAIN}
+    depends_on:
+      api:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - web
+
+volumes:
+  postgres-data:
+  storage:
+  caddy-data:
+  caddy-config:

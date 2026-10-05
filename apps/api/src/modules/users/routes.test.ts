@@ -1,6 +1,14 @@
 import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { auditLogs, orders, sessions, users } from '../../infra/db/schema.js';
+import {
+  appointments,
+  auditLogs,
+  orders,
+  serviceRequests,
+  serviceTypes,
+  sessions,
+  users,
+} from '../../infra/db/schema.js';
 import { TEST_PASSWORD, useTestApp } from '../../../test/harness.js';
 import { clearCepCache, lookupCep } from './cep.js';
 
@@ -264,6 +272,78 @@ describe('user routes', () => {
       expect((await t.app.inject({ method: 'GET', url: '/api/v1/users/999999', headers })).statusCode).toBe(
         404,
       );
+    });
+
+    it('shows the last five orders, requests and appointments to who may open them', async () => {
+      const client = await t.createUser('CLIENT');
+      const employee = await t.createUser('EMPLOYEE', { cpf: '11144477735' });
+      const [type] = await t.db.insert(serviceTypes).values({ name: 'Conserto de geladeira' }).returning();
+      for (let i = 0; i < 6; i++) {
+        await t.db.insert(orders).values({
+          customerId: client.id,
+          channel: 'ONLINE',
+          status: 'PENDING_REVIEW',
+          totalCents: 1000 + i,
+          createdById: client.id,
+          createdAt: new Date(Date.UTC(2026, 9, 1 + i)),
+        });
+        const [request] = await t.db
+          .insert(serviceRequests)
+          .values({
+            customerId: client.id,
+            serviceTypeId: type!.id,
+            productKind: 'Geladeira',
+            problem: 'Não gela.',
+            address: { ...ADDRESS, cep: '13800061', complement: null },
+            status: 'SCHEDULED',
+            createdById: client.id,
+            createdAt: new Date(Date.UTC(2026, 9, 1 + i)),
+          })
+          .returning();
+        await t.db.insert(appointments).values({
+          serviceRequestId: request!.id,
+          employeeId: employee.id,
+          startsAt: new Date(Date.UTC(2026, 9, 10 + i, 12)),
+          endsAt: new Date(Date.UTC(2026, 9, 10 + i, 14)),
+          createdById: employee.id,
+        });
+      }
+      const manager = await t.as('MANAGER');
+      const customer = (
+        await t.app.inject({ method: 'GET', url: `/api/v1/users/${client.id}`, headers: manager.headers })
+      ).json();
+      expect(customer.recentOrders).toHaveLength(5);
+      expect(customer.recentOrders[0]).toMatchObject({ status: 'PENDING_REVIEW', totalCents: 1005 });
+      expect(customer.recentOrders[0].number).toMatch(/^RC-\d{6}$/);
+      expect(customer.recentServiceRequests).toHaveLength(5);
+      expect(customer.recentServiceRequests[0]).toMatchObject({
+        serviceType: 'Conserto de geladeira',
+        productKind: 'Geladeira',
+        status: 'SCHEDULED',
+      });
+      expect(customer.recentAppointments).toEqual([]);
+
+      const technician = await t.as('EMPLOYEE');
+      const limited = (
+        await t.app.inject({ method: 'GET', url: `/api/v1/users/${client.id}`, headers: technician.headers })
+      ).json();
+      expect(limited).toMatchObject({ recentOrders: [], recentServiceRequests: [], recentAppointments: [] });
+
+      const admin = await t.as('ADMIN');
+      const staff = (
+        await t.app.inject({ method: 'GET', url: `/api/v1/users/${employee.id}`, headers: admin.headers })
+      ).json();
+      expect(staff.recentAppointments).toHaveLength(5);
+      expect(staff.recentAppointments[0]).toMatchObject({
+        startsAt: '2026-10-15T12:00:00.000Z',
+        customerName: client.name,
+        serviceType: 'Conserto de geladeira',
+      });
+      expect(staff.recentOrders).toEqual([]);
+      const self = (
+        await t.app.inject({ method: 'GET', url: `/api/v1/users/${admin.user.id}`, headers: admin.headers })
+      ).json();
+      expect(self).toMatchObject({ recentOrders: [], recentServiceRequests: [], recentAppointments: [] });
     });
 
     it('lets the super user edit any account with an audit trail', async () => {
