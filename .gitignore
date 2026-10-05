@@ -17,3 +17,4 @@ storybook-static/
 !.vscode/extensions.json
 apps/api/storage/
 .schemathesis/
+.lighthouseci/

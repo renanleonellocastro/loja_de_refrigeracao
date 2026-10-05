@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { errorKindFor } from '~/utils/errors';
-import { inlineLogoSvg } from '~/utils/logo';
+import { htmlEncodingFor } from '~/utils/compression';
+import { lowerScriptPreloadPriority } from '~/utils/resource-hints';
 import { pageSlots } from '~/utils/pagination';
 import { passwordStrength } from '~/utils/password';
 import { STATUS_META, statusMeta } from '~/utils/status';
@@ -74,22 +75,44 @@ describe('errorKindFor', () => {
   });
 });
 
-describe('inlineLogoSvg', () => {
-  const raw =
-    '<svg xmlns="x" viewBox="0 0 1 1" role="img" aria-label="Logo"><title>Logo</title><g fill="currentColor"><path d="M0"/></g></svg>';
+describe('lowerScriptPreloadPriority', () => {
+  it('gives script preloads low priority once', () => {
+    const head =
+      '<link rel="modulepreload" crossorigin href="/_nuxt/a.js"><link rel="preload" as="image" href="/x.svg">';
+    const lowered = lowerScriptPreloadPriority(head);
+    expect(lowered).toBe(
+      '<link rel="modulepreload" fetchpriority="low" crossorigin href="/_nuxt/a.js"><link rel="preload" as="image" href="/x.svg">',
+    );
+    expect(lowerScriptPreloadPriority(lowered)).toBe(lowered);
+  });
+});
 
-  it('moves the accessible name to the wrapper', () => {
-    const svg = inlineLogoSvg(raw);
-    expect(svg).not.toContain('<title>');
-    expect(svg).not.toContain('role="img"');
-    expect(svg).toContain('aria-hidden="true"');
-    expect(svg).toContain('fill="currentColor"');
+describe('htmlEncodingFor', () => {
+  const page = { body: 'x'.repeat(2048), headers: { 'content-type': 'text/html;charset=utf-8' } };
+
+  it('prefers brotli, then gzip, for server rendered pages', () => {
+    expect(htmlEncodingFor(page, { path: '/', acceptEncoding: 'gzip, deflate, br' })).toBe('br');
+    expect(htmlEncodingFor(page, { path: '/', acceptEncoding: 'gzip;q=1.0, br;q=0' })).toBe('gzip');
+    expect(htmlEncodingFor(page, { path: '/', acceptEncoding: 'identity' })).toBeNull();
+    expect(htmlEncodingFor(page, { path: '/' })).toBeNull();
   });
 
-  it('adds the silver relief with unique ids', () => {
-    const svg = inlineLogoSvg(raw, 'abc');
-    expect(svg).toContain('id="abc-silver"');
-    expect(svg).toContain('fill="url(#abc-silver)" filter="url(#abc-relief)"');
+  it('never compresses the page rendered for the error handler', () => {
+    expect(htmlEncodingFor(page, { path: '/__nuxt_error?statusCode=404', acceptEncoding: 'br' })).toBeNull();
+    expect(htmlEncodingFor(page, { path: '/nao-existe', acceptEncoding: 'br', nuxtError: true })).toBeNull();
+  });
+
+  it('skips small, non HTML or already encoded bodies', () => {
+    const request = { path: '/', acceptEncoding: 'br' };
+    expect(htmlEncodingFor({ ...page, body: '<p>oi</p>' }, request)).toBeNull();
+    expect(htmlEncodingFor({ ...page, body: Buffer.from(page.body) }, request)).toBeNull();
+    expect(
+      htmlEncodingFor({ body: page.body, headers: { 'content-type': 'application/json' } }, request),
+    ).toBeNull();
+    expect(htmlEncodingFor({ body: page.body }, request)).toBeNull();
+    expect(
+      htmlEncodingFor({ ...page, headers: { ...page.headers, 'content-encoding': 'gzip' } }, request),
+    ).toBeNull();
   });
 });
 

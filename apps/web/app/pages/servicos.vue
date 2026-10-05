@@ -51,7 +51,7 @@ const types = computed(() => (data.value ?? []).filter((type) => type.active));
       />
 
       <ul v-else class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <li v-for="type in types" :key="type.id" :data-service="type.id">
+        <li v-for="(type, index) in types" :key="type.id" :data-service="type.id">
           <article
             class="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-shadow hover:shadow-md"
           >
@@ -61,7 +61,8 @@ const types = computed(() => (data.value ?? []).filter((type) => type.active));
                 alt=""
                 width="400"
                 height="400"
-                loading="lazy"
+                :loading="index === 0 ? 'eager' : 'lazy'"
+                :fetchpriority="index === 0 ? 'high' : undefined"
                 class="mx-auto aspect-square h-44 w-auto sm:h-48"
               />
             </div>

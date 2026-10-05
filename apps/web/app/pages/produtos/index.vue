@@ -16,6 +16,12 @@ watch(
   },
 );
 const filtersOpen = ref(false);
+// The filter dialog (and the dialog library) downloads on the first tap on "Filtros", not with the page.
+const filtersUsed = ref(false);
+function openFilters(): void {
+  filtersUsed.value = true;
+  filtersOpen.value = true;
+}
 
 const CHIP =
   'inline-flex min-h-9 items-center gap-1.5 rounded-full bg-info-soft px-3 text-sm font-semibold text-on-info-soft transition-colors hover:bg-info-soft/70';
@@ -126,7 +132,8 @@ useSeoMeta({
     <div class="mt-6 grid gap-8 lg:grid-cols-[16rem_1fr]">
       <aside class="hidden lg:block" aria-label="Filtros">
         <div class="sticky top-24">
-          <CatalogFilters
+          <LazyCatalogFilters
+            hydrate-on-visible
             :filters="filters"
             :facets="facets"
             id-prefix="lateral"
@@ -143,7 +150,7 @@ useSeoMeta({
             class="lg:hidden"
             aria-haspopup="dialog"
             :aria-expanded="filtersOpen"
-            @click="filtersOpen = true"
+            @click="openFilters"
           >
             <SlidersHorizontal class="size-4.5" aria-hidden="true" />
             Filtros<template v-if="activeCount > 0"> ({{ activeCount }})</template>
@@ -228,7 +235,7 @@ useSeoMeta({
       </section>
     </div>
 
-    <BaseDialog v-model:open="filtersOpen" title="Filtros">
+    <LazyBaseDialog v-if="filtersUsed" v-model:open="filtersOpen" title="Filtros">
       <CatalogFilters
         :filters="filters"
         :facets="facets"
@@ -241,6 +248,6 @@ useSeoMeta({
           Ver {{ countLabel(total, 'produto', 'produtos') }}
         </BaseButton>
       </template>
-    </BaseDialog>
+    </LazyBaseDialog>
   </div>
 </template>

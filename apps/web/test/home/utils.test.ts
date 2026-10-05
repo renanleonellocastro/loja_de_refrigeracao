@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import pwaPlugin from '~/plugins/pwa.client';
-import { forgetDay, readDay, saveDay } from '~/utils/offline-day';
+import { forgetDay, readDay, readOfflineDay, saveDay } from '~/utils/offline-day';
 import { registerServiceWorker } from '~/utils/pwa';
 import { localBusinessJsonLd } from '~/utils/seo';
 import { fetchSitemapProducts, robotsTxt, sitemapXml } from '~/utils/sitemap';
@@ -118,10 +118,15 @@ describe('PWA', () => {
     expect(readDay(3, '2026-10-05')).toEqual(entry);
     expect(readDay(4, '2026-10-05')).toBeNull();
     expect(readDay(3, '2026-10-06')).toBeNull();
+    expect(readOfflineDay('2026-10-05')).toEqual(entry);
+    expect(readOfflineDay('2026-10-06')).toBeNull();
+    expect(readOfflineDay()).toEqual(entry);
     forgetDay();
     expect(readDay(3, '2026-10-05')).toBeNull();
+    expect(readOfflineDay('2026-10-05')).toBeNull();
     localStorage.setItem('rc-hoje', '{broken');
     expect(readDay(3, '2026-10-05')).toBeNull();
+    expect(readOfflineDay('2026-10-05')).toBeNull();
   });
 
   it('tolerates blocked storage', () => {

@@ -86,7 +86,7 @@ useLocalBusinessJsonLd(store);
 
       <div>
         <h2 class="sr-only">Mapa</h2>
-        <StoreMap :store="store" />
+        <LazyStoreMap hydrate-on-visible :store="store" />
       </div>
     </section>
   </div>

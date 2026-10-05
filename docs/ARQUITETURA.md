@@ -108,7 +108,14 @@ Solicitação (`REQUESTED`) → conversa → aprovação → `POST /api/v1/appoi
 * Paginação com `limit` máximo de 100; listas grandes da equipe usam cursor.
 * `ETag` nas leituras públicas de catálogo e `Cache-Control` adequado; imagens com nome por conteúdo e cache de um ano.
 * Nuxt: SSR com cache por rota nas páginas públicas, divisão de código por rota, `@nuxt/image` para variantes responsivas, fontes auto hospedadas com `font-display: swap` e subconjunto latino.
-* Orçamentos de desempenho verificados no CI (Lighthouse CI e tamanho de bundle) e teste de carga k6 antes do lançamento.
+* Primeira dobra das páginas públicas (RNF-07 a RNF-11):
+  * CSS global embutido no HTML (`features.inlineStyles`), sem folha de estilo bloqueando a pintura;
+  * a imagem do herói é o elemento LCP, com `preload` por tamanho de tela e `fetchpriority="high"`; nenhuma fonte é pré carregada;
+  * os scripts só hidratam a página já pintada: os `modulepreload` saem com prioridade baixa (`server/plugins/resource-hints.ts`), não há `prefetch` de componentes preguiçosos e o código comum às páginas públicas fica em poucos pedaços (`vite.$client` em `nuxt.config.ts`), sem código da área logada;
+  * rodapé, mapa, horários, cartões de produto e botão do WhatsApp hidratam só quando aparecem; o menu lateral, o diálogo de filtros e o de confirmação baixam no primeiro uso;
+  * o logotipo vem como imagem (`/brand/*.svg`), fora do HTML e do JavaScript.
+* Compressão: CSS, JS e SVG do build saem pré comprimidos (gzip e brotli, `nitro.compressPublicAssets`) e o HTML renderizado é comprimido pelo servidor Node (`server/plugins/compression.ts`). As páginas de erro 404 e 500 saem sem compressão, porque o tratador de erros do Nuxt relê esse HTML como texto; o teste E2E `performance.spec.ts` garante que continuam legíveis. **Em produção a compressão deve ficar também no proxy reverso** (gzip e brotli para `text/html`, `application/json` e `image/svg+xml`), que cobre as páginas de erro e as respostas da API e alivia o processo Node.
+* Orçamentos de desempenho verificados no CI (job Lighthouse com `apps/web/lighthouserc.json`: nota mínima 90 em desempenho no runner do CI e 95 em acessibilidade, boas práticas e SEO; e `apps/web/scripts/check-bundle-size.mjs`: até 150 KB de JavaScript inicial comprimido por página pública) e teste de carga k6 antes do lançamento.
 
 ## 5. Configuração
 
