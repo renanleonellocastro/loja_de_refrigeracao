@@ -132,8 +132,7 @@ useSeoMeta({
     <div class="mt-6 grid gap-8 lg:grid-cols-[16rem_1fr]">
       <aside class="hidden lg:block" aria-label="Filtros">
         <div class="sticky top-24">
-          <LazyCatalogFilters
-            hydrate-on-visible
+          <CatalogFilters
             :filters="filters"
             :facets="facets"
             id-prefix="lateral"
