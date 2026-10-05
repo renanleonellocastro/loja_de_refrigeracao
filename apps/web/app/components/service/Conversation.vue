@@ -3,11 +3,24 @@ import { Send } from 'lucide-vue-next';
 import { formatDateTime } from '~/utils/masks';
 
 /**
- * Conversation between the customer and the store about a request (GET and POST /messages). A message of the
- * store moves the request to "Em conversa" and the answer of the customer brings it back to the queue, so the
- * page reloads the request after each message (`sent`).
+ * Conversation between the customer and the store about a visit request or a quote (GET and POST /messages).
+ * A message of the store moves a request to "Em conversa" and the answer of the customer brings it back to the
+ * queue, so the page reloads the record after each message (`sent`).
  */
-const props = defineProps<{ requestId: number; open: boolean; placeholder?: string }>();
+const props = withDefaults(
+  defineProps<{
+    requestId: number;
+    open: boolean;
+    placeholder?: string;
+    resource?: 'service-requests' | 'quotes';
+    emptyText?: string;
+  }>(),
+  {
+    placeholder: undefined,
+    resource: 'service-requests',
+    emptyText: 'Nenhuma mensagem ainda. Use a conversa para tirar dúvidas sobre a visita.',
+  },
+);
 const emit = defineEmits<{ sent: [] }>();
 
 const api = useApi();
@@ -24,7 +37,11 @@ const path = () => ({ path: { id: props.requestId } });
 async function load(): Promise<void> {
   failed.value = false;
   try {
-    messages.value = await unwrap(api.GET('/api/v1/service-requests/{id}/messages', { params: path() }));
+    messages.value = await unwrap(
+      props.resource === 'quotes'
+        ? api.GET('/api/v1/quotes/{id}/messages', { params: path() })
+        : api.GET('/api/v1/service-requests/{id}/messages', { params: path() }),
+    );
   } catch {
     failed.value = true;
   }
@@ -39,8 +56,11 @@ async function send(): Promise<void> {
   error.value = '';
   sending.value = true;
   try {
+    const options = { params: path(), body: { body: text } };
     messages.value = await unwrap(
-      api.POST('/api/v1/service-requests/{id}/messages', { params: path(), body: { body: text } }),
+      props.resource === 'quotes'
+        ? api.POST('/api/v1/quotes/{id}/messages', options)
+        : api.POST('/api/v1/service-requests/{id}/messages', options),
     );
     body.value = '';
     toast.success({ title: 'Mensagem enviada.' });
@@ -67,9 +87,7 @@ onMounted(load);
       <span class="sr-only">Carregando a conversa…</span>
       <BaseSkeleton class="h-20 w-full rounded-lg" />
     </div>
-    <p v-else-if="messages.length === 0" class="text-sm text-text-muted">
-      Nenhuma mensagem ainda. Use a conversa para tirar dúvidas sobre a visita.
-    </p>
+    <p v-else-if="messages.length === 0" class="text-sm text-text-muted">{{ emptyText }}</p>
     <ol v-else class="flex flex-col gap-3" aria-label="Mensagens">
       <li
         v-for="message in messages"

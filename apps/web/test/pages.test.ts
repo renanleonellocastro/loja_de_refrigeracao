@@ -39,14 +39,14 @@ describe('error page', () => {
     expect(forbidden.text()).toContain('Esta porta é só para a equipe');
     const server = await mountSuspended(ErrorPage, {
       props: { error: createError({ statusCode: 500 }) },
-      route: '/orcamentos',
+      route: '/servicos',
     });
     expect(server.text()).toContain('Erro 500');
     await server
       .findAll('button')
       .find((b) => b.text() === 'Tentar de novo')!
       .trigger('click');
-    expect(clearErrorMock).toHaveBeenCalledWith({ redirect: '/orcamentos' });
+    expect(clearErrorMock).toHaveBeenCalledWith({ redirect: '/servicos' });
   });
 });
 
