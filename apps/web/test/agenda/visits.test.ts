@@ -8,6 +8,7 @@ import ApprovalsPage from '~/pages/aprovacoes/index.vue';
 import TodayPage from '~/pages/hoje.vue';
 import { useAuthStore } from '~/stores/auth';
 import { loadDraft, saveDraft } from '~/utils/agenda';
+import { saveDay } from '~/utils/offline-day';
 import { MANAGER_USER, click, fill, mockApi, problem, session, submit } from '../support/api';
 import { appointment, availability, report } from '../support/agenda';
 import { APPOINTMENT, requestListItem, serviceRequest } from '../support/services';
@@ -24,8 +25,9 @@ import {
   text,
 } from '../support/staff';
 
-const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
+const { navigateMock, reloadMock } = vi.hoisted(() => ({ navigateMock: vi.fn(), reloadMock: vi.fn() }));
 mockNuxtImport('navigateTo', () => navigateMock);
+mockNuxtImport('reloadNuxtApp', () => reloadMock);
 
 const DETAIL = 'GET /api/v1/appointments/9';
 const REPORT = 'POST /api/v1/appointments/9/report';
@@ -370,6 +372,48 @@ describe('today of the technician', () => {
     expect(text()).toContain('Nenhuma visita hoje.');
     expect(text()).toContain('Dia livre');
     empty.unmount();
+  });
+
+  it('retries a failed load when nothing was saved on this phone', async () => {
+    useAuthStore().apply(session(EMPLOYEE_USER));
+    mockApi().on('GET /api/v1/appointments', problem(500, 'Erro.'), { body: [] });
+    const page = await mountSuspended(TodayPage, { route: '/hoje', attachTo: document.body });
+    await settle();
+    expect(text()).toContain('Erro no servidor');
+    click('Tentar de novo');
+    await settle();
+    expect(text()).toContain('Dia livre');
+    page.unmount();
+  });
+
+  it('shows the saved day read only after a reload without signal', async () => {
+    const api = mockApi();
+    const empty = await mountSuspended(TodayPage, { route: '/hoje', attachTo: document.body });
+    await settle();
+    expect(text()).toContain('Sem conexão');
+    click('Tentar de novo');
+    expect(reloadMock).toHaveBeenCalledTimes(1);
+    expect(api.calls).toHaveLength(0);
+    empty.unmount();
+
+    saveDay({
+      userId: EMPLOYEE_USER.id,
+      day: '2026-10-05',
+      savedAt: '2026-10-05T11:00:00.000Z',
+      visits: [appointment()],
+    });
+    const page = await mountSuspended(TodayPage, { route: '/hoje', attachTo: document.body });
+    await settle();
+    expect(page.get('[data-testid="offline-banner"]').text()).toContain('Modo somente leitura');
+    const visit = page.get('[data-testid="today-visit"]');
+    expect(visit.find('h3 a').exists()).toBe(false);
+    expect(visit.text()).not.toContain('Finalizar serviço');
+    expect(visit.find('a[href="tel:19999998888"]').exists()).toBe(true);
+    expect(api.calls).toHaveLength(0);
+    click('Conectar de novo');
+    expect(reloadMock).toHaveBeenCalledWith({ force: true });
+    reloadMock.mockReset();
+    page.unmount();
   });
 });
 

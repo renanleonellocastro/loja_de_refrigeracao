@@ -28,6 +28,20 @@ export function readDay(userId: number, day: string): SavedDay | null {
   }
 }
 
+/**
+ * The saved copy whoever it belongs to (of that day, when given), for opening /hoje read only when the
+ * session cannot be restored without signal. Signing out erases it, so it only exists on the phone of a
+ * signed in technician.
+ */
+export function readOfflineDay(day?: string): SavedDay | null {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null') as SavedDay | null;
+    return saved && (day === undefined || saved.day === day) ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Customer data must not outlive the session on a shared phone. */
 export function forgetDay(): void {
   try {

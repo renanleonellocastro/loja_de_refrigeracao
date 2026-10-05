@@ -41,6 +41,8 @@ export const useAuthStore = defineStore('auth', () => {
   const config = useRuntimeConfig();
   const user = ref<SessionUser | null>(null);
   const accessToken = ref<string | null>(null);
+  /** The last session refresh could not reach the API (no signal), so the session is unknown, not over. */
+  const unreachable = ref(false);
 
   const actor = computed<Actor>(() => user.value?.role ?? GUEST);
   const signedIn = computed(() => user.value !== null);
@@ -83,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshing ??= withRefreshLock(async () => {
       try {
         const { data } = await api.POST('/api/v1/auth/sessions/refresh');
+        unreachable.value = false;
         if (data) {
           apply(data);
           return true;
@@ -91,6 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false;
       } catch {
         // No connection: keep what we have; the next call tries again.
+        unreachable.value = true;
         return false;
       }
     }).finally(() => {
@@ -131,5 +135,18 @@ export const useAuthStore = defineStore('auth', () => {
     if (user.value) user.value = { ...user.value, ...changes };
   }
 
-  return { user, accessToken, actor, signedIn, apply, clear, refresh, restore, login, logout, updateUser };
+  return {
+    user,
+    accessToken,
+    unreachable,
+    actor,
+    signedIn,
+    apply,
+    clear,
+    refresh,
+    restore,
+    login,
+    logout,
+    updateUser,
+  };
 });

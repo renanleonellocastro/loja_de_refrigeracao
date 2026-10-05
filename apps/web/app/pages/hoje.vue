@@ -9,10 +9,10 @@ import {
   REPORT_STATUS_LABELS,
 } from '~/utils/agenda';
 import { formatDateTime } from '~/utils/masks';
-import { readDay, saveDay } from '~/utils/offline-day';
+import { readDay, readOfflineDay, saveDay } from '~/utils/offline-day';
 
 /** The technician's day: today's visits in order with call, route and finalize at thumb reach. */
-definePageMeta({ layout: 'area', permission: 'appointments.complete', title: 'Hoje' });
+definePageMeta({ layout: 'area', permission: 'appointments.complete', offlineCopy: true, title: 'Hoje' });
 
 const api = useApi();
 const auth = useAuthStore();
@@ -23,8 +23,30 @@ const loading = ref(true);
 const failed = ref(false);
 /** When the visits come from the copy saved on this phone, the time of that copy. */
 const savedAt = ref<string | null>(null);
+/**
+ * Opened without signal and without a session (the auth middleware allows it only with a saved copy): the
+ * saved day is shown read only, nothing that needs the API is offered.
+ */
+const readOnly = computed(() => auth.user === null);
+
+function showSaved(saved: SavedDay): void {
+  visits.value = saved.visits;
+  savedAt.value = saved.savedAt;
+}
+
+/** Back online, a full reload restores the session and the live day. */
+function reconnect(): void {
+  reloadNuxtApp({ force: true });
+}
 
 async function load(): Promise<void> {
+  if (readOnly.value) {
+    const saved = readOfflineDay(today);
+    if (saved) showSaved(saved);
+    else failed.value = true;
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   failed.value = false;
   try {
@@ -35,8 +57,7 @@ async function load(): Promise<void> {
   } catch {
     const saved = readDay(auth.user!.id, today);
     if (saved) {
-      visits.value = saved.visits;
-      savedAt.value = saved.savedAt;
+      showSaved(saved);
     } else {
       failed.value = true;
     }
@@ -65,12 +86,21 @@ onMounted(load);
       </p>
     </div>
 
-    <BaseAlert v-if="savedAt" tone="warning" title="Sem conexão com a loja">
+    <BaseAlert v-if="savedAt" tone="warning" title="Sem conexão com a loja" data-testid="offline-banner">
       Mostrando as visitas salvas neste aparelho em {{ formatDateTime(savedAt) }}.
-      <button type="button" class="font-semibold underline" @click="load">Tentar de novo</button>
+      <template v-if="readOnly">
+        Modo somente leitura: para finalizar serviços, conecte à internet.
+        <button type="button" class="font-semibold underline" @click="reconnect">Conectar de novo</button>
+      </template>
+      <button v-else type="button" class="font-semibold underline" @click="load">Tentar de novo</button>
     </BaseAlert>
     <p class="sr-only" role="status">{{ loading ? 'Carregando as visitas de hoje…' : '' }}</p>
-    <ErrorState v-if="failed" kind="server" :heading-level="2" @retry="load" />
+    <ErrorState
+      v-if="failed"
+      :kind="readOnly ? 'offline' : 'server'"
+      :heading-level="2"
+      @retry="readOnly ? reconnect() : load()"
+    />
     <div v-else-if="loading" class="flex flex-col gap-4">
       <BaseSkeleton v-for="n in 2" :key="n" class="h-48 w-full rounded-xl" />
     </div>
@@ -92,7 +122,8 @@ onMounted(load);
               {{ formatTimeRange(visit.startsAt, visit.endsAt) }}
             </p>
             <h3 class="font-bold text-text">
-              <NuxtLink :to="`/agenda/${visit.id}`" class="underline-offset-4 hover:underline">
+              <span v-if="readOnly">{{ visit.request.serviceType }}: {{ visit.request.customer.name }}</span>
+              <NuxtLink v-else :to="`/agenda/${visit.id}`" class="underline-offset-4 hover:underline">
                 {{ visit.request.serviceType }}: {{ visit.request.customer.name }}
               </NuxtLink>
             </h3>
@@ -124,7 +155,7 @@ onMounted(load);
             Rota
           </BaseButton>
           <BaseButton
-            v-if="visit.request.status === 'SCHEDULED'"
+            v-if="visit.request.status === 'SCHEDULED' && !readOnly"
             :to="`/agenda/${visit.id}#finalizar`"
             size="lg"
             class="col-span-2 sm:col-span-1"

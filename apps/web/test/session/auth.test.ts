@@ -5,6 +5,7 @@ import type { RouteLocationNormalized } from 'vue-router';
 import authGuard from '~/middleware/auth.global';
 import sessionPlugin from '~/plugins/session.client';
 import { SIGNED_IN_HINT, useAuthStore } from '~/stores/auth';
+import { saveDay } from '~/utils/offline-day';
 import { useToast } from '~/composables/useToast';
 import { CLIENT_USER, MANAGER_USER, mockApi, problem, session } from '../support/api';
 
@@ -151,6 +152,30 @@ describe('auth middleware', () => {
       path: '/entrar',
       query: { redirect: '/perfil?aba=seguranca' },
     });
+  });
+
+  it('opens the saved day read only when the session cannot be checked without signal', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-05T12:00:00.000Z'));
+    const today = {
+      meta: { permission: 'appointments.complete', offlineCopy: true },
+      fullPath: '/hoje',
+    } as unknown as RouteLocationNormalized;
+    mockApi().on(REFRESH, new TypeError('offline'), new TypeError('offline'), problem(401, 'Sem sessão.'));
+    await run(today);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+
+    useAuthStore().clear();
+    saveDay({ userId: 2, day: '2026-10-05', savedAt: '2026-10-05T11:00:00.000Z', visits: [] });
+    expect(await run(today)).toBeUndefined();
+    expect(useAuthStore().unreachable).toBe(true);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+
+    // Reachable again: the API says there is no session, so sign in as usual.
+    useAuthStore().clear();
+    await run(today);
+    expect(useAuthStore().unreachable).toBe(false);
+    expect(navigateMock).toHaveBeenCalledTimes(2);
   });
 
   it('blocks people without the permission and lets the others in', async () => {
