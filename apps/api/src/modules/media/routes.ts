@@ -2,6 +2,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { Storage } from '../../infra/storage/storage.js';
 import { notFound } from '../../shared/errors.js';
+import { fileResponse, problemSchema } from '../../shared/schemas.js';
 
 const paramsSchema = z.object({
   key: z.string().regex(/^[a-f0-9]{32}$/),
@@ -14,7 +15,16 @@ export function mediaRoutes(storage: Storage): FastifyPluginAsyncZod {
       '/media/:key/:file',
       {
         config: { public: true },
-        schema: { tags: ['Imagens'], summary: 'Variante de uma foto (imutável)', params: paramsSchema },
+        schema: {
+          tags: ['Imagens'],
+          summary: 'Variante de uma foto (imutável)',
+          params: paramsSchema,
+          response: {
+            200: fileResponse('image/webp', 'Imagem WebP'),
+            404: problemSchema,
+            422: problemSchema,
+          },
+        },
       },
       async (request, reply) => {
         const data = await storage.get(`${request.params.key}/${request.params.file}`);

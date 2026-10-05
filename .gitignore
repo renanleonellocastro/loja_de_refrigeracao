@@ -16,10 +16,5 @@ storybook-static/
 .vscode/*
 !.vscode/extensions.json
 apps/api/storage/
-server/node_modules/
-server/nodemon.json
-server/package-lock.json
-server/uploads/*
-client/node_modules/
-client/package-lock.json
+.schemathesis/
 .lighthouseci/

@@ -34,4 +34,4 @@ Venda de eletrodomésticos e equipamentos de refrigeração, novos e usados revi
 
 ## Marca
 
-O logo da fachada é um mascote que **é** parte do nome: a cabeça redonda e o corpo formam o "R" de REFRIGERAÇÃO, o braço levanta uma chave de boca, e as pernas abertas formam o "A" de CASTRO. Letras brancas em relevo sobre a parede azul. Não há arquivo original; o redesenho vetorial é feito a partir de `imagens/logo.png` e `imagens/fachada_referencia.jpg` (foto de perfil da página da loja no Facebook).
+O logo da fachada é um mascote que **é** parte do nome: a cabeça redonda e o corpo formam o "R" de REFRIGERAÇÃO, o braço levanta uma chave de boca, e as pernas abertas formam o "A" de CASTRO. Letras brancas em relevo sobre a parede azul. Não há arquivo original; o redesenho vetorial é feito a partir de `assets/logo.png` e `assets/fachada_referencia.jpg` (foto de perfil da página da loja no Facebook).
