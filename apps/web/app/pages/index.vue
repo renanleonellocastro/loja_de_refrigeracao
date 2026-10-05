@@ -210,7 +210,7 @@ const REASONS = [
         </div>
         <ul class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <li v-for="product in products" :key="product.id">
-            <CatalogProductCard :product="product" :heading-level="3" />
+            <LazyCatalogProductCard hydrate-on-visible :product="product" :heading-level="3" />
           </li>
         </ul>
       </div>
@@ -243,7 +243,7 @@ const REASONS = [
         <div>
           <p class="rc-eyebrow text-link">Visite a loja</p>
           <h2 id="visite-titulo" class="mt-2 text-3xl font-extrabold text-text sm:text-4xl">Onde estamos</h2>
-          <StoreHours :store="store" class="mt-6" />
+          <LazyStoreHours hydrate-on-visible :store="store" class="mt-6" />
           <ul class="mt-6 flex flex-col gap-2">
             <li>
               <a
@@ -276,7 +276,7 @@ const REASONS = [
             </li>
           </ul>
         </div>
-        <StoreMap :store="store" />
+        <LazyStoreMap hydrate-on-visible :store="store" />
       </div>
     </section>
   </div>

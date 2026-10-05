@@ -59,7 +59,8 @@ const source = computed(() =>
     width="320"
     height="320"
     :alt="alt ? `${alt}, sem foto` : ''"
-    loading="lazy"
+    :loading="eager ? 'eager' : 'lazy'"
+    :fetchpriority="eager ? 'high' : undefined"
     class="size-full object-cover"
   />
 </template>
