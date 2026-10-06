@@ -78,10 +78,9 @@ describe('catalog page', () => {
     await settle();
     await vi.waitFor(() => expect(router.currentRoute.value.query.ordem).toBe('menor-preco'));
 
+    // Clicked back to back on purpose: no filter may overwrite the one before it.
     await wrapper.findAll('input[name="lateral-categoria"]')[1]!.trigger('change');
-    await settle();
     await wrapper.findAll('input[name="lateral-condicao"]')[1]!.trigger('change');
-    await settle();
     await wrapper.findAll('input[name="lateral-marca"]')[1]!.trigger('change');
     await settle();
     await vi.waitFor(() =>
