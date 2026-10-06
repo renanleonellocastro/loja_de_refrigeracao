@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { describe, expect, it } from 'vitest';
+import { eq, sql } from 'drizzle-orm';
+import { describe, expect, it, vi } from 'vitest';
 import {
   auditLogs,
   orderItems,
@@ -301,6 +301,32 @@ describe('product routes', () => {
         ),
       );
       expect(results.map((r) => r.statusCode).sort()).toEqual([200, 412, 412]);
+    });
+
+    it('refuses an edit whose version changes between the check and the write', async () => {
+      const { category, manager } = await setup();
+      const product = await createProduct(t, manager.headers, { categoryId: category.id, name: 'Freezer' });
+      // Another writer holds the row: the edit passes the If-Match check, then waits on the
+      // UPDATE and finds the version already bumped once the other writer commits.
+      let edit: Promise<{ statusCode: number }> | undefined;
+      await t.db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT id FROM products WHERE id = ${product.id} FOR UPDATE`);
+        edit = t.app.inject({
+          method: 'PATCH',
+          url: `/api/v1/products/${product.id}`,
+          headers: { ...manager.headers, 'if-match': 'W/"1"' },
+          payload: { priceCents: 1 },
+        });
+        await vi.waitFor(async () => {
+          const { rows } = await t.db.execute<{ waiting: number }>(
+            sql`SELECT count(*)::int AS waiting FROM pg_stat_activity
+                WHERE datname = current_database() AND wait_event_type = 'Lock'`,
+          );
+          expect(rows[0]!.waiting).toBe(1);
+        });
+        await tx.execute(sql`UPDATE products SET version = version + 1 WHERE id = ${product.id}`);
+      });
+      expect((await edit!).statusCode).toBe(412);
     });
   });
 

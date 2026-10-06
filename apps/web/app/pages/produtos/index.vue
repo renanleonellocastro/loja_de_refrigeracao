@@ -47,18 +47,24 @@ const categoryName = computed(
   () => data.value?.facets.categories.find((item) => item.categoryId === filters.value.categoryId)?.name,
 );
 
+// Navigations run one after another and each reads the route the previous one produced,
+// so quick consecutive filter clicks add up instead of overwriting each other.
+let navigation: Promise<unknown> = Promise.resolve();
+
+function navigate(build: (current: CatalogFilters) => CatalogFilters): void {
+  navigation = navigation.then(() =>
+    router.push({ path: '/produtos', query: queryFromFilters(build(filters.value)) }),
+  );
+}
+
 function go(changes: Partial<CatalogFilters>): void {
   // Any change other than the page starts the list again from the first page.
-  const next = { ...filters.value, page: 1, ...changes };
-  void router.push({ path: '/produtos', query: queryFromFilters(next) });
+  navigate((current) => ({ ...current, page: 1, ...changes }));
 }
 
 function clearFilters(): void {
   filtersOpen.value = false;
-  void router.push({
-    path: '/produtos',
-    query: queryFromFilters({ ...filtersFromQuery({}), q: filters.value.q }),
-  });
+  navigate((current) => ({ ...filtersFromQuery({}), q: current.q }));
 }
 
 function submitSearch(): void {
