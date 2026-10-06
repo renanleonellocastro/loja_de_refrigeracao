@@ -17,3 +17,7 @@ auditConfig:
   ignoreGhsas:
     - GHSA-86w9-cpqp-85rv # node-forge via listhen (Nuxt dev server HTTPS helper)
     - GHSA-vfj7-8cjw-p6xm # braces via globby (Nitro build file scanning)
+# simple-git 3.x (pulled by @nuxt/devtools, which is disabled in nuxt.config.ts) has command execution
+# advisories fixed only in 4.x, which no @nuxt/devtools release accepts yet. Drop once devtools moves to 4.x.
+overrides:
+  simple-git: ^4.0.2
