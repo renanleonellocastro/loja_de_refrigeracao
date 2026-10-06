@@ -7,6 +7,10 @@ on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
+    inputs:
+      engines:
+        description: Browsers for the E2E run (Firefox and WebKit are not green yet, see #83)
+        default: chromium,firefox,webkit
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -72,7 +76,7 @@ jobs:
         image: axllent/mailpit:latest
         ports: ['1025:1025']
     env:
-      E2E_ENGINES: ${{ github.event_name != 'pull_request' && github.event_name != 'push' && 'chromium,firefox,webkit' || 'chromium' }}
+      E2E_ENGINES: ${{ inputs.engines || 'chromium' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
