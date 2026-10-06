@@ -102,7 +102,7 @@ Carrinho, compra online com reserva de estoque, gestão da fila de pedidos, vend
 
 Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, conversa com o cliente, aprovação. Dependência: depende do M3; pode começar em paralelo ao M4.
 
-* [ ] #60 UC Cadastrar, Consultar, Alterar e Excluir tipos de Reparo/Manutenção (pendente: falta a tela de gestão dos tipos de serviço)
+* [x] #60 UC Cadastrar, Consultar, Alterar e Excluir tipos de Reparo/Manutenção
 * [x] #61 UC Solicitar Agendamento de Reparo/Manutenção
 * [ ] #62 Solicitações pendentes: conversar, aprovar ou recusar (pendente: faltam os contadores por estado na fila)
 * [x] #63 Meus Agendamentos do cliente

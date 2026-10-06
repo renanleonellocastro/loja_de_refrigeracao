@@ -24,4 +24,5 @@ export const PRIVATE_ROUTES = [
   '/balcao',
   '/produtos/gerenciar',
   '/categorias',
+  '/tipos-de-servico',
 ] as const;
