@@ -308,7 +308,7 @@ describe('product routes', () => {
       const product = await createProduct(t, manager.headers, { categoryId: category.id, name: 'Freezer' });
       // Another writer holds the row: the edit passes the If-Match check, then waits on the
       // UPDATE and finds the version already bumped once the other writer commits.
-      let edit: ReturnType<typeof t.app.inject> | undefined;
+      let edit: Promise<{ statusCode: number }> | undefined;
       await t.db.transaction(async (tx) => {
         await tx.execute(sql`SELECT id FROM products WHERE id = ${product.id} FOR UPDATE`);
         edit = t.app.inject({
