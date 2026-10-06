@@ -131,7 +131,7 @@ Em **Colaboradores** e **Gerentes**, cadastre as pessoas com CPF; elas recebem u
 
 * **Configurações:** dados da loja (endereço, telefones, WhatsApp, horários) usados no site, e o estoque mínimo padrão.
 * **Categorias:** crie, renomeie, reordene e exclua categorias; ao excluir uma categoria com produtos, escolha para onde eles vão.
-* **Tipos de serviço:** os serviços oferecidos no agendamento e no orçamento, com a duração estimada.
+* **Tipos de serviço:** os serviços oferecidos no site, no agendamento e no orçamento. Cadastre e altere nome, descrição e duração estimada (de 15 a 1440 minutos); desative um serviço para tirá-lo do site sem perder o histórico e ative de novo quando quiser. Ao excluir um serviço que já foi usado em solicitações ou orçamentos, ele fica apenas desativado.
 
 ![Configurações da loja](assets/manual/admin-configuracoes.webp)
 
