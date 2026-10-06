@@ -10,4 +10,6 @@ paths = [
   '''(^|/)apps/api/test/''',
   '''apps/api/src/infra/db/seed\.ts$''',
   '''apps/e2e/''',
+  # Legacy REST client files from the removed Express server; tokens were signed with a local dev secret.
+  '''^server/test/.*\.http$''',
 ]
