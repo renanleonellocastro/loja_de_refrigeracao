@@ -1,6 +1,6 @@
 # Guia de operação
 
-Como colocar a Refrigeração Castro no ar e mantê-la funcionando: imagens Docker, variáveis de ambiente, migrações, backups, troca de segredos, email, compressão e monitoramento. O provedor de hospedagem ainda está em aberto (ADR 0012); este guia vale para qualquer servidor Linux com Docker.
+Como colocar a Refrigeração Castro no ar e mantê-la funcionando: imagens Docker, variáveis de ambiente, migrações, backups, troca de segredos, email, compressão e monitoramento. A produção roda na Oracle Cloud gratuita, numa conta no nome do Eduardo, com entrada pelo Cloudflare Tunnel (ADR 0012, revisão de 17/10/2026); este guia vale para qualquer servidor Linux com Docker.
 
 ## 1. Visão geral
 
