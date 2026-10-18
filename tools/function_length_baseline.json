@@ -1,6 +1,6 @@
 {
   "limit": 12,
-  "total": 324,
+  "total": 312,
   "functions": [
     {
       "path": "apps/api/src/app.ts",
@@ -111,16 +111,6 @@
       "path": "apps/api/src/modules/agenda/repository.ts",
       "name": "selectAppointments",
       "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/agenda/routes.ts",
-      "name": "agendaRoutes",
-      "length": 199
-    },
-    {
-      "path": "apps/api/src/modules/agenda/routes.ts",
-      "name": "agendaRoutes.anonymous",
-      "length": 197
     },
     {
       "path": "apps/api/src/modules/audit/routes.ts",
@@ -353,16 +343,6 @@
       "length": 13
     },
     {
-      "path": "apps/api/src/modules/catalog/routes.ts",
-      "name": "catalogRoutes",
-      "length": 301
-    },
-    {
-      "path": "apps/api/src/modules/catalog/routes.ts",
-      "name": "catalogRoutes.anonymous",
-      "length": 299
-    },
-    {
       "path": "apps/api/src/modules/catalog/schemas.ts",
       "name": "stockMovementInputSchema=superRefine(callback)",
       "length": 13
@@ -563,26 +543,6 @@
       "length": 32
     },
     {
-      "path": "apps/api/src/modules/orders/routes.ts",
-      "name": "orderRoutes",
-      "length": 205
-    },
-    {
-      "path": "apps/api/src/modules/orders/routes.ts",
-      "name": "orderRoutes.anonymous",
-      "length": 203
-    },
-    {
-      "path": "apps/api/src/modules/orders/routes.ts",
-      "name": "orderRoutes.anonymous.get(callback)",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/orders/routes.ts",
-      "name": "orderRoutes.anonymous.transition",
-      "length": 18
-    },
-    {
       "path": "apps/api/src/modules/outbox/service.ts",
       "name": "processOutboxBatch",
       "length": 41
@@ -673,16 +633,6 @@
       "length": 36
     },
     {
-      "path": "apps/api/src/modules/quotes/routes.ts",
-      "name": "quoteRoutes",
-      "length": 195
-    },
-    {
-      "path": "apps/api/src/modules/quotes/routes.ts",
-      "name": "quoteRoutes.anonymous",
-      "length": 193
-    },
-    {
       "path": "apps/api/src/modules/quotes/status.ts",
       "name": "nextQuoteStatus",
       "length": 21
@@ -771,16 +721,6 @@
       "path": "apps/api/src/modules/services/requests.ts",
       "name": "validateWindows",
       "length": 15
-    },
-    {
-      "path": "apps/api/src/modules/services/routes.ts",
-      "name": "serviceRoutes",
-      "length": 245
-    },
-    {
-      "path": "apps/api/src/modules/services/routes.ts",
-      "name": "serviceRoutes.anonymous",
-      "length": 243
     },
     {
       "path": "apps/api/src/modules/services/service-types.ts",
