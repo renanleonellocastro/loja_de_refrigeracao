@@ -48,6 +48,8 @@ jobs:
         run: pnpm --filter @rc/contracts generate && git diff --exit-code packages/contracts
       - run: pnpm lint
       - run: pnpm depcruise
+      - name: Tamanho das funções (catraca, docs/QUALIDADE.md)
+        run: make function-length
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm --filter @rc/web run build
