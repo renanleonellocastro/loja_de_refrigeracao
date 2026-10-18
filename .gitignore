@@ -1,5 +1,6 @@
 node_modules/
 .claude/
+CLAUDE.md
 dist/
 .nuxt/
 .output/
