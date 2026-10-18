@@ -27,6 +27,7 @@ Registre as rotas em `src/app.ts` dentro do bloco com prefixo `/api/v1`.
 
 ### Rotas
 
+* Cada rota é uma constante `defineRoute({ method, url, config, schema, handle })` (`src/shared/routes.ts`) e o módulo lista as rotas numa tabela, na ordem em que aparecem no OpenAPI: `return async (app) => registerRoutes(app, ctx, TABELA)`. O `handle` recebe `{ ctx, request, reply }` com params, query, corpo e resposta tipados pelo esquema e fica com no máximo 12 linhas; rotas parecidas saem de uma função fábrica (como `statusTransitionRoute` em `orders/routes.ts`). Os módulos que ainda registram com `app.get(...)` dentro do plugin migram nas próximas ondas de refatoração (docs/QUALIDADE.md).
 * Toda rota em `/api/v1` declara `config: { permission: '<permissão>' }` (da matriz em `packages/contracts/src/permissions.ts`) ou `config: { public: true }`. Sem isso o app não sobe.
 * A permissão é checada antes da validação. Dentro do handler use `requireAuth(request)` para obter `{ userId, role, sessionId }` e `request.scope` (`all` ou `own`) para decidir se o usuário vê tudo ou só o que é dele.
 * Recurso de outra pessoa responde **404**, não 403.
