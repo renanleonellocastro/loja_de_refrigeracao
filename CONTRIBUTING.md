@@ -14,6 +14,11 @@
 * Tela nova ou alterada: E2E em celular, tablet e desktop e zero violações do axe.
 * API nova ou alterada: OpenAPI e cliente gerado atualizados.
 * Documentos em `docs/` atualizados quando a regra de negócio mudar.
+* `make check` verde, inclusive a catraca do tamanho das funções.
+
+## Padrão de qualidade
+
+Funções com no máximo 12 linhas, SOLID por inteiro, nomes claros e código limpo. As regras completas e o funcionamento da catraca estão em [docs/QUALIDADE.md](docs/QUALIDADE.md).
 
 ## Idiomas
 
@@ -22,6 +27,7 @@ Documentação, issues, interface e emails em português do Brasil. Código, ban
 ## Comandos
 
 ```
+make check         tudo que o job de qualidade do CI verifica, mais a catraca
 pnpm install       dependências
 pnpm dev           sistema completo local (Docker + API + site)
 pnpm test          unitários e integração com cobertura

@@ -1,0 +1,29 @@
+{
+  "limit": 12,
+  "roots": [
+    "apps/api/src/",
+    "apps/api/scripts/",
+    "apps/web/app/",
+    "apps/web/server/",
+    "apps/web/scripts/",
+    "packages/",
+    "infra/",
+    "tools/"
+  ],
+  "excludedDirectories": [
+    ".nuxt",
+    ".output",
+    "coverage",
+    "dist",
+    "drizzle",
+    "generated",
+    "node_modules",
+    "test",
+    "tests"
+  ],
+  "excludedFilePatterns": [
+    "\\.(test|spec)\\.[cm]?[jt]sx?$",
+    "\\.d\\.ts$",
+    "(^|/)[^/]*\\.config\\.[cm]?[jt]s$"
+  ]
+}

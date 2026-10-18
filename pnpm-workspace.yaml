@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - tools/*
 # Supply chain: no git or tarball URLs deep in the tree and no package whose publishing trust went down.
 # The one week wait before a new version is installed lives in renovate.json (minimumReleaseAge), where
 # updates are proposed, so a pinned lockfile still installs.

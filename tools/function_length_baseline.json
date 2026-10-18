@@ -1,0 +1,1626 @@
+{
+  "limit": 12,
+  "total": 324,
+  "functions": [
+    {
+      "path": "apps/api/src/app.ts",
+      "name": "buildApp",
+      "length": 66
+    },
+    {
+      "path": "apps/api/src/infra/db/seed.ts",
+      "name": "seedDevelopment",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/infra/db/seed.ts",
+      "name": "seedProducts",
+      "length": 45
+    },
+    {
+      "path": "apps/api/src/infra/db/seed.ts",
+      "name": "seedProducts.transaction(callback)",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/infra/storage/storage.ts",
+      "name": "createLocalStorage",
+      "length": 23
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "addReportPhotos",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "approveReport",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "approveReport.transaction(callback)",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "availability",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "removeAppointment",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "removeAppointment.transaction(callback)",
+      "length": 23
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "requestRework",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "requestRework.transaction(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "rescheduleAppointment",
+      "length": 58
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "rescheduleAppointment.transaction(callback)",
+      "length": 52
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "scheduleAppointment",
+      "length": 50
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "scheduleAppointment.transaction(callback)",
+      "length": 44
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "submitReport",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "submitReport.transaction(callback)",
+      "length": 23
+    },
+    {
+      "path": "apps/api/src/modules/agenda/agenda.ts",
+      "name": "toView",
+      "length": 38
+    },
+    {
+      "path": "apps/api/src/modules/agenda/repository.ts",
+      "name": "busyIntervals",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/agenda/repository.ts",
+      "name": "selectAppointments",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/agenda/routes.ts",
+      "name": "agendaRoutes",
+      "length": 199
+    },
+    {
+      "path": "apps/api/src/modules/agenda/routes.ts",
+      "name": "agendaRoutes.anonymous",
+      "length": 197
+    },
+    {
+      "path": "apps/api/src/modules/audit/routes.ts",
+      "name": "auditRoutes",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/audit/routes.ts",
+      "name": "auditRoutes.anonymous",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/audit/service.ts",
+      "name": "listAudit",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/auth/repository.ts",
+      "name": "findUsableAuthToken",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/auth/routes.ts",
+      "name": "authRoutes",
+      "length": 139
+    },
+    {
+      "path": "apps/api/src/modules/auth/routes.ts",
+      "name": "authRoutes.anonymous",
+      "length": 137
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "changePassword",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "confirmEmail",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "inviteUser",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "login",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "redeemPasswordToken",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "redeemPasswordToken.transaction(callback)",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "refresh",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "refresh.transaction(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "requestEmailChange",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "requestPasswordReset",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/auth/service.ts",
+      "name": "startSession",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/auth/tokens.ts",
+      "name": "verifyAccessToken",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/browse.ts",
+      "name": "listProducts",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "createCategory",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "deleteCategory",
+      "length": 37
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "deleteCategory.transaction(callback)",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "renameCategory",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "renameCategory.transaction(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "reorderCategories",
+      "length": 27
+    },
+    {
+      "path": "apps/api/src/modules/catalog/categories.ts",
+      "name": "reorderCategories.transaction(callback)",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "addImages",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "addImages.transaction(callback)",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "removeImage",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "removeImage.transaction(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "reorderImages",
+      "length": 37
+    },
+    {
+      "path": "apps/api/src/modules/catalog/gallery.ts",
+      "name": "reorderImages.transaction(callback)",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "createProduct",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "createProduct.transaction(callback)",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "deleteProduct",
+      "length": 23
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "deleteProduct.transaction(callback)",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "unarchiveProduct",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "updateProduct",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/catalog/products.ts",
+      "name": "updateProduct.transaction(callback)",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "catalogConditions",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "catalogFacets",
+      "length": 44
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "insertImages",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "listMovements",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "lowStockProducts",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "orderFor",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/repository.ts",
+      "name": "searchProducts",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/catalog/routes.ts",
+      "name": "catalogRoutes",
+      "length": 301
+    },
+    {
+      "path": "apps/api/src/modules/catalog/routes.ts",
+      "name": "catalogRoutes.anonymous",
+      "length": 299
+    },
+    {
+      "path": "apps/api/src/modules/catalog/schemas.ts",
+      "name": "stockMovementInputSchema=superRefine(callback)",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/catalog/stock.ts",
+      "name": "productsForOrder",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/catalog/stock.ts",
+      "name": "recordMovement",
+      "length": 37
+    },
+    {
+      "path": "apps/api/src/modules/catalog/stock.ts",
+      "name": "recordMovement.transaction(callback)",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/modules/catalog/stock.ts",
+      "name": "reserveStock",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/catalog/views.ts",
+      "name": "baseView",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/dashboard.ts",
+      "name": "managementView",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/routes.ts",
+      "name": "dashboardRoutes",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/dashboard/routes.ts",
+      "name": "dashboardRoutes.anonymous",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/mail/service.ts",
+      "name": "emailHandler",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/mail/templates.ts",
+      "name": "emailVerification",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/mail/templates.ts",
+      "name": "invitation",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/mail/templates.ts",
+      "name": "passwordReset",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/media/images.ts",
+      "name": "storeImage",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/media/routes.ts",
+      "name": "mediaRoutes",
+      "length": 26
+    },
+    {
+      "path": "apps/api/src/modules/media/routes.ts",
+      "name": "mediaRoutes.anonymous",
+      "length": 24
+    },
+    {
+      "path": "apps/api/src/modules/media/uploads.ts",
+      "name": "readMultipart",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/notifications/notify.ts",
+      "name": "notifyRoles",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/notifications/notify.ts",
+      "name": "notifyUser",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/notifications/repository.ts",
+      "name": "listNotifications",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/notifications/routes.ts",
+      "name": "notificationRoutes",
+      "length": 56
+    },
+    {
+      "path": "apps/api/src/modules/notifications/routes.ts",
+      "name": "notificationRoutes.anonymous",
+      "length": 54
+    },
+    {
+      "path": "apps/api/src/modules/orders/cart.ts",
+      "name": "cartView",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/modules/orders/cart.ts",
+      "name": "cartView.items=flatMap(callback)",
+      "length": 22
+    },
+    {
+      "path": "apps/api/src/modules/orders/cart.ts",
+      "name": "mergeCart",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/orders/cart.ts",
+      "name": "setQuantity",
+      "length": 22
+    },
+    {
+      "path": "apps/api/src/modules/orders/label.ts",
+      "name": "orderLabelPdf",
+      "length": 55
+    },
+    {
+      "path": "apps/api/src/modules/orders/label.ts",
+      "name": "wrap",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "changeOrderStatus",
+      "length": 64
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "changeOrderStatus.transaction(callback)",
+      "length": 62
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "createCounterSale",
+      "length": 34
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "createCounterSale.transaction(callback)",
+      "length": 32
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "createOrder",
+      "length": 61
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "createOrder.transaction(callback)",
+      "length": 58
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "listVisibleOrders",
+      "length": 32
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "orderDetail",
+      "length": 36
+    },
+    {
+      "path": "apps/api/src/modules/orders/orders.ts",
+      "name": "placeOrder",
+      "length": 48
+    },
+    {
+      "path": "apps/api/src/modules/orders/repository.ts",
+      "name": "eventsOf",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/orders/repository.ts",
+      "name": "filterConditions",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/orders/repository.ts",
+      "name": "listOrders",
+      "length": 32
+    },
+    {
+      "path": "apps/api/src/modules/orders/routes.ts",
+      "name": "orderRoutes",
+      "length": 205
+    },
+    {
+      "path": "apps/api/src/modules/orders/routes.ts",
+      "name": "orderRoutes.anonymous",
+      "length": 203
+    },
+    {
+      "path": "apps/api/src/modules/orders/routes.ts",
+      "name": "orderRoutes.anonymous.get(callback)",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/orders/routes.ts",
+      "name": "orderRoutes.anonymous.transition",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/outbox/service.ts",
+      "name": "processOutboxBatch",
+      "length": 41
+    },
+    {
+      "path": "apps/api/src/modules/outbox/service.ts",
+      "name": "processOutboxBatch.transaction(callback)",
+      "length": 39
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "acceptQuote",
+      "length": 40
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "acceptQuote.transaction(callback)",
+      "length": 38
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "addPhotos",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "answerQuote",
+      "length": 38
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "answerQuote.transaction(callback)",
+      "length": 36
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "cancelQuote",
+      "length": 27
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "cancelQuote.transaction(callback)",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "createQuote",
+      "length": 59
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "createQuote.transaction(callback)",
+      "length": 42
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "expireQuotes",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "expireQuotes.transaction(callback)",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "listVisibleQuotes",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "postQuoteMessage",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "postQuoteMessage.transaction(callback)",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/quotes/quotes.ts",
+      "name": "quoteDetail",
+      "length": 33
+    },
+    {
+      "path": "apps/api/src/modules/quotes/repository.ts",
+      "name": "listQuotes",
+      "length": 36
+    },
+    {
+      "path": "apps/api/src/modules/quotes/routes.ts",
+      "name": "quoteRoutes",
+      "length": 195
+    },
+    {
+      "path": "apps/api/src/modules/quotes/routes.ts",
+      "name": "quoteRoutes.anonymous",
+      "length": 193
+    },
+    {
+      "path": "apps/api/src/modules/quotes/status.ts",
+      "name": "nextQuoteStatus",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/services/repository.ts",
+      "name": "findAppointmentForRequest",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/services/repository.ts",
+      "name": "listMessages",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/services/repository.ts",
+      "name": "listRequests",
+      "length": 44
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "addPhotos",
+      "length": 24
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "approveRequest",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "approveRequest.transaction(callback)",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "cancelRequest",
+      "length": 52
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "cancelRequest.transaction(callback)",
+      "length": 50
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "createRequest",
+      "length": 101
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "createRequest.work",
+      "length": 82
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "listVisibleRequests",
+      "length": 22
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "postRequestMessage",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "postRequestMessage.transaction(callback)",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "rejectRequest",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "rejectRequest.transaction(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "requestDetail",
+      "length": 41
+    },
+    {
+      "path": "apps/api/src/modules/services/requests.ts",
+      "name": "validateWindows",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/services/routes.ts",
+      "name": "serviceRoutes",
+      "length": 245
+    },
+    {
+      "path": "apps/api/src/modules/services/routes.ts",
+      "name": "serviceRoutes.anonymous",
+      "length": 243
+    },
+    {
+      "path": "apps/api/src/modules/services/service-types.ts",
+      "name": "createServiceType",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/modules/services/service-types.ts",
+      "name": "removeServiceType",
+      "length": 26
+    },
+    {
+      "path": "apps/api/src/modules/services/service-types.ts",
+      "name": "removeServiceType.transaction(callback)",
+      "length": 24
+    },
+    {
+      "path": "apps/api/src/modules/services/service-types.ts",
+      "name": "updateServiceType",
+      "length": 19
+    },
+    {
+      "path": "apps/api/src/modules/services/service-types.ts",
+      "name": "updateServiceType.transaction(callback)",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/services/status.ts",
+      "name": "nextRequestStatus",
+      "length": 27
+    },
+    {
+      "path": "apps/api/src/modules/store/routes.ts",
+      "name": "storeRoutes",
+      "length": 44
+    },
+    {
+      "path": "apps/api/src/modules/store/routes.ts",
+      "name": "storeRoutes.anonymous",
+      "length": 42
+    },
+    {
+      "path": "apps/api/src/modules/store/store.ts",
+      "name": "updateStoreSettings",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "adminUpdateUser",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "adminUpdateUser.transaction(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "assertAvailable",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "createUser",
+      "length": 25
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "createUser.transaction(callback)",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "deleteOwnAccount",
+      "length": 17
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "deleteUser",
+      "length": 20
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "listUsers",
+      "length": 18
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "recentActivity",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "registerCustomer",
+      "length": 24
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "registerCustomer.transaction(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/api/src/modules/users/accounts.ts",
+      "name": "toDetail",
+      "length": 22
+    },
+    {
+      "path": "apps/api/src/modules/users/cep.ts",
+      "name": "lookupCep",
+      "length": 27
+    },
+    {
+      "path": "apps/api/src/modules/users/repository.ts",
+      "name": "anonymizeUser",
+      "length": 21
+    },
+    {
+      "path": "apps/api/src/modules/users/repository.ts",
+      "name": "recentCustomerActivity",
+      "length": 27
+    },
+    {
+      "path": "apps/api/src/modules/users/repository.ts",
+      "name": "recentEmployeeAppointments",
+      "length": 16
+    },
+    {
+      "path": "apps/api/src/modules/users/repository.ts",
+      "name": "searchUsers",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "name": "userRoutes",
+      "length": 183
+    },
+    {
+      "path": "apps/api/src/modules/users/routes.ts",
+      "name": "userRoutes.anonymous",
+      "length": 181
+    },
+    {
+      "path": "apps/api/src/plugins/auth.ts",
+      "name": "authPlugin=fp(callback)",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/plugins/errors.ts",
+      "name": "registerErrorHandling",
+      "length": 80
+    },
+    {
+      "path": "apps/api/src/plugins/errors.ts",
+      "name": "registerErrorHandling.setErrorHandler(callback)",
+      "length": 65
+    },
+    {
+      "path": "apps/api/src/plugins/idempotency.ts",
+      "name": "idempotencyPlugin=fp(callback)",
+      "length": 54
+    },
+    {
+      "path": "apps/api/src/plugins/idempotency.ts",
+      "name": "idempotencyPlugin=fp(callback).addHook(callback)",
+      "length": 35
+    },
+    {
+      "path": "apps/api/src/plugins/idempotency.ts",
+      "name": "idempotencyPlugin=fp(callback).addHook(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/api/src/plugins/openapi.ts",
+      "name": "documentProblemContentType",
+      "length": 13
+    },
+    {
+      "path": "apps/api/src/plugins/openapi.ts",
+      "name": "registerOpenApi",
+      "length": 16
+    },
+    {
+      "path": "apps/web/app/components/agenda/Calendar.vue",
+      "name": "options=computed(callback)",
+      "length": 38
+    },
+    {
+      "path": "apps/web/app/components/agenda/ReportForm.vue",
+      "name": "send",
+      "length": 24
+    },
+    {
+      "path": "apps/web/app/components/agenda/ReportForm.vue",
+      "name": "send.submit(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/agenda/ReportForm.vue",
+      "name": "uploadPhotos",
+      "length": 22
+    },
+    {
+      "path": "apps/web/app/components/agenda/ScheduleForm.vue",
+      "name": "initialValues",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/auth/NewPasswordForm.vue",
+      "name": "submit",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/components/auth/NewPasswordForm.vue",
+      "name": "submit.submit(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/form/AddressFields.vue",
+      "name": "watch(callback)",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/components/products/Photos.vue",
+      "name": "remove",
+      "length": 28
+    },
+    {
+      "path": "apps/web/app/components/products/Photos.vue",
+      "name": "saveOrder",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/components/products/Photos.vue",
+      "name": "upload",
+      "length": 21
+    },
+    {
+      "path": "apps/web/app/components/products/Stock.vue",
+      "name": "save",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/components/products/Stock.vue",
+      "name": "save.submit(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/profile/DataTab.vue",
+      "name": "submit",
+      "length": 22
+    },
+    {
+      "path": "apps/web/app/components/profile/DataTab.vue",
+      "name": "submit.submit(callback)",
+      "length": 20
+    },
+    {
+      "path": "apps/web/app/components/profile/PrivacyTab.vue",
+      "name": "exportData",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/profile/SecurityTab.vue",
+      "name": "submit",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/components/quote/AcceptForm.vue",
+      "name": "accept",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/components/quote/AnswerForm.vue",
+      "name": "send",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/components/quote/AnswerForm.vue",
+      "name": "send.submit(callback)",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/components/service/Conversation.vue",
+      "name": "send",
+      "length": 22
+    },
+    {
+      "path": "apps/web/app/components/users/Details.vue",
+      "name": "remove",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/composables/useApi.ts",
+      "name": "useApi",
+      "length": 26
+    },
+    {
+      "path": "apps/web/app/composables/useForm.ts",
+      "name": "useForm",
+      "length": 49
+    },
+    {
+      "path": "apps/web/app/composables/useForm.ts",
+      "name": "useForm.submit",
+      "length": 26
+    },
+    {
+      "path": "apps/web/app/composables/useNotifications.ts",
+      "name": "useUnreadCount",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/composables/useOnline.ts",
+      "name": "useOnline",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/composables/usePagedList.ts",
+      "name": "usePagedList",
+      "length": 28
+    },
+    {
+      "path": "apps/web/app/composables/usePagedList.ts",
+      "name": "usePagedList.load",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/composables/usePageSeo.ts",
+      "name": "usePageSeo",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/pages/agenda/[id].vue",
+      "name": "load",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/agenda/[id].vue",
+      "name": "remove",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/agenda/index.vue",
+      "name": "load",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/pages/agenda/index.vue",
+      "name": "move",
+      "length": 22
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "review=computed(callback)",
+      "length": 26
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "send",
+      "length": 25
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "send.submit(callback)",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "startOver",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "stepOf",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "uploadPhotos",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/agendar.vue",
+      "name": "validateStep",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/aprovacoes/index.vue",
+      "name": "load",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/pages/auditoria.vue",
+      "name": "{page,rows:logs,pages,loading,failed,load,restart,}=usePagedList(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/balcao.vue",
+      "name": "{rows:results,loading,failed,load:search,restart,}=usePagedList(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/balcao.vue",
+      "name": "confirm",
+      "length": 28
+    },
+    {
+      "path": "apps/web/app/pages/carrinho/finalizar.vue",
+      "name": "place",
+      "length": 25
+    },
+    {
+      "path": "apps/web/app/pages/categorias.vue",
+      "name": "remove",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/pages/categorias.vue",
+      "name": "save",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/confirmar-email/[token].vue",
+      "name": "confirm",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/pages/criar-conta.vue",
+      "name": "submit",
+      "length": 21
+    },
+    {
+      "path": "apps/web/app/pages/criar-conta.vue",
+      "name": "submit.submit(callback)",
+      "length": 19
+    },
+    {
+      "path": "apps/web/app/pages/hoje.vue",
+      "name": "load",
+      "length": 24
+    },
+    {
+      "path": "apps/web/app/pages/minha-conta/agendamentos/[id].vue",
+      "name": "cancel",
+      "length": 16
+    },
+    {
+      "path": "apps/web/app/pages/minha-conta/orcamentos/[id].vue",
+      "name": "confirm",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/minha-conta/pedidos/[id].vue",
+      "name": "cancel",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/pages/orcamento.vue",
+      "name": "send",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/orcamento.vue",
+      "name": "uploadPhotos",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/orcamentos/[id].vue",
+      "name": "cancel",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/pages/orcamentos/index.vue",
+      "name": "{page,rows,pages,loading,failed,load,restart}=usePagedList(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/pages/painel.vue",
+      "name": "tiles=computed(callback)",
+      "length": 39
+    },
+    {
+      "path": "apps/web/app/pages/pedidos/[id].vue",
+      "name": "printLabel",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/pages/produtos/[slug].vue",
+      "name": "innerHTML=computed(callback)",
+      "length": 24
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/[id].vue",
+      "name": "load",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/[id].vue",
+      "name": "remove",
+      "length": 28
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/[id].vue",
+      "name": "save",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/[id].vue",
+      "name": "save.submit(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/[id].vue",
+      "name": "unarchive",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/pages/produtos/gerenciar/index.vue",
+      "name": "{page,rows,total,pages,loading,failed,load,restart}=usePagedList(callback)",
+      "length": 19
+    },
+    {
+      "path": "apps/web/app/pages/solicitacoes/[id].vue",
+      "name": "action",
+      "length": 19
+    },
+    {
+      "path": "apps/web/app/pages/solicitacoes/[id].vue",
+      "name": "confirm",
+      "length": 16
+    },
+    {
+      "path": "apps/web/app/pages/solicitacoes/index.vue",
+      "name": "{page,rows,pages,loading,failed,load,restart}=usePagedList(callback)",
+      "length": 15
+    },
+    {
+      "path": "apps/web/app/pages/tipos-de-servico.vue",
+      "name": "remove",
+      "length": 26
+    },
+    {
+      "path": "apps/web/app/pages/tipos-de-servico.vue",
+      "name": "save",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/pages/tipos-de-servico.vue",
+      "name": "toggleActive",
+      "length": 22
+    },
+    {
+      "path": "apps/web/app/stores/auth.ts",
+      "name": "useAuthStore=defineStore(callback)",
+      "length": 88
+    },
+    {
+      "path": "apps/web/app/stores/auth.ts",
+      "name": "useAuthStore=defineStore(callback).refresh",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/stores/auth.ts",
+      "name": "useAuthStore=defineStore(callback).refresh.withRefreshLock(callback)",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/stores/cart.ts",
+      "name": "useCartStore=defineStore(callback)",
+      "length": 165
+    },
+    {
+      "path": "apps/web/app/stores/cart.ts",
+      "name": "useCartStore=defineStore(callback).add",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/stores/cart.ts",
+      "name": "useCartStore=defineStore(callback).mergeGuest",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/stores/cart.ts",
+      "name": "useCartStore=defineStore(callback).refreshGuest",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/stores/cart.ts",
+      "name": "useCartStore=defineStore(callback).setQuantity",
+      "length": 24
+    },
+    {
+      "path": "apps/web/app/utils/catalog.ts",
+      "name": "filtersFromQuery",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/utils/image.ts",
+      "name": "compressImage",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/utils/navigation.ts",
+      "name": "navigationFor",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/utils/products.ts",
+      "name": "validateMovement",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/utils/products.ts",
+      "name": "validateProductForm",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/utils/security.ts",
+      "name": "contentSecurityPolicy",
+      "length": 16
+    },
+    {
+      "path": "apps/web/app/utils/seo.ts",
+      "name": "localBusinessJsonLd",
+      "length": 23
+    },
+    {
+      "path": "apps/web/app/utils/seo.ts",
+      "name": "openingHoursSpecification",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/utils/service-requests.ts",
+      "name": "requestTimeline",
+      "length": 20
+    },
+    {
+      "path": "apps/web/app/utils/service-types.ts",
+      "name": "validateServiceTypeForm",
+      "length": 13
+    },
+    {
+      "path": "apps/web/app/utils/sitemap.ts",
+      "name": "fetchSitemapProducts",
+      "length": 14
+    },
+    {
+      "path": "apps/web/app/utils/staff.ts",
+      "name": "storeFormFrom",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/utils/staff.ts",
+      "name": "storeFormToApi",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/utils/staff.ts",
+      "name": "validateStoreForm",
+      "length": 30
+    },
+    {
+      "path": "apps/web/app/utils/store.ts",
+      "name": "openingHoursLines",
+      "length": 18
+    },
+    {
+      "path": "apps/web/app/utils/upload.ts",
+      "name": "uploadWithProgress",
+      "length": 19
+    },
+    {
+      "path": "apps/web/app/utils/upload.ts",
+      "name": "uploadWithProgress.anonymous",
+      "length": 17
+    },
+    {
+      "path": "apps/web/app/utils/validation.ts",
+      "name": "validatePerson",
+      "length": 14
+    },
+    {
+      "path": "apps/web/server/plugins/compression.ts",
+      "name": "defineNitroPlugin(callback)",
+      "length": 14
+    },
+    {
+      "path": "apps/web/server/plugins/security-headers.ts",
+      "name": "defineNitroPlugin(callback)",
+      "length": 16
+    },
+    {
+      "path": "packages/brand/illustrations/facade.cjs",
+      "name": "floodlight",
+      "length": 14
+    },
+    {
+      "path": "packages/brand/illustrations/facade.cjs",
+      "name": "hero",
+      "length": 24
+    },
+    {
+      "path": "packages/brand/illustrations/facade.cjs",
+      "name": "marquee",
+      "length": 24
+    },
+    {
+      "path": "packages/brand/illustrations/facade.cjs",
+      "name": "mobile",
+      "length": 22
+    },
+    {
+      "path": "packages/brand/illustrations/facade.cjs",
+      "name": "wallDefs",
+      "length": 50
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "blob",
+      "length": 18
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "condenser",
+      "length": 22
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "dispenser",
+      "length": 23
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "freezer",
+      "length": 20
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "fridge",
+      "length": 17
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "stdDefs",
+      "length": 40
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "washer",
+      "length": 28
+    },
+    {
+      "path": "packages/brand/illustrations/lib.cjs",
+      "name": "washerOpen",
+      "length": 13
+    },
+    {
+      "path": "packages/brand/illustrations/misc.cjs",
+      "name": "og",
+      "length": 24
+    },
+    {
+      "path": "packages/brand/illustrations/misc.cjs",
+      "name": "semFoto",
+      "length": 14
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "arCondicionado",
+      "length": 20
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "bebedouro",
+      "length": 22
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "comercial",
+      "length": 83
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "geladeira",
+      "length": 78
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "instalacaoAr",
+      "length": 30
+    },
+    {
+      "path": "packages/brand/illustrations/services.cjs",
+      "name": "lavadora",
+      "length": 25
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "agenda",
+      "length": 20
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "carrinho",
+      "length": 15
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "erro404",
+      "length": 15
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "fridgeLine",
+      "length": 13
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "offline",
+      "length": 26
+    },
+    {
+      "path": "packages/brand/illustrations/states.cjs",
+      "name": "pedidos",
+      "length": 22
+    },
+    {
+      "path": "packages/brand/scripts/build-logo.mjs",
+      "name": "symbol",
+      "length": 19
+    },
+    {
+      "path": "packages/contracts/src/client.ts",
+      "name": "createApiClient",
+      "length": 13
+    },
+    {
+      "path": "packages/design-tokens/src/css.ts",
+      "name": "buildCss",
+      "length": 30
+    }
+  ]
+}
