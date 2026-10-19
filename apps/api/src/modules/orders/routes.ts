@@ -5,7 +5,9 @@ import { requireAuth } from '../../plugins/auth.js';
 import { errorResponses, fileResponse, idParamSchema } from '../../shared/schemas.js';
 import * as cart from './cart.js';
 import { orderLabelPdf, type LabelData } from './label.js';
+import { createCounterSale, createOrder } from './checkout.js';
 import * as orders from './orders.js';
+import { changeOrderStatus } from './transitions.js';
 import {
   cancellationSchema,
   cartMergeSchema,
@@ -36,7 +38,7 @@ function statusTransitionRoute(action: 'markReady' | 'pickup', path: string, sum
     schema: { tags, summary, security, params: idParamSchema, response: orderDetailResponse },
     handle: async ({ ctx, request }) => {
       const auth = requireAuth(request);
-      await orders.changeOrderStatus(ctx, auth, request.params.id, action, undefined, request.ip);
+      await changeOrderStatus(ctx, auth, request.params.id, action, undefined, request.ip);
       return orders.orderDetail(ctx, auth, request.params.id);
     },
   });
@@ -125,7 +127,7 @@ const createOrderRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    const order = await orders.createOrder(ctx, auth, request.body, request.ip);
+    const order = await createOrder(ctx, auth, request.body, request.ip);
     return reply
       .code(201)
       .header('location', `/api/v1/orders/${order.id}`)
@@ -183,7 +185,7 @@ const cancelOrderRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await orders.changeOrderStatus(ctx, auth, request.params.id, 'cancel', request.body.reason, request.ip);
+    await changeOrderStatus(ctx, auth, request.params.id, 'cancel', request.body.reason, request.ip);
     return orders.orderDetail(ctx, auth, request.params.id);
   },
 });
@@ -222,7 +224,7 @@ const createCounterSaleRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    const order = await orders.createCounterSale(ctx, auth, request.body, request.ip);
+    const order = await createCounterSale(ctx, auth, request.body, request.ip);
     const detail = await orders.orderDetail(ctx, { ...auth, role: 'ADMIN' }, order.id);
     return reply.code(201).header('location', `/api/v1/orders/${order.id}`).send(detail);
   },
