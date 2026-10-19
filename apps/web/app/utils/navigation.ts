@@ -48,6 +48,11 @@ interface Entry extends NavItem {
   visible: (actor: Actor) => boolean;
 }
 
+interface EntryGroup {
+  label: string;
+  entries: Entry[];
+}
+
 export const BOTTOM_NAV_SIZE = 4;
 
 /** Only customers decide on quotes, so this permission identifies the customer area. */
@@ -56,7 +61,7 @@ const isCustomer = (actor: Actor) => can(actor, 'quotes.decide');
 const isTechnician = (actor: Actor) => can(actor, 'appointments.complete');
 
 /** Screen map from docs/DESIGN.md section 4. Order matters: the first visible items go to the phone bottom bar. */
-const GROUPS: ReadonlyArray<{ label: string; entries: Entry[] }> = [
+const GROUPS: ReadonlyArray<EntryGroup> = [
   {
     label: 'Minha conta',
     entries: [
@@ -155,15 +160,21 @@ const GROUPS: ReadonlyArray<{ label: string; entries: Entry[] }> = [
   },
 ];
 
+function visibleItems(group: EntryGroup, actor: Actor): NavItem[] {
+  return group.entries
+    .filter((entry) => entry.visible(actor))
+    .map(({ label, to, icon }) => ({ label, to, icon }));
+}
+
+function visibleGroups(actor: Actor): NavGroup[] {
+  return GROUPS.map((group) => ({ label: group.label, items: visibleItems(group, actor) })).filter(
+    (group) => group.items.length > 0,
+  );
+}
+
 /** Menu of the signed in area for an actor, derived from the permission matrix in @rc/contracts. */
 export function navigationFor(actor: Actor): AreaNavigation {
-  const groups: NavGroup[] = [];
-  for (const group of GROUPS) {
-    const items = group.entries
-      .filter((entry) => entry.visible(actor))
-      .map(({ label, to, icon }) => ({ label, to, icon }));
-    if (items.length > 0) groups.push({ label: group.label, items });
-  }
+  const groups = visibleGroups(actor);
   const items = groups.flatMap((group) => group.items);
   return {
     groups,

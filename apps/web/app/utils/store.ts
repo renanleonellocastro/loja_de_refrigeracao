@@ -100,32 +100,48 @@ function hourLabel(hhmm: string): string {
   return `${Number(hours)}h${minutes === '00' ? '' : minutes}`;
 }
 
+const CLOSED_LABEL = 'fechado';
+
+type OpeningSlot = OpeningHours[keyof OpeningHours];
+
+/** Run of consecutive days with the same hours, from `first` to `last`. */
+interface DayGroup {
+  first: string;
+  last: string;
+  hours: string;
+  count: number;
+}
+
+function slotLabel(slot: OpeningSlot | undefined): string {
+  return slot ? `das ${hourLabel(slot.opens)} às ${hourLabel(slot.closes)}` : CLOSED_LABEL;
+}
+
+function appendDay(groups: readonly DayGroup[], day: string, hours: string): DayGroup[] {
+  const current = groups.at(-1);
+  if (current?.hours !== hours) return [...groups, { first: day, last: day, hours, count: 1 }];
+  return [...groups.slice(0, -1), { ...current, last: day, count: current.count + 1 }];
+}
+
+function groupEqualDays(hours: OpeningHours): DayGroup[] {
+  return WEEK_ORDER.reduce<DayGroup[]>((groups, day) => appendDay(groups, day, slotLabel(hours[day])), []);
+}
+
+function daysLabel(group: DayGroup): string {
+  const from = DAY_NAMES[Number(group.first)]!;
+  if (group.count === 1) return from;
+  const to = DAY_NAMES[Number(group.last)]!.toLowerCase();
+  return group.count === 2 ? `${from} e ${to}` : `${from} a ${to}`;
+}
+
 /** Weekly hours grouped by equal consecutive days: "Segunda a sexta: das 9h às 18h", "Sábado e domingo: fechado". */
 export function openingHoursLines(hours: OpeningHours): Array<{ days: string; hours: string }> {
-  const groups: Array<{ first: string; last: string; key: string; count: number }> = [];
-  for (const day of WEEK_ORDER) {
-    const slot = hours[day] ?? null;
-    const key = slot ? `das ${hourLabel(slot.opens)} às ${hourLabel(slot.closes)}` : 'fechado';
-    const current = groups.at(-1);
-    if (current?.key === key) {
-      current.last = day;
-      current.count += 1;
-    } else {
-      groups.push({ first: day, last: day, key, count: 1 });
-    }
-  }
-  return groups.map(({ first, last, key, count }) => {
-    const from = DAY_NAMES[Number(first)]!;
-    const to = DAY_NAMES[Number(last)]!.toLowerCase();
-    const days = count === 1 ? from : count === 2 ? `${from} e ${to}` : `${from} a ${to}`;
-    return { days, hours: key };
-  });
+  return groupEqualDays(hours).map((group) => ({ days: daysLabel(group), hours: group.hours }));
 }
 
 /** One line summary for footers: "Segunda a sexta, das 9h às 18h" (closed days are left out). */
 export function openingHoursSummary(hours: OpeningHours): string {
   return openingHoursLines(hours)
-    .filter((line) => line.hours !== 'fechado')
+    .filter((line) => line.hours !== CLOSED_LABEL)
     .map((line) => `${line.days}, ${line.hours}`)
     .join('; ');
 }

@@ -188,21 +188,27 @@ export type StoreForm = {
   defaultStockMin: string;
 };
 
+type DayHours = { opens: string; closes: string };
+type WeekdayKey = '0' | '1' | '2' | '3' | '4' | '5' | '6';
+
+const CLOSED_DAY_FORM: Readonly<DayHoursForm> = { open: false, opens: '09:00', closes: '18:00' };
+
+function mapWeekdays<T>(build: (key: string) => T): Record<string, T> {
+  return Object.fromEntries(WEEKDAYS.map(({ key }) => [key, build(key)]));
+}
+
+function dayHoursFormFrom(day: DayHours | null | undefined): DayHoursForm {
+  return day ? { open: true, opens: day.opens, closes: day.closes } : { ...CLOSED_DAY_FORM };
+}
+
 export function storeFormFrom(settings: StoreSettings): StoreForm {
-  const openingHours: Record<string, DayHoursForm> = {};
-  for (const { key } of WEEKDAYS) {
-    const day = settings.openingHours[key];
-    openingHours[key] = day
-      ? { open: true, opens: day.opens, closes: day.closes }
-      : { open: false, opens: '09:00', closes: '18:00' };
-  }
   return {
     name: settings.name,
     phone: settings.phone,
     whatsapp: settings.whatsapp ?? '',
     email: settings.email,
     address: addressFromApi(settings.address),
-    openingHours,
+    openingHours: mapWeekdays((key) => dayHoursFormFrom(settings.openingHours[key])),
     notificationEmails: settings.notificationEmails.join('\n'),
     defaultStockMin: String(settings.defaultStockMin),
   };
@@ -219,56 +225,85 @@ export function parseEmailList(text: string): string[] {
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 export const MAX_NOTIFICATION_EMAILS = 10;
 
-export function validateStoreForm(values: StoreForm): FieldErrors {
-  const errors: FieldErrors = { ...validateAddress(values.address, true) };
-  if (values.name.trim().length < 3) errors.name = 'Informe o nome da loja.';
-  if (!isValidPhone(values.phone)) errors.phone = 'Digite o telefone com DDD, como (19) 3804-1658.';
-  if (values.whatsapp && !isValidPhone(values.whatsapp)) {
-    errors.whatsapp = 'Digite o WhatsApp com DDD, como (19) 99999-9999.';
-  }
-  if (!EMAIL_PATTERN.test(values.email.trim()))
-    errors.email = 'Digite um email válido, como nome@exemplo.com.';
-  for (const { key, label } of WEEKDAYS) {
-    const day = values.openingHours[key]!;
-    if (!day.open) continue;
-    if (!TIME_PATTERN.test(day.opens))
-      errors[`openingHours.${key}.opens`] = `Informe quando abre na ${label}.`;
-    else if (!TIME_PATTERN.test(day.closes)) {
-      errors[`openingHours.${key}.closes`] = `Informe quando fecha na ${label}.`;
-    } else if (day.closes <= day.opens) {
-      errors[`openingHours.${key}.closes`] = 'O fechamento precisa ser depois da abertura.';
-    }
-  }
-  const emails = parseEmailList(values.notificationEmails);
+const STORE_NAME_MIN_LENGTH = 3;
+const DEFAULT_STOCK_MIN_LIMIT = 1000;
+
+function storeNameError(name: string): string | undefined {
+  return name.trim().length < STORE_NAME_MIN_LENGTH ? 'Informe o nome da loja.' : undefined;
+}
+
+function storePhoneError(phone: string): string | undefined {
+  return isValidPhone(phone) ? undefined : 'Digite o telefone com DDD, como (19) 3804-1658.';
+}
+
+function whatsappError(whatsapp: string): string | undefined {
+  if (!whatsapp || isValidPhone(whatsapp)) return undefined;
+  return 'Digite o WhatsApp com DDD, como (19) 99999-9999.';
+}
+
+function notificationEmailsError(text: string): string | undefined {
+  const emails = parseEmailList(text);
   const wrong = emails.find((email) => !EMAIL_PATTERN.test(email));
-  if (wrong) errors.notificationEmails = `Confira o email ${wrong}.`;
-  else if (emails.length > MAX_NOTIFICATION_EMAILS) {
-    errors.notificationEmails = `Use até ${MAX_NOTIFICATION_EMAILS} emails.`;
-  }
+  if (wrong) return `Confira o email ${wrong}.`;
+  return emails.length > MAX_NOTIFICATION_EMAILS ? `Use até ${MAX_NOTIFICATION_EMAILS} emails.` : undefined;
+}
+
+function defaultStockMinError(value: string): string | undefined {
   // Number inputs hand back numbers through v-model, so read the value as text first.
-  const stock = String(values.defaultStockMin).trim();
-  if (!/^\d+$/.test(stock) || Number(stock) > 1000) {
-    errors.defaultStockMin = 'Use um número inteiro de 0 a 1000.';
-  }
-  return errors;
+  const stock = String(value).trim();
+  const isValid = isWholeNumberText(stock) && Number(stock) <= DEFAULT_STOCK_MIN_LIMIT;
+  return isValid ? undefined : `Use um número inteiro de 0 a ${DEFAULT_STOCK_MIN_LIMIT}.`;
+}
+
+function dayHoursErrors(key: string, label: string, day: DayHoursForm): FieldErrors {
+  if (!day.open) return {};
+  if (!TIME_PATTERN.test(day.opens))
+    return { [`openingHours.${key}.opens`]: `Informe quando abre na ${label}.` };
+  const closesPath = `openingHours.${key}.closes`;
+  if (!TIME_PATTERN.test(day.closes)) return { [closesPath]: `Informe quando fecha na ${label}.` };
+  return day.closes <= day.opens ? { [closesPath]: 'O fechamento precisa ser depois da abertura.' } : {};
+}
+
+function openingHoursErrors(openingHours: StoreForm['openingHours']): FieldErrors {
+  const perDay = WEEKDAYS.map(({ key, label }) => dayHoursErrors(key, label, openingHours[key]!));
+  return Object.assign({}, ...perDay) as FieldErrors;
+}
+
+function storeFieldRules(values: StoreForm): Record<string, FieldRule> {
+  return {
+    name: () => storeNameError(values.name),
+    phone: () => storePhoneError(values.phone),
+    whatsapp: () => whatsappError(values.whatsapp),
+    email: () => emailError(values.email),
+    notificationEmails: () => notificationEmailsError(values.notificationEmails),
+    defaultStockMin: () => defaultStockMinError(values.defaultStockMin),
+  };
+}
+
+export function validateStoreForm(values: StoreForm): FieldErrors {
+  return {
+    ...validateAddress(values.address, true),
+    ...collectFieldErrors(storeFieldRules(values)),
+    ...openingHoursErrors(values.openingHours),
+  };
+}
+
+function dayHoursToApi(day: DayHoursForm): DayHours | null {
+  return day.open ? { opens: day.opens, closes: day.closes } : null;
+}
+
+function openingHoursToApi(openingHours: StoreForm['openingHours']): Record<WeekdayKey, DayHours | null> {
+  return mapWeekdays((key) => dayHoursToApi(openingHours[key]!)) as Record<WeekdayKey, DayHours | null>;
 }
 
 export function storeFormToApi(values: StoreForm) {
-  const openingHours: Record<string, { opens: string; closes: string } | null> = {};
-  for (const { key } of WEEKDAYS) {
-    const day = values.openingHours[key]!;
-    openingHours[key] = day.open ? { opens: day.opens, closes: day.closes } : null;
-  }
   return {
     name: values.name.trim(),
     phone: values.phone,
     whatsapp: values.whatsapp || null,
     email: values.email.trim(),
     address: addressToApi(values.address)!,
-    openingHours: openingHours as Record<
-      '0' | '1' | '2' | '3' | '4' | '5' | '6',
-      { opens: string; closes: string } | null
-    >,
+    openingHours: openingHoursToApi(values.openingHours),
     notificationEmails: parseEmailList(values.notificationEmails),
     defaultStockMin: Number(values.defaultStockMin),
   };

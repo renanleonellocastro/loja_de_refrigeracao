@@ -49,19 +49,30 @@ function positive(value: QueryValue): number | undefined {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 }
 
+const QUERY_TEXT_MAX = 100;
+const BRAND_TEXT_MAX = 60;
+
+function categoryFrom(value: QueryValue): number | undefined {
+  const categoryId = positive(value);
+  return categoryId && categoryId > 0 ? categoryId : undefined;
+}
+
+function sortFrom(value: QueryValue): string {
+  const sort = text(value);
+  return SORT_OPTIONS.some((option) => option.value === sort) ? sort : '';
+}
+
 /** Reads the filters from the route query, ignoring anything malformed instead of failing the page. */
 export function filtersFromQuery(query: LocationQuery): CatalogFilters {
-  const sort = text(query.ordem);
-  const categoryId = positive(query.categoria);
   return {
-    q: text(query.q).slice(0, 100),
-    categoryId: categoryId && categoryId > 0 ? categoryId : undefined,
+    q: text(query.q).slice(0, QUERY_TEXT_MAX),
+    categoryId: categoryFrom(query.categoria),
     condition: CONDITION_PARAMS[text(query.condicao)],
-    brand: text(query.marca).slice(0, 60) || undefined,
+    brand: text(query.marca).slice(0, BRAND_TEXT_MAX) || undefined,
     minPrice: positive(query.min),
     maxPrice: positive(query.max),
     onlyAvailable: text(query.disponiveis) === '1',
-    sort: SORT_OPTIONS.some((option) => option.value === sort) ? sort : '',
+    sort: sortFrom(query.ordem),
     page: Math.max(1, positive(query.pagina) ?? 1),
   };
 }
