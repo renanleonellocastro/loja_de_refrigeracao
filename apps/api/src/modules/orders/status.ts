@@ -11,24 +11,31 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
 export type OrderAction = 'markReady' | 'pickup' | 'cancel';
 export type OrderActor = 'customer' | 'staff';
 
-/** Order state machine of docs/DOMINIO.md; null when the action is not allowed. */
+type Transitions = Readonly<Partial<Record<OrderStatus, OrderStatus>>>;
+
+/** Order state machine of docs/DOMINIO.md: for each action and actor, the status it leads to from each status. */
+const ORDER_TRANSITIONS: Readonly<Record<OrderAction, Readonly<Record<OrderActor, Transitions>>>> = {
+  markReady: { staff: { PENDING_REVIEW: 'READY_FOR_PICKUP' }, customer: {} },
+  pickup: { staff: { READY_FOR_PICKUP: 'PICKED_UP' }, customer: {} },
+  cancel: {
+    staff: { PENDING_REVIEW: 'CANCELED', READY_FOR_PICKUP: 'CANCELED' },
+    customer: { PENDING_REVIEW: 'CANCELED' },
+  },
+};
+
+/** The status the action leads to; null when the action is not allowed. */
 export function nextOrderStatus(
   current: OrderStatus,
   action: OrderAction,
   actor: OrderActor,
 ): OrderStatus | null {
-  switch (action) {
-    case 'markReady':
-      return actor === 'staff' && current === 'PENDING_REVIEW' ? 'READY_FOR_PICKUP' : null;
-    case 'pickup':
-      return actor === 'staff' && current === 'READY_FOR_PICKUP' ? 'PICKED_UP' : null;
-    case 'cancel':
-      if (current === 'PENDING_REVIEW') return 'CANCELED';
-      return actor === 'staff' && current === 'READY_FOR_PICKUP' ? 'CANCELED' : null;
-  }
+  return ORDER_TRANSITIONS[action][actor][current] ?? null;
 }
+
+const ORDER_NUMBER_PREFIX = 'RC-';
+const ORDER_NUMBER_DIGITS = 6;
 
 /** RC-000123 */
 export function orderNumber(id: number): string {
-  return `RC-${String(id).padStart(6, '0')}`;
+  return `${ORDER_NUMBER_PREFIX}${String(id).padStart(ORDER_NUMBER_DIGITS, '0')}`;
 }

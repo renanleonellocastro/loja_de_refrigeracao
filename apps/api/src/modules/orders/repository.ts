@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, sql, sum, type SQL } from 'drizzle-orm';
 import type { Executor } from '../../infra/db/client.js';
 import { cartItems, orderEvents, orderItems, orders, users } from '../../infra/db/schema.js';
-import { normalizeText } from '../../shared/text.js';
+import { normalizeText, onlyDigits } from '../../shared/text.js';
 import type { OrderStatus } from './status.js';
 
 export type OrderRow = typeof orders.$inferSelect;
@@ -77,16 +77,18 @@ export async function itemsOf(db: Executor, orderId: number) {
   return db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).orderBy(asc(orderItems.id));
 }
 
+const EVENT_COLUMNS = {
+  fromStatus: orderEvents.fromStatus,
+  toStatus: orderEvents.toStatus,
+  actorId: users.id,
+  actorName: users.name,
+  reason: orderEvents.reason,
+  createdAt: orderEvents.createdAt,
+};
+
 export async function eventsOf(db: Executor, orderId: number) {
   return db
-    .select({
-      fromStatus: orderEvents.fromStatus,
-      toStatus: orderEvents.toStatus,
-      actorId: users.id,
-      actorName: users.name,
-      reason: orderEvents.reason,
-      createdAt: orderEvents.createdAt,
-    })
+    .select(EVENT_COLUMNS)
     .from(orderEvents)
     .leftJoin(users, eq(users.id, orderEvents.actorId))
     .where(eq(orderEvents.orderId, orderId))
@@ -103,37 +105,51 @@ export interface OrderFilters {
   offset: number;
 }
 
-function filterConditions(filters: Omit<OrderFilters, 'limit' | 'offset'>, withStatus: boolean): SQL[] {
-  const conditions: SQL[] = [];
-  if (filters.customerId !== undefined) conditions.push(eq(orders.customerId, filters.customerId));
-  if (withStatus && filters.statuses?.length) conditions.push(inArray(orders.status, filters.statuses));
-  if (filters.from) conditions.push(gte(orders.createdAt, filters.from));
-  if (filters.to) conditions.push(lte(orders.createdAt, filters.to));
-  if (filters.q) {
-    const digits = filters.q.replace(/\D/g, '');
-    conditions.push(
-      /^(rc-?)?\d+$/i.test(filters.q.trim())
-        ? eq(orders.id, Number(digits))
-        : ilike(users.searchText, `%${normalizeText(filters.q).replace(/[%_]/g, '')}%`),
-    );
-  }
-  return conditions;
+/** "RC-000123", "rc123" or "123" search the order number; anything else searches the customer. */
+const ORDER_NUMBER_SEARCH = /^(rc-?)?\d+$/i;
+
+function searchCondition(q: string): SQL {
+  if (ORDER_NUMBER_SEARCH.test(q.trim())) return eq(orders.id, Number(onlyDigits(q)));
+  return ilike(users.searchText, `%${normalizeText(q).replace(/[%_]/g, '')}%`);
 }
 
-export async function listOrders(db: Executor, filters: OrderFilters) {
-  const where = and(...filterConditions(filters, true));
-  const itemCount = db
+/** Every filter except the status, so the per status counts ignore the chosen statuses. */
+function scopeConditions(filters: OrderFilters): Array<SQL | undefined> {
+  return [
+    filters.customerId === undefined ? undefined : eq(orders.customerId, filters.customerId),
+    filters.from ? gte(orders.createdAt, filters.from) : undefined,
+    filters.to ? lte(orders.createdAt, filters.to) : undefined,
+    filters.q ? searchCondition(filters.q) : undefined,
+  ];
+}
+
+function statusCondition(statuses: OrderStatus[] | undefined): SQL | undefined {
+  return statuses?.length ? inArray(orders.status, statuses) : undefined;
+}
+
+function itemCountsByOrder(db: Executor) {
+  return db
     .select({ orderId: orderItems.orderId, quantity: sum(orderItems.quantity).as('quantity') })
     .from(orderItems)
     .groupBy(orderItems.orderId)
     .as('item_count');
-  const rows = await db
-    .select({
-      order: orders,
-      customerName: users.name,
-      customerDeleted: sql<boolean>`${users.deletedAt} is not null`,
-      itemCount: sql<number>`coalesce(${itemCount.quantity}, 0)::int`,
-    })
+}
+
+type ItemCounts = ReturnType<typeof itemCountsByOrder>;
+
+function listColumns(itemCount: ItemCounts) {
+  return {
+    order: orders,
+    customerName: users.name,
+    customerDeleted: sql<boolean>`${users.deletedAt} is not null`,
+    itemCount: sql<number>`coalesce(${itemCount.quantity}, 0)::int`,
+  };
+}
+
+function pageOfOrders(db: Executor, where: SQL | undefined, filters: OrderFilters) {
+  const itemCount = itemCountsByOrder(db);
+  return db
+    .select(listColumns(itemCount))
     .from(orders)
     .innerJoin(users, eq(users.id, orders.customerId))
     .leftJoin(itemCount, eq(itemCount.orderId, orders.id))
@@ -141,16 +157,31 @@ export async function listOrders(db: Executor, filters: OrderFilters) {
     .orderBy(desc(orders.createdAt), desc(orders.id))
     .limit(filters.limit)
     .offset(filters.offset);
-  const totals = await db
+}
+
+async function countOrders(db: Executor, where: SQL | undefined): Promise<number> {
+  const [row] = await db
     .select({ value: count() })
     .from(orders)
     .innerJoin(users, eq(users.id, orders.customerId))
     .where(where);
-  const counts = await db
+  return row!.value;
+}
+
+function countByStatus(db: Executor, where: SQL | undefined) {
+  return db
     .select({ status: orders.status, value: count() })
     .from(orders)
     .innerJoin(users, eq(users.id, orders.customerId))
-    .where(and(...filterConditions(filters, false)))
+    .where(where)
     .groupBy(orders.status);
-  return { rows, total: totals[0]!.value, counts };
+}
+
+export async function listOrders(db: Executor, filters: OrderFilters) {
+  const scope = scopeConditions(filters);
+  const where = and(...scope, statusCondition(filters.statuses));
+  const rows = await pageOfOrders(db, where, filters);
+  const total = await countOrders(db, where);
+  const counts = await countByStatus(db, and(...scope));
+  return { rows, total, counts };
 }
