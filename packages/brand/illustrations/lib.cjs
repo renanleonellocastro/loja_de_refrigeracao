@@ -131,15 +131,20 @@ const STANDARD_RADIAL_GRADIENTS = [
   },
 ];
 
-// Standard gradients, prefixed per file so inline usage never collides.
-function stdDefs(p) {
-  const linear = STANDARD_LINEAR_GRADIENTS.map(({ suffix, vector, stops: gradientStops }) =>
+// Linear then radial gradients from tables of { suffix, vector, stops }, ids prefixed per file.
+function gradientDefs(p, linearGradients, radialGradients) {
+  const linear = linearGradients.map(({ suffix, vector, stops: gradientStops }) =>
     lin(`${p}${suffix}`, ...vector, gradientStops),
   );
-  const radial = STANDARD_RADIAL_GRADIENTS.map(({ suffix, stops: gradientStops }) =>
+  const radial = radialGradients.map(({ suffix, stops: gradientStops }) =>
     rad(`${p}${suffix}`, gradientStops),
   );
   return [...linear, ...radial].join('');
+}
+
+// Standard gradients, prefixed per file so inline usage never collides.
+function stdDefs(p) {
+  return gradientDefs(p, STANDARD_LINEAR_GRADIENTS, STANDARD_RADIAL_GRADIENTS);
 }
 
 const BLOB_POINT_COUNT = 8;
@@ -186,15 +191,6 @@ function logo(kind, x, y, width, p) {
   const h = (width * vh) / vw;
   return `<svg x="${x}" y="${y.toFixed(1)}" width="${width}" height="${h.toFixed(1)}" viewBox="${vb}" overflow="visible">${inner}</svg>`;
 }
-const logoHeight = (kind, width) => {
-  const src = fs.readFileSync(`${LOGO_DIR}${LOGO_FILES[kind] ?? kind}.svg`, 'utf8');
-  const [, , vw, vh] = src
-    .match(/viewBox="([^"]+)"/)[1]
-    .split(/\s+/)
-    .map(Number);
-  return (width * vh) / vw;
-};
-
 const shadow = (p, cx, cy, rx, ry, op = 1) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${p}sh)" opacity="${op}"/>`;
 const g = (t, s, extra = '') => `<g transform="${t}"${extra}>${s}</g>`;
@@ -464,9 +460,12 @@ module.exports = {
   rad,
   stops,
   stdDefs,
+  gradientDefs,
+  HORIZONTAL,
+  VERTICAL,
+  DIAGONAL,
   blob,
   logo,
-  logoHeight,
   shadow,
   g,
   air,
