@@ -3,12 +3,11 @@ import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
 import { conflict } from '../../shared/errors.js';
 import { pageOf, toLimitOffset, type PageQuery } from '../../shared/pagination.js';
-import { recordAudit } from '../audit/service.js';
-import type { AuditMeta } from './categories.js';
+import { auditProductChange, type AuditMeta } from './audit.js';
 import { findForStaff } from './products.js';
 import * as repo from './repository.js';
 import type { StockMovementInput } from './schemas.js';
-import { isLowStock } from './views.js';
+import { isLowStock, storedImageOf } from './views.js';
 
 export interface StockRequest {
   productId: number;
@@ -32,11 +31,14 @@ export const insufficientStock = (
   detail = 'Alguns itens não têm a quantidade pedida disponível.',
 ) => conflict('insufficient-stock', 'Estoque insuficiente', detail, { items });
 
+/** Direction of each manual movement: IN adds, LOSS subtracts, ADJUSTMENT keeps the sign sent. */
+const MOVEMENT_SIGN: Record<StockMovementInput['type'], number> = { IN: 1, LOSS: -1, ADJUSTMENT: 1 };
+
+type ManualMovement = repo.NewStockMovement & { reason: string | null };
+
 /** Signed change of the available quantity for a manual movement. */
 export function deltaOf(input: { type: StockMovementInput['type']; quantity: number }): number {
-  if (input.type === 'IN') return input.quantity;
-  if (input.type === 'LOSS') return -input.quantity;
-  return input.quantity;
+  return MOVEMENT_SIGN[input.type] * input.quantity;
 }
 
 function movementView(row: repo.StockMovementRow, authorName: string | null) {
@@ -62,6 +64,46 @@ export async function listMovements(ctx: AppContext, productId: number, query: P
   );
 }
 
+async function negativeStockError(tx: Executor, productId: number, delta: number) {
+  const current = await findForStaff(tx, productId);
+  return insufficientStock(
+    [{ productId, requested: -delta, available: current.stockAvailable }],
+    `Há ${current.stockAvailable} unidade(s) disponível(is). A movimentação deixaria o estoque negativo.`,
+  );
+}
+
+/** Applies the delta in one conditional statement and returns the new available quantity. */
+async function applyDeltaOrReject(tx: Executor, productId: number, delta: number): Promise<number> {
+  const stockAvailable = await repo.applyStockDelta(tx, productId, delta);
+  if (stockAvailable === undefined) throw await negativeStockError(tx, productId, delta);
+  return stockAvailable;
+}
+
+function auditMovement(tx: Executor, meta: AuditMeta, movement: ManualMovement, stockAvailable: number) {
+  const { productId, type, quantity, reason } = movement;
+  return auditProductChange(tx, meta, productId, {
+    action: 'product.stock',
+    before: { stockAvailable: stockAvailable - quantity },
+    after: { stockAvailable, type, quantity, reason },
+  });
+}
+
+async function applyAuditedMovement(
+  tx: Executor,
+  movement: ManualMovement,
+  stockMin: number | null,
+  meta: AuditMeta,
+) {
+  const stockAvailable = await applyDeltaOrReject(tx, movement.productId, movement.quantity);
+  const [row] = await repo.insertMovements(tx, [movement]);
+  await auditMovement(tx, meta, movement, stockAvailable);
+  return {
+    movement: movementView(row!, await repo.findAuthorName(tx, meta.actor.userId)),
+    stockAvailable,
+    lowStock: isLowStock({ stockAvailable, stockMin }, await repo.defaultStockMin(tx)),
+  };
+}
+
 /**
  * UC Movimentar Estoque: IN adds, LOSS subtracts, ADJUSTMENT applies a signed quantity.
  * The update is a single conditional statement, so concurrent movements never take the
@@ -74,42 +116,15 @@ export async function recordMovement(
   meta: AuditMeta,
 ) {
   const product = await findForStaff(ctx.db, productId);
-  const delta = deltaOf(input);
-  return ctx.db.transaction(async (tx) => {
-    const stockAvailable = await repo.applyStockDelta(tx, productId, delta);
-    if (stockAvailable === undefined) {
-      const current = await findForStaff(tx, productId);
-      throw insufficientStock(
-        [{ productId, requested: -delta, available: current.stockAvailable }],
-        `Há ${current.stockAvailable} unidade(s) disponível(is). A movimentação deixaria o estoque negativo.`,
-      );
-    }
-    const now = ctx.clock.now();
-    const [movement] = await repo.insertMovements(tx, [
-      {
-        productId,
-        type: input.type,
-        quantity: delta,
-        reason: input.reason,
-        authorId: meta.actor.userId,
-        createdAt: now,
-      },
-    ]);
-    await recordAudit(tx, {
-      actorId: meta.actor.userId,
-      action: 'product.stock',
-      resourceType: 'product',
-      resourceId: productId,
-      before: { stockAvailable: stockAvailable - delta },
-      after: { stockAvailable, type: input.type, quantity: delta, reason: input.reason },
-      ip: meta.ip,
-    });
-    return {
-      movement: movementView(movement!, await repo.findAuthorName(tx, meta.actor.userId)),
-      stockAvailable,
-      lowStock: isLowStock({ stockAvailable, stockMin: product.stockMin }, await repo.defaultStockMin(tx)),
-    };
-  });
+  const movement: ManualMovement = {
+    productId,
+    type: input.type,
+    quantity: deltaOf(input),
+    reason: input.reason,
+    authorId: meta.actor.userId,
+    createdAt: ctx.clock.now(),
+  };
+  return ctx.db.transaction((tx) => applyAuditedMovement(tx, movement, product.stockMin, meta));
 }
 
 /** Sums quantities of repeated products and sorts by id, so concurrent orders lock rows in the same order. */
@@ -119,6 +134,28 @@ function consolidate(items: StockRequest[]): StockRequest[] {
   return [...totals.entries()]
     .sort(([a], [b]) => a - b)
     .map(([productId, quantity]) => ({ productId, quantity }));
+}
+
+function linkedMovement(
+  link: StockLink,
+  now: Date,
+  movement: Pick<repo.NewStockMovement, 'productId' | 'type' | 'quantity'>,
+): repo.NewStockMovement {
+  return { ...link, ...movement, createdAt: now };
+}
+
+/** What an order can still take of the product: nothing when it is archived or missing. */
+async function availableToOrder(tx: Executor, productId: number): Promise<number> {
+  const [current] = await repo.findProductsByIds(tx, [productId]);
+  return current && current.archivedAt === null ? current.stockAvailable : 0;
+}
+
+/** Takes the quantity from an active product; returns the shortage when it could not. */
+async function tryReserve(tx: Executor, item: StockRequest): Promise<UnavailableItem | undefined> {
+  const left = await repo.applyStockDeltaToActive(tx, item.productId, -item.quantity);
+  if (left !== undefined) return undefined;
+  const available = await availableToOrder(tx, item.productId);
+  return { productId: item.productId, requested: item.quantity, available };
 }
 
 /**
@@ -136,20 +173,9 @@ export async function reserveStock(
   const unavailable: UnavailableItem[] = [];
   const reserved: repo.NewStockMovement[] = [];
   for (const item of consolidate(items)) {
-    const left = await repo.applyStockDelta(tx, item.productId, -item.quantity, true);
-    if (left === undefined) {
-      const [current] = await repo.findProductsByIds(tx, [item.productId]);
-      const available = current && current.archivedAt === null ? current.stockAvailable : 0;
-      unavailable.push({ productId: item.productId, requested: item.quantity, available });
-    } else {
-      reserved.push({
-        ...link,
-        productId: item.productId,
-        type: 'RESERVATION',
-        quantity: -item.quantity,
-        createdAt: now,
-      });
-    }
+    const shortage = await tryReserve(tx, item);
+    if (shortage) unavailable.push(shortage);
+    else reserved.push(linkedMovement(link, now, { ...item, type: 'RESERVATION', quantity: -item.quantity }));
   }
   if (unavailable.length === 0) await repo.insertMovements(tx, reserved);
   return unavailable;
@@ -165,31 +191,27 @@ export async function releaseStock(
   const released: repo.NewStockMovement[] = [];
   for (const item of consolidate(items)) {
     await repo.applyStockDelta(tx, item.productId, item.quantity);
-    released.push({
-      ...link,
-      productId: item.productId,
-      type: 'RELEASE',
-      quantity: item.quantity,
-      createdAt: now,
-    });
+    released.push(linkedMovement(link, now, { ...item, type: 'RELEASE' }));
   }
   await repo.insertMovements(tx, released);
+}
+
+function orderProductView(row: repo.ProductRow, cover: repo.ProductImageRow | undefined) {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    priceCents: row.priceCents,
+    stockAvailable: row.stockAvailable,
+    archived: row.archivedAt !== null,
+    cover: cover ? imageView(storedImageOf(cover)) : null,
+  };
 }
 
 /** Name, price, availability and cover photo of products, by id (missing ids are left out). */
 export async function productsForOrder(db: Executor, ids: number[]) {
   const unique = [...new Set(ids)];
   const [rows, covers] = await Promise.all([repo.findProductsByIds(db, unique), repo.coversOf(db, unique)]);
-  return rows.map((row) => {
-    const cover = covers.find((image) => image.productId === row.id);
-    return {
-      id: row.id,
-      name: row.name,
-      slug: row.slug,
-      priceCents: row.priceCents,
-      stockAvailable: row.stockAvailable,
-      archived: row.archivedAt !== null,
-      cover: cover ? imageView({ key: cover.storageKey, width: cover.width, height: cover.height }) : null,
-    };
-  });
+  const coverOf = new Map(covers.map((cover) => [cover.productId, cover]));
+  return rows.map((row) => orderProductView(row, coverOf.get(row.id)));
 }

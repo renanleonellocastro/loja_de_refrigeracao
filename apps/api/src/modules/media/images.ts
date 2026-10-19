@@ -26,28 +26,47 @@ export function variantWidths(originalWidth: number): number[] {
   return widths.length > 0 ? widths : [IMAGE_WIDTHS[0]];
 }
 
+/** Hex digits of the SHA-256 kept in a storage key: 128 bits are enough to never collide. */
+const CONTENT_KEY_LENGTH = 32;
+const WEBP_QUALITY = 80;
+
+async function readMetadata(data: Buffer): Promise<Metadata> {
+  try {
+    return await sharp(data).metadata();
+  } catch {
+    throw unsupportedImage();
+  }
+}
+
+/** Checks the real content of the file, not the type the client declared. */
+async function assertAcceptedPhoto(data: Buffer): Promise<void> {
+  const metadata = await readMetadata(data);
+  if (!ACCEPTED_FORMATS.has(String(metadata.format))) throw unsupportedImage();
+}
+
+function contentKey(data: Buffer): string {
+  return createHash('sha256').update(data).digest('hex').slice(0, CONTENT_KEY_LENGTH);
+}
+
+/** A WebP copy at `width`, upright and without EXIF data (sharp drops metadata unless asked to keep it). */
+function webpVariant(data: Buffer, width: number): Promise<Buffer> {
+  return sharp(data)
+    .rotate()
+    .resize({ width, withoutEnlargement: true })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+}
+
 /**
  * Validates the real content (not the declared type), fixes the orientation, drops EXIF data
  * including GPS, and stores WebP variants under a content addressed key.
  */
 export async function storeImage(storage: Storage, data: Buffer): Promise<StoredImage> {
-  let metadata: Metadata;
-  try {
-    metadata = await sharp(data).metadata();
-  } catch {
-    throw unsupportedImage();
-  }
-  if (!ACCEPTED_FORMATS.has(String(metadata.format))) throw unsupportedImage();
-
+  await assertAcceptedPhoto(data);
   const { info } = await sharp(data).rotate().toBuffer({ resolveWithObject: true });
-  const key = createHash('sha256').update(data).digest('hex').slice(0, 32);
+  const key = contentKey(data);
   for (const width of variantWidths(info.width)) {
-    const variant = await sharp(data)
-      .rotate()
-      .resize({ width, withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-    await storage.put(`${key}/${width}.webp`, variant);
+    await storage.put(`${key}/${width}.webp`, await webpVariant(data, width));
   }
   return { key, width: info.width, height: info.height };
 }
@@ -63,6 +82,6 @@ export function imageView(image: StoredImage) {
     width: image.width,
     height: image.height,
     url: mediaUrl(image.key, widths[widths.length - 1]!),
-    srcset: widths.map((w) => `${mediaUrl(image.key, w)} ${w}w`).join(', '),
+    srcset: widths.map((width) => `${mediaUrl(image.key, width)} ${width}w`).join(', '),
   };
 }
