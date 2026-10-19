@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { sessions, users } from '../../infra/db/schema.js';
 import { DAY, MINUTE } from '../../shared/clock.js';
 import { TEST_PASSWORD, useTestApp } from '../../../test/harness.js';
+import { insertAuthToken } from './repository.js';
 import { inviteUser, requestEmailChange } from './service.js';
+import { generateOpaqueToken, hashToken } from './tokens.js';
 
 const NEW_PASSWORD = 'Ar-Condicionado-9000';
 
@@ -459,6 +461,22 @@ describe('auth routes', () => {
         url: `/api/v1/auth/email-verifications/${'b'.repeat(43)}`,
       });
       expect(unknown.statusCode).toBe(410);
+    });
+
+    it('refuses a verification link that carries no new email', async () => {
+      const user = await t.createUser();
+      const token = generateOpaqueToken();
+      await insertAuthToken(t.db, {
+        userId: user.id,
+        purpose: 'EMAIL_VERIFICATION',
+        tokenHash: hashToken(token),
+        expiresAt: new Date(t.clock.now().getTime() + DAY),
+      });
+      const response = await t.app.inject({
+        method: 'POST',
+        url: `/api/v1/auth/email-verifications/${token}`,
+      });
+      expect(response.statusCode).toBe(410);
     });
   });
 });

@@ -15,6 +15,12 @@ export async function verifyPassword(passwordHash: string, password: string): Pr
   }
 }
 
+/** Whether the password opens the account; an invited account without a password never matches. */
+export async function matchesPassword(passwordHash: string | null, password: string): Promise<boolean> {
+  if (!passwordHash) return false;
+  return verifyPassword(passwordHash, password);
+}
+
 /** Common leaked passwords and obvious local choices; checked case insensitively. */
 const COMMON_PASSWORDS = new Set([
   '12345678',
