@@ -1,5 +1,5 @@
 # Local quality gate: the same steps as the "quality" job of .github/workflows/ci.yml plus the
-# function length ratchet (docs/QUALIDADE.md). Run `pnpm install` once before `make check`.
+# strict function length check (docs/QUALIDADE.md). Run `pnpm install` once before `make check`.
 
 PNPM ?= pnpm
 CHECK_POSTGRES_PORT ?= 5482
@@ -10,7 +10,7 @@ FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list function-length-baseline
+	function-length function-length-list
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
@@ -53,11 +53,9 @@ test-db-down: ## Remove the test PostgreSQL container
 web: ## Production build of the site
 	$(PNPM) --filter @rc/web run build
 
-function-length: ## Ratchet: no new function past 12 lines, no baselined function grows
-	$(FUNCTION_LENGTH)
+function-length: ## Strict: fails on any function past 12 lines
+	$(FUNCTION_LENGTH) --strict
 
 function-length-list: ## Every function past 12 lines, longest first
 	$(FUNCTION_LENGTH) --list
 
-function-length-baseline: ## Shrink tools/function_length_baseline.json; ALLOW_GROWTH=1 is exceptional
-	$(FUNCTION_LENGTH) --write-baseline $(if $(ALLOW_GROWTH),--allow-growth)
