@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { pageQuerySchema, paginated } from '../../shared/pagination.js';
 import { defineRoute, registerRoutes } from '../../shared/routes.js';
-import { errorResponses, dateInput } from '../../shared/schemas.js';
+import { errorResponses, dateInput, positiveIntegerInput } from '../../shared/schemas.js';
 import { listAudit } from './service.js';
 
 const auditLogSchema = z
@@ -21,7 +21,7 @@ const auditLogSchema = z
   .meta({ id: 'AuditLog' });
 
 const querySchema = pageQuerySchema.extend({
-  actorId: z.coerce.number().int().positive().optional(),
+  actorId: positiveIntegerInput().optional(),
   resourceType: z.string().max(50).optional(),
   from: dateInput().optional(),
   to: dateInput().optional(),

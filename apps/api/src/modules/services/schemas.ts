@@ -1,5 +1,6 @@
 import { ROLES } from '@rc/contracts';
 import { z } from 'zod';
+import { pageQuerySchema } from '../../shared/pagination.js';
 import { imageSchema } from '../media/schemas.js';
 import { addressSchema, addressViewSchema } from '../users/schemas.js';
 import { REQUEST_STATUSES } from './status.js';
@@ -65,8 +66,7 @@ export const requestListQuerySchema = z.object({
     .transform((value) => (value ? value.split(',') : undefined))
     .pipe(z.array(z.enum(REQUEST_STATUSES)).optional()),
   q: z.string().trim().max(100).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  ...pageQuerySchema.shape,
 });
 
 const personSchema = z.object({ id: z.number().int(), name: z.string() });
