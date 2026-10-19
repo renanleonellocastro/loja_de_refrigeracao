@@ -14,6 +14,12 @@ definePageMeta({ layout: 'area', permission: 'appointments.read', title: 'Agenda
 const ALL = 'TODOS';
 const DESKTOP_VIEWS: CalendarView[] = ['timeGridWeek', 'dayGridMonth', 'timeGridDay', 'listWeek'];
 const TABLET_VIEWS: CalendarView[] = ['timeGridWeek'];
+const PRECONDITION_FAILED = 412;
+const STALE_MOVE_MESSAGE =
+  'Outra pessoa mudou este atendimento. Atualizamos a agenda: confira e tente de novo.';
+
+type Period = { from: string; to: string };
+type MoveChange = { id: number; startsAt: string; endsAt: string; revert: () => void };
 
 const api = useApi();
 const route = useRoute();
@@ -26,7 +32,7 @@ const manage = computed(() => can(actor.value, 'appointments.manage'));
 const appointments = ref<Appointment[]>([]);
 const loading = ref(true);
 const failed = ref(false);
-const range = ref<{ from: string; to: string } | null>(null);
+const range = ref<Period | null>(null);
 const day = ref(storeDay());
 const technicians = ref<Person[]>([]);
 const technician = ref(typeof route.query.tecnico === 'string' ? route.query.tecnico : ALL);
@@ -39,6 +45,15 @@ const technicianOptions = computed(() => [
 ]);
 const events = computed(() => appointments.value.map((item) => toCalendarEvent(item, manage.value)));
 
+function employeeFilter(): number | undefined {
+  return manage.value && technician.value !== ALL ? Number(technician.value) : undefined;
+}
+
+function fetchAppointments(period: Period): Promise<Appointment[] | null> {
+  const query = { ...period, employeeId: employeeFilter() };
+  return unwrap(api.GET('/api/v1/appointments', { params: { query } })).catch(() => null);
+}
+
 let loadId = 0;
 async function load(): Promise<void> {
   const current = isPhone.value ? dayRange(day.value) : range.value;
@@ -46,10 +61,7 @@ async function load(): Promise<void> {
   const id = ++loadId;
   loading.value = true;
   failed.value = false;
-  const employeeId = manage.value && technician.value !== ALL ? Number(technician.value) : undefined;
-  const result = await unwrap(
-    api.GET('/api/v1/appointments', { params: { query: { ...current, employeeId } } }),
-  ).catch(() => null);
+  const result = await fetchAppointments(current);
   // Only the answer of the last request counts, so a fast swipe never shows the wrong day.
   if (id !== loadId) return;
   loading.value = false;
@@ -70,7 +82,7 @@ async function loadTechnicians(): Promise<void> {
   }
 }
 
-function onRange(next: { from: string; to: string }): void {
+function onRange(next: Period): void {
   range.value = next;
   void load();
 }
@@ -90,32 +102,30 @@ function open(id: number): void {
   void navigateTo(`/agenda/${id}`);
 }
 
-async function move(change: {
-  id: number;
-  startsAt: string;
-  endsAt: string;
-  revert: () => void;
-}): Promise<void> {
+function patchAppointment(change: MoveChange) {
   const appointment = appointments.value.find((item) => item.id === change.id)!;
-  const result = await api
+  return api
     .PATCH('/api/v1/appointments/{id}', {
       params: { path: { id: change.id } },
       body: { startsAt: change.startsAt, endsAt: change.endsAt },
       headers: { 'If-Match': etagOf(appointment.version) },
     })
     .catch(() => null);
+}
+
+function moveFailureMessage(result: Awaited<ReturnType<typeof patchAppointment>>): string {
+  if (result?.response.status === PRECONDITION_FAILED) return STALE_MOVE_MESSAGE;
+  const error = result ? problemToError(result.response.status, result.error) : toApiError(null);
+  return error.message;
+}
+
+async function move(change: MoveChange): Promise<void> {
+  const result = await patchAppointment(change);
   if (result?.data) {
     toast.success({ title: 'Atendimento remarcado. O cliente e o técnico foram avisados.' });
   } else {
     change.revert();
-    if (result?.response.status === 412) {
-      toast.error({
-        title: 'Outra pessoa mudou este atendimento. Atualizamos a agenda: confira e tente de novo.',
-      });
-    } else {
-      const error = result ? problemToError(result.response.status, result.error) : toApiError(null);
-      toast.error({ title: error.message });
-    }
+    toast.error({ title: moveFailureMessage(result) });
   }
   await load();
 }

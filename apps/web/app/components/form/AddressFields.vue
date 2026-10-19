@@ -12,6 +12,8 @@ const props = withDefaults(
 );
 const address = defineModel<AddressForm>({ required: true });
 
+const CEP_DIGITS = 8;
+
 type LookupState = 'idle' | 'loading' | 'found' | 'not-found';
 const state = ref<LookupState>('idle');
 const numberField = useTemplateRef<{ focus: () => void }>('numberField');
@@ -28,29 +30,32 @@ const HINTS: Record<LookupState, string | undefined> = {
   'not-found': 'Não achamos esse CEP. Preencha o endereço à mão.',
 };
 
-watch(
-  () => address.value.cep,
-  async (cep) => {
-    if (cep.length !== 8 || cep === lastLooked) return;
-    lastLooked = cep;
-    state.value = 'loading';
-    try {
-      const found = await unwrap(api.GET('/api/v1/addresses/lookup', { params: { query: { cep } } }));
-      address.value = {
-        ...address.value,
-        street: found.street,
-        district: found.district,
-        city: found.city,
-        state: found.state,
-      };
-      state.value = 'found';
-      await nextTick();
-      numberField.value?.focus();
-    } catch {
-      state.value = 'not-found';
-    }
-  },
-);
+async function fillFrom(cep: string): Promise<void> {
+  const found = await unwrap(api.GET('/api/v1/addresses/lookup', { params: { query: { cep } } }));
+  address.value = {
+    ...address.value,
+    street: found.street,
+    district: found.district,
+    city: found.city,
+    state: found.state,
+  };
+}
+
+async function lookUp(cep: string): Promise<void> {
+  if (cep.length !== CEP_DIGITS || cep === lastLooked) return;
+  lastLooked = cep;
+  state.value = 'loading';
+  try {
+    await fillFrom(cep);
+    state.value = 'found';
+    await nextTick();
+    numberField.value?.focus();
+  } catch {
+    state.value = 'not-found';
+  }
+}
+
+watch(() => address.value.cep, lookUp);
 </script>
 
 <template>

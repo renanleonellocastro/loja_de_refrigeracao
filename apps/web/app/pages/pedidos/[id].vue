@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Ban, CircleCheck, Mail, PackageCheck, Phone, Printer } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/helpers/optional-reason';
 import { formatDateTime, formatPhone } from '~/utils/masks';
 import { orderTimeline } from '~/utils/orders';
 
@@ -36,15 +38,12 @@ async function load(): Promise<void> {
 }
 
 async function run(action: () => Promise<Order>, done: string): Promise<void> {
-  acting.value = true;
-  try {
-    order.value = await action();
-    toast.success({ title: done });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    acting.value = false;
-  }
+  await holdWhile(acting, true, false, () =>
+    runOrToast(async () => {
+      order.value = await action();
+      toast.success({ title: done });
+    }),
+  );
 }
 
 const params = () => ({ path: { id: order.value!.id } });
@@ -61,15 +60,9 @@ function markPickedUp(): Promise<void> {
 }
 
 async function cancel(): Promise<void> {
-  const text = reason.value.trim();
+  const body = optionalReason(reason.value);
   await run(
-    () =>
-      unwrap(
-        api.POST('/api/v1/orders/{id}/cancellation', {
-          params: params(),
-          body: text ? { reason: text } : {},
-        }),
-      ),
+    () => unwrap(api.POST('/api/v1/orders/{id}/cancellation', { params: params(), body })),
     'Pedido cancelado. Os itens voltaram para o estoque.',
   );
   if (order.value!.status === 'CANCELED') cancelOpen.value = false;
@@ -80,23 +73,27 @@ function openCancel(): void {
   cancelOpen.value = true;
 }
 
-async function printLabel(): Promise<void> {
-  // Opening the tab inside the click keeps popup blockers quiet; the PDF arrives a moment later.
-  const tab = window.open('', '_blank');
-  if (!tab) {
-    toast.error({ title: 'O navegador bloqueou a nova aba. Libere as janelas deste site e tente de novo.' });
-    return;
-  }
-  printing.value = true;
+const POPUP_BLOCKED = 'O navegador bloqueou a nova aba. Libere as janelas deste site e tente de novo.';
+
+/** Loads the label PDF into the tab already open; a failure closes the empty tab. */
+async function showLabelIn(tab: Window): Promise<void> {
   try {
     const blob = await unwrap(api.GET('/api/v1/orders/{id}/label', { params: params(), parseAs: 'blob' }));
     tab.location.href = URL.createObjectURL(blob as Blob);
   } catch (error) {
     tab.close();
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    printing.value = false;
+    throw error;
   }
+}
+
+async function printLabel(): Promise<void> {
+  // Opening the tab inside the click keeps popup blockers quiet; the PDF arrives a moment later.
+  const tab = window.open('', '_blank');
+  if (!tab) {
+    toast.error({ title: POPUP_BLOCKED });
+    return;
+  }
+  await holdWhile(printing, true, false, () => runOrToast(() => showLabelIn(tab)));
 }
 
 onMounted(load);

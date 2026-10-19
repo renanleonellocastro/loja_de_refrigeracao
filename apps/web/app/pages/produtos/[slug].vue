@@ -5,6 +5,14 @@ import { STORE_INFO } from '~/utils/store';
 import { countLabel } from '~/utils/catalog';
 
 /** UC Consultar Produtos, detail (RF-20, D1): public and rendered on the server, with Product JSON-LD. */
+const CENTS_PER_REAL = 100;
+const SCHEMA_CONDITION: Record<Condition, string> = {
+  NEW: 'https://schema.org/NewCondition',
+  USED: 'https://schema.org/UsedCondition',
+};
+const SCHEMA_IN_STOCK = 'https://schema.org/InStock';
+const SCHEMA_OUT_OF_STOCK = 'https://schema.org/OutOfStock';
+
 const route = useRoute();
 const api = useApi();
 const cart = useCartStore();
@@ -79,38 +87,45 @@ useSeoMeta({
   ),
 });
 
+function offerJsonLd(value: ProductDetail) {
+  return {
+    '@type': 'Offer',
+    url: canonical.value,
+    priceCurrency: 'BRL',
+    price: (value.priceCents / CENTS_PER_REAL).toFixed(2),
+    itemCondition: SCHEMA_CONDITION[value.condition],
+    availability: value.available ? SCHEMA_IN_STOCK : SCHEMA_OUT_OF_STOCK,
+    seller: { '@type': 'Organization', name: STORE_INFO.name },
+  };
+}
+
+function productJsonLd(value: ProductDetail) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: value.name,
+    description: value.description,
+    sku: String(value.id),
+    ...(value.brand ? { brand: { '@type': 'Brand', name: value.brand } } : {}),
+    ...(value.model ? { model: value.model } : {}),
+    category: value.categoryName,
+    image: value.images.map((image) => mediaUrl(config.public.apiBase, image.url)),
+    offers: offerJsonLd(value),
+  };
+}
+
+/** Escapes "<" so a product text can never close the script tag that holds the JSON-LD. */
+function serializeJsonLd(data: object): string {
+  return JSON.stringify(data).replace(/</g, '\\u003c');
+}
+
 useHead({
   link: [{ rel: 'canonical', href: canonical }],
   script: [
     {
       type: 'application/ld+json',
       key: 'product-jsonld',
-      innerHTML: computed(() => {
-        const value = item.value;
-        return JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Product',
-          name: value.name,
-          description: value.description,
-          sku: String(value.id),
-          ...(value.brand ? { brand: { '@type': 'Brand', name: value.brand } } : {}),
-          ...(value.model ? { model: value.model } : {}),
-          category: value.categoryName,
-          image: value.images.map((image) => mediaUrl(config.public.apiBase, image.url)),
-          offers: {
-            '@type': 'Offer',
-            url: canonical.value,
-            priceCurrency: 'BRL',
-            price: (value.priceCents / 100).toFixed(2),
-            itemCondition:
-              value.condition === 'NEW'
-                ? 'https://schema.org/NewCondition'
-                : 'https://schema.org/UsedCondition',
-            availability: value.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-            seller: { '@type': 'Organization', name: STORE_INFO.name },
-          },
-        }).replace(/</g, '\\u003c');
-      }),
+      innerHTML: computed(() => serializeJsonLd(productJsonLd(item.value))),
     },
   ],
 });

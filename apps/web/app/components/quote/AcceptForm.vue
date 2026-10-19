@@ -59,20 +59,26 @@ async function loadProfile(): Promise<void> {
   }
 }
 
+function acceptanceBody(values: Values) {
+  const otherAddress = values.addressMode === 'other' || needsAddress.value;
+  return {
+    windows: values.windows,
+    address: otherAddress ? addressToApi(values.address)! : undefined,
+  };
+}
+
+async function acceptQuote(values: Values): Promise<void> {
+  const result = await unwrap(
+    api.POST('/api/v1/quotes/{id}/acceptance', {
+      params: { path: { id: props.quoteId } },
+      body: acceptanceBody(values),
+    }),
+  );
+  emit('accepted', result.quote, result.serviceRequestId);
+}
+
 async function accept(): Promise<void> {
-  await form.submit(async (values) => {
-    const otherAddress = values.addressMode === 'other' || needsAddress.value;
-    const result = await unwrap(
-      api.POST('/api/v1/quotes/{id}/acceptance', {
-        params: { path: { id: props.quoteId } },
-        body: {
-          windows: values.windows,
-          address: otherAddress ? addressToApi(values.address)! : undefined,
-        },
-      }),
-    );
-    emit('accepted', result.quote, result.serviceRequestId);
-  });
+  await form.submit(acceptQuote);
 }
 
 onMounted(loadProfile);

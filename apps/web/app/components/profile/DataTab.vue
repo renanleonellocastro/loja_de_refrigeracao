@@ -18,29 +18,37 @@ const form = useForm(fromProfile(props.profile), {
   validate: (values) => validatePerson(values, { cpfRequired: false, phoneRequired: isClient.value }),
 });
 
-async function submit(): Promise<void> {
-  await form.submit(async (values) => {
-    const result = await unwrap(
-      api.PATCH('/api/v1/me', {
-        body: {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          phone: values.phone || null,
-          cpf: values.cpf || null,
-        },
-      }),
-    );
-    emit('saved', result.profile);
-    form.reset(fromProfile(result.profile));
-    if (result.emailVerificationPending) {
-      toast.info({
-        title: 'Dados salvos. Falta confirmar o email novo.',
-        description: 'Enviamos um link para ele. Até você confirmar, seguimos usando o email antigo.',
-      });
-    } else {
-      toast.success({ title: 'Pronto! Seus dados foram atualizados.' });
-    }
+type PersonValues = ReturnType<typeof fromProfile>;
+
+function profileBody(values: PersonValues) {
+  return {
+    name: values.name.trim(),
+    email: values.email.trim(),
+    phone: values.phone || null,
+    cpf: values.cpf || null,
+  };
+}
+
+function announceSaved(emailVerificationPending: boolean): void {
+  if (!emailVerificationPending) {
+    toast.success({ title: 'Pronto! Seus dados foram atualizados.' });
+    return;
+  }
+  toast.info({
+    title: 'Dados salvos. Falta confirmar o email novo.',
+    description: 'Enviamos um link para ele. Até você confirmar, seguimos usando o email antigo.',
   });
+}
+
+async function saveProfile(values: PersonValues): Promise<void> {
+  const result = await unwrap(api.PATCH('/api/v1/me', { body: profileBody(values) }));
+  emit('saved', result.profile);
+  form.reset(fromProfile(result.profile));
+  announceSaved(result.emailVerificationPending);
+}
+
+async function submit(): Promise<void> {
+  await form.submit(saveProfile);
 }
 </script>
 

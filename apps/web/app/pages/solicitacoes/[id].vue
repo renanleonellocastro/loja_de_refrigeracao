@@ -10,6 +10,8 @@ import {
   ThumbsUp,
   UserRound,
 } from 'lucide-vue-next';
+import { optionalReason } from '~/helpers/optional-reason';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { formatDateTime, formatPhone } from '~/utils/masks';
 import { canTalk, formatVisit, isOpenRequest, requestTimeline } from '~/utils/service-requests';
 
@@ -92,45 +94,48 @@ function open(next: Decision): void {
   decision.value = next;
 }
 
-function action(kind: Decision, value: string): Promise<ServiceRequest> {
-  if (kind === 'approve') {
-    return unwrap(
+const MIN_REASON_LENGTH = 5;
+
+/** API call of each decision; approval and cancellation send their text only when one was typed. */
+const DECISION_REQUESTS: Record<Decision, (value: string) => Promise<ServiceRequest>> = {
+  approve: (value) =>
+    unwrap(
       api.POST('/api/v1/service-requests/{id}/approval', {
         params: params(),
         body: value ? { message: value } : {},
       }),
-    );
-  }
-  if (kind === 'reject') {
-    return unwrap(
+    ),
+  reject: (value) =>
+    unwrap(
       api.POST('/api/v1/service-requests/{id}/rejection', { params: params(), body: { reason: value } }),
-    );
-  }
-  return unwrap(
-    api.POST('/api/v1/service-requests/{id}/cancellation', {
-      params: params(),
-      body: value ? { reason: value } : {},
-    }),
-  );
+    ),
+  cancel: (value) =>
+    unwrap(
+      api.POST('/api/v1/service-requests/{id}/cancellation', {
+        params: params(),
+        body: optionalReason(value),
+      }),
+    ),
+};
+
+function isMissingReason(kind: Decision, value: string): boolean {
+  return kind === 'reject' && value.length < MIN_REASON_LENGTH;
+}
+
+async function decide(kind: Decision, value: string): Promise<void> {
+  request.value = await DECISION_REQUESTS[kind](value);
+  toast.success({ title: DIALOGS[kind].done });
+  decision.value = null;
 }
 
 async function confirm(): Promise<void> {
   const kind = decision.value!;
   const value = text.value.trim();
-  if (kind === 'reject' && value.length < 5) {
+  if (isMissingReason(kind, value)) {
     textError.value = 'Explique o motivo para o cliente, com pelo menos 5 letras.';
     return;
   }
-  acting.value = true;
-  try {
-    request.value = await action(kind, value);
-    toast.success({ title: DIALOGS[kind].done });
-    decision.value = null;
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    acting.value = false;
-  }
+  await holdWhile(acting, true, false, () => runOrToast(() => decide(kind, value)));
 }
 
 onMounted(load);
