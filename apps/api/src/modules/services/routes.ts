@@ -8,6 +8,9 @@ import { paginated } from '../../shared/pagination.js';
 import { errorResponses, idParamSchema } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { readMultipart } from '../media/service.js';
+import { loadVisible } from './request-access.js';
+import { createRequest } from './request-creation.js';
+import * as decisions from './request-decisions.js';
 import * as requests from './requests.js';
 import {
   approvalSchema,
@@ -127,7 +130,7 @@ const createRequestRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    const created = await requests.createRequest(ctx, auth, request.body, request.ip);
+    const created = await createRequest(ctx, auth, request.body, request.ip);
     const detail = await requests.requestDetail(ctx, auth, created.id);
     return reply.code(201).header('location', `/api/v1/service-requests/${created.id}`).send(detail);
   },
@@ -176,7 +179,7 @@ const addRequestPhotosRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    await requests.loadVisible(ctx, ctx.db, auth, request.params.id);
+    await loadVisible(ctx.db, auth, request.params.id);
     const form = await readMultipart(request, requests.MAX_REQUEST_PHOTOS);
     return reply.code(201).send(await requests.addPhotos(ctx, auth, request.params.id, form.files));
   },
@@ -211,7 +214,7 @@ const postRequestMessageRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    await requests.postRequestMessage(ctx, auth, request.params.id, request.body.body);
+    await decisions.postRequestMessage(ctx, auth, request.params.id, request.body.body);
     return reply.code(201).send(await requests.listRequestMessages(ctx, auth, request.params.id));
   },
 });
@@ -230,7 +233,7 @@ const approveRequestRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await requests.approveRequest(ctx, auth, request.params.id, request.body.message, request.ip);
+    await decisions.approveRequest(ctx, auth, request.params.id, request.body.message, request.ip);
     return requests.requestDetail(ctx, auth, request.params.id);
   },
 });
@@ -249,7 +252,7 @@ const rejectRequestRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await requests.rejectRequest(ctx, auth, request.params.id, request.body.reason, request.ip);
+    await decisions.rejectRequest(ctx, auth, request.params.id, request.body.reason, request.ip);
     return requests.requestDetail(ctx, auth, request.params.id);
   },
 });
@@ -270,7 +273,7 @@ const cancelRequestRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await requests.cancelRequest(ctx, auth, request.params.id, request.body.reason, request.ip);
+    await decisions.cancelRequest(ctx, auth, request.params.id, request.body.reason, request.ip);
     return requests.requestDetail(ctx, auth, request.params.id);
   },
 });

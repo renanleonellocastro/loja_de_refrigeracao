@@ -4,7 +4,7 @@ import { appointments, auditLogs, serviceRequests, serviceTypes } from '../../in
 import { jpeg } from '../../../test/images.js';
 import { multipart } from '../../../test/multipart.js';
 import { useTestApp } from '../../../test/harness.js';
-import { mapOverlapViolation as mapOverlapViolationForTest } from './agenda.js';
+import { mapOverlapViolation as mapOverlapViolationForTest } from './appointment-rules.js';
 
 const ADDRESS = {
   cep: '13800061',
@@ -500,7 +500,7 @@ describe('agenda routes', () => {
     });
 
     it('refuses the report from someone who sees the visit but is not its technician', async () => {
-      const { submitReport } = await import('./agenda.js');
+      const { submitReport } = await import('./reports.js');
       const tech = await t.createUser('EMPLOYEE');
       const { id } = await scheduledFor(tech);
       const manager = await t.createUser('MANAGER');
