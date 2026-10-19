@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { Clock, Pencil, Plus, Power, PowerOff, Trash2 } from 'lucide-vue-next';
+import type { ConfirmOptions } from '~/composables/useConfirm';
+import type { ToastOptions } from '~/composables/useToast';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { countLabel } from '~/utils/catalog';
 import { durationLabel, type ServiceType } from '~/utils/service-requests';
 import {
@@ -68,75 +71,88 @@ function startEdit(type: ServiceType): void {
   editing.value = { id: type.id, name: type.name };
 }
 
+type ServiceTypeBody = ReturnType<typeof serviceTypeFormToApi>;
+
+async function createServiceType(body: ServiceTypeBody): Promise<void> {
+  await unwrap(api.POST('/api/v1/service-types', { body }));
+  toast.success({ title: `Serviço ${body.name} cadastrado.` });
+}
+
+async function updateServiceType(id: number, body: ServiceTypeBody): Promise<void> {
+  await unwrap(api.PATCH('/api/v1/service-types/{id}', { params: { path: { id } }, body }));
+  toast.success({ title: `Serviço ${body.name} atualizado.` });
+}
+
 async function save(): Promise<void> {
   const target = editing.value!;
-  const done = await form.submit(async (values) => {
+  const done = await form.submit((values) => {
     const body = serviceTypeFormToApi(values);
-    if (target.id === null) {
-      await unwrap(api.POST('/api/v1/service-types', { body }));
-      toast.success({ title: `Serviço ${body.name} cadastrado.` });
-    } else {
-      await unwrap(api.PATCH('/api/v1/service-types/{id}', { params: { path: { id: target.id } }, body }));
-      toast.success({ title: `Serviço ${body.name} atualizado.` });
-    }
+    return target.id === null ? createServiceType(body) : updateServiceType(target.id, body);
   });
   if (!done) return;
   editing.value = null;
   await load();
 }
 
-async function toggleActive(type: ServiceType): Promise<void> {
-  busy.value = type.id;
-  try {
-    const updated = await unwrap(
-      api.PATCH('/api/v1/service-types/{id}', {
-        params: { path: { id: type.id } },
-        body: { active: !type.active },
-      }),
-    );
-    types.value = types.value.map((item) => (item.id === updated.id ? updated : item));
-    toast.success(
-      updated.active
-        ? { title: `Serviço ${type.name} ativado.`, description: 'Ele volta a aparecer para os clientes.' }
-        : {
-            title: `Serviço ${type.name} desativado.`,
-            description: 'Ele não aparece mais no agendamento nem no orçamento.',
-          },
-    );
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    busy.value = null;
-  }
+function activationToast(name: string, isActive: boolean): ToastOptions {
+  if (isActive)
+    return { title: `Serviço ${name} ativado.`, description: 'Ele volta a aparecer para os clientes.' };
+  return {
+    title: `Serviço ${name} desativado.`,
+    description: 'Ele não aparece mais no agendamento nem no orçamento.',
+  };
 }
 
-async function remove(type: ServiceType): Promise<void> {
-  const confirmed = await confirm({
+function replaceType(updated: ServiceType): void {
+  types.value = types.value.map((item) => (item.id === updated.id ? updated : item));
+}
+
+async function flipActive(type: ServiceType): Promise<void> {
+  const updated = await unwrap(
+    api.PATCH('/api/v1/service-types/{id}', {
+      params: { path: { id: type.id } },
+      body: { active: !type.active },
+    }),
+  );
+  replaceType(updated);
+  toast.success(activationToast(type.name, updated.active));
+}
+
+async function toggleActive(type: ServiceType): Promise<void> {
+  await holdWhile(busy, type.id, null, () => runOrToast(() => flipActive(type)));
+}
+
+function removalQuestion(type: ServiceType): ConfirmOptions {
+  return {
     title: `Excluir o serviço ${type.name}?`,
     description:
       'Se ele já foi usado em solicitações ou orçamentos, fica apenas desativado para manter o histórico.',
     confirmLabel: 'Excluir serviço',
     danger: true,
-  });
-  if (!confirmed) return;
-  busy.value = type.id;
-  try {
-    const { result } = await unwrap(
-      api.DELETE('/api/v1/service-types/{id}', { params: { path: { id: type.id } } }),
-    );
-    if (result === 'deleted') toast.success({ title: `Serviço ${type.name} excluído.` });
-    else {
-      toast.info({
-        title: `Serviço ${type.name} desativado.`,
-        description: 'Ele já foi usado em solicitações ou orçamentos, então o histórico foi mantido.',
-      });
-    }
-    await load();
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    busy.value = null;
+  };
+}
+
+function showRemoval(name: string, result: string): void {
+  if (result === 'deleted') {
+    toast.success({ title: `Serviço ${name} excluído.` });
+    return;
   }
+  toast.info({
+    title: `Serviço ${name} desativado.`,
+    description: 'Ele já foi usado em solicitações ou orçamentos, então o histórico foi mantido.',
+  });
+}
+
+async function deleteServiceType(type: ServiceType): Promise<void> {
+  const params = { path: { id: type.id } };
+  const { result } = await unwrap(api.DELETE('/api/v1/service-types/{id}', { params }));
+  showRemoval(type.name, result);
+  await load();
+}
+
+async function remove(type: ServiceType): Promise<void> {
+  if (!(await confirm(removalQuestion(type)))) return;
+  await holdWhile(busy, type.id, null, () => runOrToast(() => deleteServiceType(type)));
 }
 
 onMounted(load);

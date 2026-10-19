@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { can, ROLE_LABELS } from '@rc/contracts';
 import { MailCheck, MailWarning, Pencil, Trash2 } from 'lucide-vue-next';
+import type { ConfirmOptions } from '~/composables/useConfirm';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { formatCpf, formatDate, formatPhone } from '~/utils/masks';
 
 /**
@@ -55,25 +57,25 @@ const details = computed<DescriptionItem[]>(() => {
   ];
 });
 
-async function remove(): Promise<void> {
-  const current = user.value!;
-  const confirmed = await confirm({
+function removalQuestion(current: UserDetail): ConfirmOptions {
+  return {
     title: `Excluir ${config.value.thisNoun}?`,
     description: `Os dados pessoais de ${current.name} são apagados na hora e o histórico de pedidos e serviços fica anônimo. Não dá para desfazer.`,
     confirmLabel: `Excluir ${config.value.noun}`,
     danger: true,
-  });
-  if (!confirmed) return;
-  deleting.value = true;
-  try {
-    await unwrap(api.DELETE('/api/v1/users/{id}', { params: { path: { id: current.id } } }));
-    toast.success({ title: `${firstName(current.name)} foi excluído.` });
-    await navigateTo(config.value.path);
-  } catch (caught) {
-    toast.error({ title: toApiError(caught).message });
-  } finally {
-    deleting.value = false;
-  }
+  };
+}
+
+async function deleteUser(current: UserDetail): Promise<void> {
+  await unwrap(api.DELETE('/api/v1/users/{id}', { params: { path: { id: current.id } } }));
+  toast.success({ title: `${firstName(current.name)} foi excluído.` });
+  await navigateTo(config.value.path);
+}
+
+async function remove(): Promise<void> {
+  const current = user.value!;
+  if (!(await confirm(removalQuestion(current)))) return;
+  await holdWhile(deleting, true, false, () => runOrToast(() => deleteUser(current)));
 }
 
 onMounted(load);

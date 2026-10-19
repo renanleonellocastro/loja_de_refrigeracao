@@ -43,25 +43,37 @@ const form = useForm(
   },
 );
 
+/** Statuses of a used or expired link; 404 also means a malformed token, the same as a bad link for the person. */
+const EXPIRED_LINK_STATUSES = new Set([410, 404]);
+
+function setPassword(password: string) {
+  const body = { password };
+  const params = { path: { token: props.token } };
+  return unwrap(
+    props.kind === 'reset'
+      ? api.POST('/api/v1/auth/password-resets/{token}', { params, body })
+      : api.POST('/api/v1/auth/invitations/{token}', { params, body }),
+  );
+}
+
+async function signIn(password: string): Promise<void> {
+  const session = await setPassword(password);
+  auth.apply(session);
+  toast.success({ title: copy.value.success });
+  await navigateTo(landingFor(session.user.role));
+}
+
+async function signInOrExplainLink(values: { password: string }): Promise<void> {
+  try {
+    await signIn(values.password);
+  } catch (error) {
+    if (!(error instanceof ApiError && EXPIRED_LINK_STATUSES.has(error.status))) throw error;
+    expired.value = true;
+  }
+}
+
 async function submit(): Promise<void> {
-  await form.submit(async (values) => {
-    const body = { password: values.password };
-    const params = { path: { token: props.token } };
-    try {
-      const session = await unwrap(
-        props.kind === 'reset'
-          ? api.POST('/api/v1/auth/password-resets/{token}', { params, body })
-          : api.POST('/api/v1/auth/invitations/{token}', { params, body }),
-      );
-      auth.apply(session);
-      toast.success({ title: copy.value.success });
-      await navigateTo(landingFor(session.user.role));
-    } catch (error) {
-      // 404 also means the token is malformed, which is the same as a bad link for the person.
-      if (error instanceof ApiError && (error.status === 410 || error.status === 404)) expired.value = true;
-      else throw error;
-    }
-  });
+  await form.submit(signInOrExplainLink);
 }
 </script>
 

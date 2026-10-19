@@ -15,8 +15,8 @@ const loginLink = computed(() =>
   redirect.value ? `/entrar?redirect=${encodeURIComponent(redirect.value)}` : '/entrar',
 );
 
-const form = useForm(
-  {
+function blankSignUp() {
+  return {
     name: '',
     email: '',
     phone: '',
@@ -25,41 +25,46 @@ const form = useForm(
     confirmation: '',
     address: emptyAddress(),
     acceptPrivacy: false,
-  },
-  {
-    validate: (values) => ({
-      ...validatePerson(values, { cpfRequired: false }),
-      ...validateNewPassword(values.password, values.confirmation, 'password', 'confirmation'),
-      ...validateAddress(values.address, false),
-      ...(values.acceptPrivacy
-        ? {}
-        : { acceptPrivacy: 'Para criar a conta, aceite a política de privacidade.' }),
-    }),
-  },
-);
+  };
+}
+
+type SignUpValues = ReturnType<typeof blankSignUp>;
+
+const form = useForm(blankSignUp(), {
+  validate: (values) => ({
+    ...validatePerson(values, { cpfRequired: false }),
+    ...validateNewPassword(values.password, values.confirmation, 'password', 'confirmation'),
+    ...validateAddress(values.address, false),
+    ...(values.acceptPrivacy
+      ? {}
+      : { acceptPrivacy: 'Para criar a conta, aceite a política de privacidade.' }),
+  }),
+});
+
+function customerBody(values: SignUpValues) {
+  return {
+    name: values.name.trim(),
+    email: values.email.trim(),
+    phone: values.phone,
+    password: values.password,
+    cpf: values.cpf || null,
+    address: addressToApi(values.address),
+    acceptPrivacy: true as const,
+  };
+}
+
+async function createAccount(values: SignUpValues): Promise<void> {
+  const session = await unwrap(api.POST('/api/v1/customers', { body: customerBody(values) }));
+  auth.apply(session);
+  toast.success({
+    title: `Pronto, ${firstName(session.user.name)}! Sua conta está criada.`,
+    description: 'Enviamos um email de boas vindas com os seus dados.',
+  });
+  await navigateTo(redirect.value ?? landingFor(session.user.role));
+}
 
 async function submit(): Promise<void> {
-  await form.submit(async (values) => {
-    const session = await unwrap(
-      api.POST('/api/v1/customers', {
-        body: {
-          name: values.name.trim(),
-          email: values.email.trim(),
-          phone: values.phone,
-          password: values.password,
-          cpf: values.cpf || null,
-          address: addressToApi(values.address),
-          acceptPrivacy: true,
-        },
-      }),
-    );
-    auth.apply(session);
-    toast.success({
-      title: `Pronto, ${firstName(session.user.name)}! Sua conta está criada.`,
-      description: 'Enviamos um email de boas vindas com os seus dados.',
-    });
-    await navigateTo(redirect.value ?? landingFor(session.user.role));
-  });
+  await form.submit(createAccount);
 }
 </script>
 

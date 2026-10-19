@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { can } from '@rc/contracts';
 import { CircleCheck, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import type { ApiError } from '~/utils/api-error';
 import { countLabel } from '~/utils/catalog';
 import { addToCounter, counterLimit, counterTotal, COUNTER_SEARCH_SIZE } from '~/utils/counter';
 import { formatMoney } from '~/utils/masks';
@@ -11,6 +13,9 @@ import { formatMoney } from '~/utils/masks';
  */
 definePageMeta({ layout: 'area', permission: 'counterSales.create', title: 'Venda no balcão' });
 useHead({ title: 'Venda no balcão | Refrigeração Castro' });
+
+const INSUFFICIENT_STOCK = 'insufficient-stock';
+const INSUFFICIENT_STOCK_MESSAGE = 'Algum produto não tem a quantidade pedida. Confira o estoque e ajuste.';
 
 const api = useApi();
 const auth = useAuthStore();
@@ -32,6 +37,16 @@ const missing = computed(() => {
   return customer.value ? '' : 'Escolha o cliente da venda.';
 });
 
+function searchQuery(page: number) {
+  const text = query.value.trim();
+  const sort: 'relevance' | 'name' = text ? 'relevance' : 'name';
+  return { q: text || undefined, available: 'true' as const, sort, page, pageSize: COUNTER_SEARCH_SIZE };
+}
+
+function fetchAvailableProducts(page: number) {
+  return unwrap(api.GET('/api/v1/products', { params: { query: searchQuery(page) } }));
+}
+
 /** Only products with stock; the newest answer wins, so a slow search never replaces a newer one. */
 const {
   rows: results,
@@ -39,22 +54,7 @@ const {
   failed,
   load: search,
   restart,
-} = usePagedList((page) => {
-  const q = query.value.trim();
-  return unwrap(
-    api.GET('/api/v1/products', {
-      params: {
-        query: {
-          q: q || undefined,
-          available: 'true',
-          sort: q ? 'relevance' : 'name',
-          page,
-          pageSize: COUNTER_SEARCH_SIZE,
-        },
-      },
-    }),
-  );
-}, COUNTER_SEARCH_SIZE);
+} = usePagedList(fetchAvailableProducts, COUNTER_SEARCH_SIZE);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 watch(query, () => {
@@ -76,37 +76,35 @@ function remove(line: CounterLine): void {
   lines.value = lines.value.filter((item) => item !== line);
 }
 
+function postSale() {
+  return api.POST('/api/v1/counter-sales', {
+    body: {
+      customerId: customer.value!.id,
+      items: lines.value.map((line) => ({ productId: line.product.id, quantity: line.quantity })),
+      notes: notes.value.trim() || undefined,
+    },
+    headers: { 'Idempotency-Key': idempotencyKey },
+  });
+}
+
+/** A refused sale for lack of stock refreshes the search, so the screen shows the stock left. */
+async function showRefusal(error: ApiError): Promise<void> {
+  const isShortOfStock = error.code === INSUFFICIENT_STOCK;
+  toast.error({ title: isShortOfStock ? INSUFFICIENT_STOCK_MESSAGE : error.message });
+  if (isShortOfStock) await search();
+}
+
+async function sendSale(): Promise<void> {
+  const result = await postSale();
+  // The API answered: the next attempt is a new sale.
+  idempotencyKey = crypto.randomUUID();
+  if (result.data) sale.value = result.data;
+  else await showRefusal(problemToError(result.response.status, result.error));
+}
+
 async function confirm(): Promise<void> {
-  confirming.value = true;
-  try {
-    const result = await api.POST('/api/v1/counter-sales', {
-      body: {
-        customerId: customer.value!.id,
-        items: lines.value.map((line) => ({ productId: line.product.id, quantity: line.quantity })),
-        notes: notes.value.trim() || undefined,
-      },
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
-    // The API answered: the next attempt is a new sale.
-    idempotencyKey = crypto.randomUUID();
-    if (result.data) {
-      sale.value = result.data;
-      return;
-    }
-    const error = problemToError(result.response.status, result.error);
-    toast.error({
-      title:
-        error.code === 'insufficient-stock'
-          ? 'Algum produto não tem a quantidade pedida. Confira o estoque e ajuste.'
-          : error.message,
-    });
-    if (error.code === 'insufficient-stock') await search();
-  } catch (error) {
-    // No answer: keep the same key, so trying again cannot sell twice.
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    confirming.value = false;
-  }
+  // No answer keeps the same key, so trying again cannot sell twice.
+  await holdWhile(confirming, true, false, () => runOrToast(sendSale));
 }
 
 function startOver(): void {

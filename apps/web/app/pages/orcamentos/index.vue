@@ -35,23 +35,24 @@ const columns: TableColumn[] = [
   { key: 'createdAt', label: 'Pedido em', priority: 'low' },
 ];
 
-const { page, rows, pages, loading, failed, load, restart } = usePagedList(async (current) => {
-  const q = query.value.trim();
-  const result = await unwrap(
-    api.GET('/api/v1/quotes', {
-      params: {
-        query: {
-          status: status.value === ALL ? undefined : status.value,
-          q: q || undefined,
-          page: current,
-          pageSize: QUOTES_PAGE_SIZE,
-        },
-      },
-    }),
-  );
-  searched.value = q;
+function quotesQuery(current: number, search: string) {
+  return {
+    status: status.value === ALL ? undefined : status.value,
+    q: search || undefined,
+    page: current,
+    pageSize: QUOTES_PAGE_SIZE,
+  };
+}
+
+/** One page of the queue; the search shown above the results is the one this answer is for. */
+async function fetchQuotes(current: number) {
+  const search = query.value.trim();
+  const result = await unwrap(api.GET('/api/v1/quotes', { params: { query: quotesQuery(current, search) } }));
+  searched.value = search;
   return result;
-}, QUOTES_PAGE_SIZE);
+}
+
+const { page, rows, pages, loading, failed, load, restart } = usePagedList(fetchQuotes, QUOTES_PAGE_SIZE);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 watch(query, () => {
