@@ -101,15 +101,17 @@ export async function updateRequest(
   return row!;
 }
 
+const REQUEST_APPOINTMENT_COLUMNS = {
+  id: appointments.id,
+  employeeId: appointments.employeeId,
+  employeeName: users.name,
+  startsAt: appointments.startsAt,
+  endsAt: appointments.endsAt,
+};
+
 export async function findAppointmentForRequest(db: Executor, requestId: number) {
   const [row] = await db
-    .select({
-      id: appointments.id,
-      employeeId: appointments.employeeId,
-      employeeName: users.name,
-      startsAt: appointments.startsAt,
-      endsAt: appointments.endsAt,
-    })
+    .select(REQUEST_APPOINTMENT_COLUMNS)
     .from(appointments)
     .innerJoin(users, eq(users.id, appointments.employeeId))
     .where(eq(appointments.serviceRequestId, requestId))
@@ -138,36 +140,43 @@ export interface RequestFilters {
   offset: number;
 }
 
-export async function listRequests(db: Executor, filters: RequestFilters) {
-  const customer = alias(users, 'customer');
-  const employee = alias(users, 'employee');
+const customer = alias(users, 'customer');
+const employee = alias(users, 'employee');
+const REQUEST_NUMBER_PATTERN = /^\d+$/;
+const LIKE_WILDCARDS = /[%_]/g;
+
+const REQUEST_LIST_COLUMNS = {
+  id: serviceRequests.id,
+  status: serviceRequests.status,
+  serviceType: serviceTypes.name,
+  productKind: serviceRequests.productKind,
+  customerId: customer.id,
+  customerName: customer.name,
+  scheduledFor: appointments.startsAt,
+  employeeId: employee.id,
+  employeeName: employee.name,
+  createdAt: serviceRequests.createdAt,
+  updatedAt: serviceRequests.updatedAt,
+};
+
+/** A number searches the request number; anything else searches the customer. */
+function searchCondition(q: string): SQL {
+  if (REQUEST_NUMBER_PATTERN.test(q)) return eq(serviceRequests.id, Number(q));
+  return ilike(customer.searchText, `%${normalizeText(q).replace(LIKE_WILDCARDS, '')}%`);
+}
+
+function requestConditions(filters: RequestFilters): SQL | undefined {
   const conditions: SQL[] = [];
   if (filters.customerId !== undefined) conditions.push(eq(serviceRequests.customerId, filters.customerId));
   if (filters.employeeId !== undefined) conditions.push(eq(appointments.employeeId, filters.employeeId));
   if (filters.statuses?.length) conditions.push(inArray(serviceRequests.status, filters.statuses));
-  if (filters.q) {
-    // A number searches the request number; anything else searches the customer.
-    conditions.push(
-      /^\d+$/.test(filters.q)
-        ? eq(serviceRequests.id, Number(filters.q))
-        : ilike(customer.searchText, `%${normalizeText(filters.q).replace(/[%_]/g, '')}%`),
-    );
-  }
-  const where = conditions.length ? and(...conditions) : undefined;
-  const rows = await db
-    .select({
-      id: serviceRequests.id,
-      status: serviceRequests.status,
-      serviceType: serviceTypes.name,
-      productKind: serviceRequests.productKind,
-      customerId: customer.id,
-      customerName: customer.name,
-      scheduledFor: appointments.startsAt,
-      employeeId: employee.id,
-      employeeName: employee.name,
-      createdAt: serviceRequests.createdAt,
-      updatedAt: serviceRequests.updatedAt,
-    })
+  if (filters.q) conditions.push(searchCondition(filters.q));
+  return conditions.length ? and(...conditions) : undefined;
+}
+
+function selectRequestPage(db: Executor, where: SQL | undefined, filters: RequestFilters) {
+  return db
+    .select(REQUEST_LIST_COLUMNS)
     .from(serviceRequests)
     .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
     .innerJoin(customer, eq(customer.id, serviceRequests.customerId))
@@ -177,13 +186,23 @@ export async function listRequests(db: Executor, filters: RequestFilters) {
     .orderBy(desc(serviceRequests.updatedAt), desc(serviceRequests.id))
     .limit(filters.limit)
     .offset(filters.offset);
-  const totals = await db
+}
+
+async function countRequests(db: Executor, where: SQL | undefined): Promise<number> {
+  const [totals] = await db
     .select({ value: count() })
     .from(serviceRequests)
     .innerJoin(customer, eq(customer.id, serviceRequests.customerId))
     .leftJoin(appointments, eq(appointments.serviceRequestId, serviceRequests.id))
     .where(where);
-  return { rows, total: totals[0]!.value };
+  return totals!.value;
+}
+
+export async function listRequests(db: Executor, filters: RequestFilters) {
+  const where = requestConditions(filters);
+  const rows = await selectRequestPage(db, where, filters);
+  const total = await countRequests(db, where);
+  return { rows, total };
 }
 
 // Messages and media (shared by service requests and quotes)
@@ -199,16 +218,18 @@ export async function insertMessage(
   await db.insert(messages).values({ threadType, threadId, authorId, body, createdAt: at });
 }
 
+const MESSAGE_COLUMNS = {
+  id: messages.id,
+  body: messages.body,
+  authorId: users.id,
+  authorName: users.name,
+  authorRole: users.role,
+  createdAt: messages.createdAt,
+};
+
 export async function listMessages(db: Executor, threadType: ThreadType, threadId: number) {
   return db
-    .select({
-      id: messages.id,
-      body: messages.body,
-      authorId: users.id,
-      authorName: users.name,
-      authorRole: users.role,
-      createdAt: messages.createdAt,
-    })
+    .select(MESSAGE_COLUMNS)
     .from(messages)
     .innerJoin(users, eq(users.id, messages.authorId))
     .where(and(eq(messages.threadType, threadType), eq(messages.threadId, threadId)))
