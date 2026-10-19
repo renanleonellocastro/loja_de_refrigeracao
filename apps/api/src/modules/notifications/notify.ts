@@ -1,7 +1,7 @@
 import type { Role } from '@rc/contracts';
 import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
-import { queueEmail } from '../mail/service.js';
+import { queueEmail, type NoticeEmail } from '../mail/service.js';
 import { storeNotificationEmails } from '../store/service.js';
 import * as users from '../users/service.js';
 import { insertNotification } from './repository.js';
@@ -23,6 +23,31 @@ interface Recipient {
   email: string;
 }
 
+const NOTIFICATION_BODY_MAX_LENGTH = 500;
+const MANAGEMENT_ROLES: Role[] = ['MANAGER', 'ADMIN'];
+const STORE_TEAM_NAME = 'equipe';
+
+function noticeEmail(ctx: AppContext, name: string, notice: Notice): NoticeEmail {
+  return {
+    name,
+    subject: notice.subject,
+    heading: notice.heading ?? notice.subject,
+    paragraphs: notice.paragraphs,
+    ...(notice.path ? { link: `${ctx.config.APP_ORIGIN}${notice.path}` } : {}),
+  };
+}
+
+function notificationOf(ctx: AppContext, recipient: Recipient, notice: Notice) {
+  return {
+    userId: recipient.id,
+    type: notice.type,
+    title: notice.subject,
+    body: notice.paragraphs.join(' ').slice(0, NOTIFICATION_BODY_MAX_LENGTH),
+    link: notice.path ?? null,
+    createdAt: ctx.clock.now(),
+  };
+}
+
 /** In-app notification plus branded email, in the same transaction as the change (outbox). */
 export async function notifyUser(
   ctx: AppContext,
@@ -30,20 +55,9 @@ export async function notifyUser(
   recipient: Recipient,
   notice: Notice,
 ): Promise<void> {
-  await insertNotification(db, {
-    userId: recipient.id,
-    type: notice.type,
-    title: notice.subject,
-    body: notice.paragraphs.join(' ').slice(0, 500),
-    link: notice.path ?? null,
-    createdAt: ctx.clock.now(),
-  });
+  await insertNotification(db, notificationOf(ctx, recipient, notice));
   await queueEmail(db, recipient.email, 'notice', {
-    name: recipient.name,
-    subject: notice.subject,
-    heading: notice.heading ?? notice.subject,
-    paragraphs: notice.paragraphs,
-    ...(notice.path ? { link: `${ctx.config.APP_ORIGIN}${notice.path}` } : {}),
+    ...noticeEmail(ctx, recipient.name, notice),
     ...(notice.actionLabel ? { actionLabel: notice.actionLabel } : {}),
   });
 }
@@ -59,6 +73,15 @@ export async function notifyUserById(
   if (user) await notifyUser(ctx, db, user, notice);
 }
 
+/** Emails the store notification addresses that do not belong to an account already notified. */
+async function emailStoreAddresses(ctx: AppContext, db: Executor, notifiedEmails: string[], notice: Notice) {
+  const notified = new Set(notifiedEmails.map((email) => email.toLowerCase()));
+  const pending = (await storeNotificationEmails(db)).filter((email) => !notified.has(email.toLowerCase()));
+  for (const email of pending) {
+    await queueEmail(db, email, 'notice', noticeEmail(ctx, STORE_TEAM_NAME, notice));
+  }
+}
+
 /**
  * Notifies every active user with the roles (except the author) and also emails the store
  * notification addresses configured by the super user.
@@ -71,20 +94,15 @@ export async function notifyRoles(
   notice: Notice,
 ): Promise<void> {
   const people = await users.activeEmailsByRole(db, roles);
-  for (const person of people) {
-    if (person.id !== exceptUserId) await notifyUser(ctx, db, person, notice);
+  for (const person of people.filter(({ id }) => id !== exceptUserId)) {
+    await notifyUser(ctx, db, person, notice);
   }
-  const already = new Set(people.map((p) => p.email.toLowerCase()));
-  for (const email of await storeNotificationEmails(db)) {
-    if (already.has(email.toLowerCase())) continue;
-    await queueEmail(db, email, 'notice', {
-      name: 'equipe',
-      subject: notice.subject,
-      heading: notice.heading ?? notice.subject,
-      paragraphs: notice.paragraphs,
-      ...(notice.path ? { link: `${ctx.config.APP_ORIGIN}${notice.path}` } : {}),
-    });
-  }
+  await emailStoreAddresses(
+    ctx,
+    db,
+    people.map(({ email }) => email),
+    notice,
+  );
 }
 
 export const notifyManagement = (
@@ -92,4 +110,4 @@ export const notifyManagement = (
   db: Executor,
   exceptUserId: number | null,
   notice: Notice,
-) => notifyRoles(ctx, db, ['MANAGER', 'ADMIN'], exceptUserId, notice);
+) => notifyRoles(ctx, db, MANAGEMENT_ROLES, exceptUserId, notice);

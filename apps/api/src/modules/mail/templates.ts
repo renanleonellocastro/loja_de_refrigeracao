@@ -24,6 +24,17 @@ export function escapeHtml(value: string): string {
     .replaceAll("'", '&#39;');
 }
 
+interface NoticeData {
+  name: string;
+  subject: string;
+  heading: string;
+  paragraphs: string[];
+  link?: string;
+  actionLabel?: string;
+}
+
+const DEFAULT_ACTION_LABEL = 'Ver detalhes';
+
 interface Block {
   heading: string;
   paragraphs: string[];
@@ -58,107 +69,79 @@ function plain(block: Block, footer: StoreFooter): string {
   ].join('\n');
 }
 
-function build(subject: string, block: Block, footer: StoreFooter): Email {
+interface EmailContent extends Block {
+  subject: string;
+}
+
+function build(footer: StoreFooter, { subject, ...block }: EmailContent): Email {
   return { subject, html: layout(block, footer), text: plain(block, footer) };
 }
 
 const firstName = (name: string) => escapeHtml(name.trim().split(/\s+/, 1).join(''));
 
+const greeting = (name: string) => `Olá, ${firstName(name)}!`;
+
 export const templates = {
   passwordReset(data: { name: string; link: string }, footer: StoreFooter): Email {
-    return build(
-      'Redefinição de senha',
-      {
-        heading: 'Vamos criar uma nova senha',
-        paragraphs: [
-          `Olá, ${firstName(data.name)}!`,
-          'Recebemos um pedido para redefinir a senha da sua conta.',
-        ],
-        action: { label: 'Criar nova senha', url: data.link },
-        note: 'O link vale por 30 minutos e só pode ser usado uma vez. Se você não pediu, ignore este email.',
-      },
-      footer,
-    );
+    return build(footer, {
+      subject: 'Redefinição de senha',
+      heading: 'Vamos criar uma nova senha',
+      paragraphs: [greeting(data.name), 'Recebemos um pedido para redefinir a senha da sua conta.'],
+      action: { label: 'Criar nova senha', url: data.link },
+      note: 'O link vale por 30 minutos e só pode ser usado uma vez. Se você não pediu, ignore este email.',
+    });
   },
   invitation(data: { name: string; link: string; roleLabel: string }, footer: StoreFooter): Email {
-    return build(
-      'Seu acesso à Refrigeração Castro',
-      {
-        heading: 'Seu acesso está pronto',
-        paragraphs: [
-          `Olá, ${firstName(data.name)}!`,
-          `Criamos sua conta como <strong>${escapeHtml(data.roleLabel)}</strong>. Defina sua senha para começar.`,
-        ],
-        action: { label: 'Definir minha senha', url: data.link },
-        note: 'O link vale por 7 dias.',
-      },
-      footer,
-    );
+    return build(footer, {
+      subject: 'Seu acesso à Refrigeração Castro',
+      heading: 'Seu acesso está pronto',
+      paragraphs: [
+        greeting(data.name),
+        `Criamos sua conta como <strong>${escapeHtml(data.roleLabel)}</strong>. Defina sua senha para começar.`,
+      ],
+      action: { label: 'Definir minha senha', url: data.link },
+      note: 'O link vale por 7 dias.',
+    });
   },
   passwordChanged(data: { name: string }, footer: StoreFooter): Email {
-    return build(
-      'Sua senha foi alterada',
-      {
-        heading: 'Senha alterada',
-        paragraphs: [
-          `Olá, ${firstName(data.name)}!`,
-          'A senha da sua conta acabou de ser alterada e as outras sessões foram encerradas.',
-        ],
-        note: `Não foi você? Ligue para a loja no ${escapeHtml(footer.phone)}.`,
-      },
-      footer,
-    );
+    return build(footer, {
+      subject: 'Sua senha foi alterada',
+      heading: 'Senha alterada',
+      paragraphs: [
+        greeting(data.name),
+        'A senha da sua conta acabou de ser alterada e as outras sessões foram encerradas.',
+      ],
+      note: `Não foi você? Ligue para a loja no ${escapeHtml(footer.phone)}.`,
+    });
   },
   emailVerification(data: { name: string; link: string }, footer: StoreFooter): Email {
-    return build(
-      'Confirme seu novo email',
-      {
-        heading: 'Confirme seu novo email',
-        paragraphs: [
-          `Olá, ${firstName(data.name)}!`,
-          'Clique no botão para confirmar este endereço de email.',
-        ],
-        action: { label: 'Confirmar email', url: data.link },
-        note: 'O link vale por 24 horas.',
-      },
-      footer,
-    );
+    return build(footer, {
+      subject: 'Confirme seu novo email',
+      heading: 'Confirme seu novo email',
+      paragraphs: [greeting(data.name), 'Clique no botão para confirmar este endereço de email.'],
+      action: { label: 'Confirmar email', url: data.link },
+      note: 'O link vale por 24 horas.',
+    });
   },
   welcome(data: { name: string; email: string }, footer: StoreFooter): Email {
-    return build(
-      'Bem vindo à Refrigeração Castro',
-      {
-        heading: 'Cadastro feito!',
-        paragraphs: [
-          `Olá, ${firstName(data.name)}! Que bom ter você por aqui.`,
-          `Sua conta foi criada com o email <strong>${escapeHtml(data.email)}</strong>. Agora você pode comprar produtos, pedir orçamentos e agendar visitas pelo site.`,
-        ],
-        action: { label: 'Acessar minha conta', url: `${footer.appOrigin}/perfil` },
-      },
-      footer,
-    );
+    return build(footer, {
+      subject: 'Bem vindo à Refrigeração Castro',
+      heading: 'Cadastro feito!',
+      paragraphs: [
+        `Olá, ${firstName(data.name)}! Que bom ter você por aqui.`,
+        `Sua conta foi criada com o email <strong>${escapeHtml(data.email)}</strong>. Agora você pode comprar produtos, pedir orçamentos e agendar visitas pelo site.`,
+      ],
+      action: { label: 'Acessar minha conta', url: `${footer.appOrigin}/perfil` },
+    });
   },
   /** Generic event notice used by orders, services and quotes. Paragraphs are plain text. */
-  notice(
-    data: {
-      name: string;
-      subject: string;
-      heading: string;
-      paragraphs: string[];
-      link?: string;
-      actionLabel?: string;
-    },
-    footer: StoreFooter,
-  ): Email {
-    return build(
-      data.subject,
-      {
-        heading: data.heading,
-        paragraphs: [`Olá, ${firstName(data.name)}!`, ...data.paragraphs.map(escapeHtml)],
-        ...(data.link ? { action: { label: data.actionLabel ?? 'Ver detalhes', url: data.link } } : {}),
-      },
-      footer,
-    );
+  notice(data: NoticeData, footer: StoreFooter): Email {
+    return build(footer, {
+      subject: data.subject,
+      heading: data.heading,
+      paragraphs: [greeting(data.name), ...data.paragraphs.map(escapeHtml)],
+      ...(data.link ? { action: { label: data.actionLabel ?? DEFAULT_ACTION_LABEL, url: data.link } } : {}),
+    });
   },
 } as const;
 

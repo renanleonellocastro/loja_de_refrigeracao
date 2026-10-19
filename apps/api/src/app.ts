@@ -1,12 +1,16 @@
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from 'fastify-type-provider-zod';
-import { sql } from 'drizzle-orm';
+import {
+  serializerCompiler,
+  validatorCompiler,
+  type FastifyPluginAsyncZod,
+  type ZodTypeProvider,
+} from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import type { Config } from './config.js';
 import type { AppContext } from './context.js';
 import { agendaRoutes } from './modules/agenda/routes.js';
 import { auditRoutes } from './modules/audit/routes.js';
@@ -24,49 +28,59 @@ import { authPlugin } from './plugins/auth.js';
 import { registerErrorHandling } from './plugins/errors.js';
 import { idempotencyPlugin } from './plugins/idempotency.js';
 import { registerOpenApi } from './plugins/openapi.js';
+import { registerProbes } from './plugins/probes.js';
+import { registerSecurityHeaders } from './plugins/security.js';
 
 z.config(z.locales.pt());
 
 export const API_PREFIX = '/api/v1';
 export const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
-/** The API serves JSON and images: nothing may run, embed or be embedded (docs/SEGURANCA.md, section 4). */
-const API_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
-const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), payment=(), usb=()';
-const DOCS_PREFIX = '/api/docs';
+const MAX_BODY_BYTES = 1024 * 1024;
+const MAX_UPLOAD_FILES = 10;
+/** Long enough for every documented parameter, so an oversized one gets the 422 of the schema. */
+const MAX_PARAM_LENGTH = 500;
+const REDACTED_HEADERS = ['req.headers.authorization', 'req.headers.cookie'];
 
-export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
-  const { config } = ctx;
-  const app = Fastify({
-    logger:
-      config.LOG_LEVEL === 'silent'
-        ? false
-        : { level: config.LOG_LEVEL, redact: ['req.headers.authorization', 'req.headers.cookie'] },
+type ModuleRoutes = (ctx: AppContext) => FastifyPluginAsyncZod;
+
+/** The API modules in the order their routes appear in the OpenAPI document. */
+const API_MODULES: readonly ModuleRoutes[] = [
+  authRoutes,
+  auditRoutes,
+  (ctx) => mediaRoutes(ctx.storage),
+  userRoutes,
+  serviceRoutes,
+  catalogRoutes,
+  agendaRoutes,
+  orderRoutes,
+  quoteRoutes,
+  notificationRoutes,
+  storeRoutes,
+  dashboardRoutes,
+];
+
+function loggerOptions(config: Config) {
+  if (config.LOG_LEVEL === 'silent') return false;
+  return { level: config.LOG_LEVEL, redact: REDACTED_HEADERS };
+}
+
+function createServer(config: Config) {
+  return Fastify({
+    logger: loggerOptions(config),
     genReqId: () => crypto.randomUUID(),
     trustProxy: config.TRUST_PROXY,
-    bodyLimit: 1024 * 1024,
-    // Long enough for every documented parameter, so an oversized one gets the 422 of the schema.
-    routerOptions: { maxParamLength: 500 },
+    bodyLimit: MAX_BODY_BYTES,
+    routerOptions: { maxParamLength: MAX_PARAM_LENGTH },
   }).withTypeProvider<ZodTypeProvider>();
+}
 
+function useZodSchemas(app: FastifyInstance): void {
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
-  registerErrorHandling(app);
+}
 
-  await app.register(helmet, {
-    // The reference page under /api/docs loads its own scripts; every other response gets API_CSP below.
-    contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: 'same-site' },
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    strictTransportSecurity: config.NODE_ENV === 'production' && {
-      maxAge: 63_072_000,
-      includeSubDomains: true,
-    },
-  });
-  app.addHook('onSend', async (request, reply) => {
-    reply.header('permissions-policy', PERMISSIONS_POLICY);
-    if (!request.url.startsWith(DOCS_PREFIX)) reply.header('content-security-policy', API_CSP);
-  });
+async function registerTransport(app: FastifyInstance, config: Config): Promise<void> {
   await app.register(cors, {
     origin: config.APP_ORIGIN,
     credentials: true,
@@ -75,38 +89,30 @@ export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
   });
   await app.register(cookie);
   await app.register(rateLimit, { global: false });
-  await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 10 } });
+  await app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: MAX_UPLOAD_FILES } });
+}
+
+async function registerRequestPlugins(app: FastifyInstance, ctx: AppContext): Promise<void> {
   await app.register(authPlugin, { ctx });
   await app.register(idempotencyPlugin, { ctx });
   await registerOpenApi(app);
+}
 
-  app.get('/health', { schema: { hide: true } }, async () => ({ status: 'ok' }));
-  app.get('/ready', { schema: { hide: true } }, async (_request, reply) => {
-    try {
-      await ctx.db.execute(sql`select 1`);
-      return { status: 'ready' };
-    } catch {
-      return reply.code(503).send({ status: 'unavailable' });
-    }
-  });
+async function registerApiModules(app: FastifyInstance, ctx: AppContext): Promise<void> {
+  const registerAll = async (api: FastifyInstance) => {
+    for (const moduleRoutes of API_MODULES) await api.register(moduleRoutes(ctx));
+  };
+  await app.register(registerAll, { prefix: API_PREFIX });
+}
 
-  await app.register(
-    async (api) => {
-      await api.register(authRoutes(ctx));
-      await api.register(auditRoutes(ctx));
-      await api.register(mediaRoutes(ctx.storage));
-      await api.register(userRoutes(ctx));
-      await api.register(serviceRoutes(ctx));
-      await api.register(catalogRoutes(ctx));
-      await api.register(agendaRoutes(ctx));
-      await api.register(orderRoutes(ctx));
-      await api.register(quoteRoutes(ctx));
-      await api.register(notificationRoutes(ctx));
-      await api.register(storeRoutes(ctx));
-      await api.register(dashboardRoutes(ctx));
-    },
-    { prefix: API_PREFIX },
-  );
-
+export async function buildApp(ctx: AppContext): Promise<FastifyInstance> {
+  const app = createServer(ctx.config);
+  useZodSchemas(app);
+  registerErrorHandling(app);
+  await registerSecurityHeaders(app, ctx.config);
+  await registerTransport(app, ctx.config);
+  await registerRequestPlugins(app, ctx);
+  registerProbes(app, ctx);
+  await registerApiModules(app, ctx);
   return app;
 }
