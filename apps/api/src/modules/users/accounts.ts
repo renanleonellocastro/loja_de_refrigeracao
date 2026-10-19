@@ -2,19 +2,33 @@ import { can, type Permission, type Role } from '@rc/contracts';
 import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
 import type { AddressSnapshot } from '../../infra/db/schema.js';
-import { AppError, conflict, forbidden, notFound, unprocessable } from '../../shared/errors.js';
-import { pageOf } from '../../shared/pagination.js';
-import { recordAudit } from '../audit/service.js';
+import { conflict, forbidden, notFound, unauthorized, unprocessable } from '../../shared/errors.js';
+import { pageOf, toLimitOffset } from '../../shared/pagination.js';
+import { recordAudit, type AuditEntry } from '../audit/service.js';
 import * as auth from '../auth/service.js';
-import { hashPassword, passwordProblem, verifyPassword, type AccessClaims } from '../auth/service.js';
+import { hashPassword, matchesPassword, type AccessClaims } from '../auth/service.js';
 import { queueEmail } from '../mail/service.js';
-import { orderNumber } from '../orders/service.js';
+import { recentActivity } from './activity.js';
+import { assertAvailable } from './availability.js';
+import { detailOf, toListItem, type UserDetail } from './detail.js';
 import * as users from './service.js';
-import { RECENT_ACTIVITY_LIMIT, type ProfileUpdate, type STAFF_CREATABLE_ROLES } from './schemas.js';
+import type { ProfileUpdate, STAFF_CREATABLE_ROLES } from './schemas.js';
 
 export const PRIVACY_POLICY_VERSION = '2026-10-03';
 
+export type { UserDetail } from './detail.js';
+
 type AddressInput = AddressSnapshot | null | undefined;
+
+type StaffCreatableRole = (typeof STAFF_CREATABLE_ROLES)[number];
+
+/** Who did it and from where, the part every audit entry of this module shares. */
+interface AuditOrigin {
+  readonly actorId: number;
+  readonly ip: string;
+}
+
+type UserAuditChange = Pick<AuditEntry, 'action' | 'before' | 'after'> & { readonly resourceId: number };
 
 /** Which permission lets someone see or manage users of a given role. */
 const READ_PERMISSION: Record<Role, Permission> = {
@@ -24,70 +38,38 @@ const READ_PERMISSION: Record<Role, Permission> = {
   ADMIN: 'managers.manage',
 };
 
-const CREATE_PERMISSION: Record<(typeof STAFF_CREATABLE_ROLES)[number], Permission> = {
+const CREATE_PERMISSION: Record<StaffCreatableRole, Permission> = {
   CLIENT: 'users.create',
   EMPLOYEE: 'employees.manage',
   MANAGER: 'managers.manage',
 };
 
-function toDetail(user: users.UserRow, address: users.AddressRow | undefined) {
-  return {
-    id: user.id,
-    role: user.role,
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    cpf: user.cpf,
-    address: address
-      ? {
-          cep: address.cep,
-          street: address.street,
-          number: address.number,
-          complement: address.complement,
-          district: address.district,
-          city: address.city,
-          state: address.state,
-        }
-      : null,
-    emailVerified: user.emailVerifiedAt !== null,
-    pendingInvitation: user.passwordHash === null,
-    createdAt: user.createdAt,
-  };
+/** Listing managers also lists the super user, who is a manager for the store. */
+const LISTED_ROLES: Partial<Record<Role, Role[]>> = { MANAGER: ['MANAGER', 'ADMIN'] };
+
+const adminNotDeletable = () =>
+  conflict(
+    'cannot-delete-admin',
+    'Não é possível excluir',
+    'O super usuário não pode ser excluído por aqui.',
+  );
+
+const cpfRequired = () =>
+  unprocessable('cpf-required', 'CPF obrigatório', 'CPF é obrigatório para a equipe.', {
+    errors: [{ path: 'cpf', message: 'CPF é obrigatório para a equipe.' }],
+  });
+
+const wrongPassword = () =>
+  unprocessable('wrong-password', 'Senha incorreta', 'A senha não confere.', {
+    errors: [{ path: 'password', message: 'A senha não confere.' }],
+  });
+
+function recordUserAudit(tx: Executor, origin: AuditOrigin, change: UserAuditChange): Promise<void> {
+  return recordAudit(tx, { ...origin, resourceType: 'user', ...change });
 }
 
-export type UserDetail = ReturnType<typeof toDetail>;
-
-async function detailOf(db: Executor, user: users.UserRow): Promise<UserDetail> {
-  return toDetail(user, await users.findAddress(db, user.id));
-}
-
-async function assertAvailable(
-  db: Executor,
-  email: string | undefined,
-  cpf: string | null | undefined,
-  exceptId?: number,
-) {
-  if (email) {
-    const taken = await users.findActiveUserByEmail(db, email);
-    if (taken && taken.id !== exceptId) {
-      throw conflict(
-        'email-taken',
-        'Email já cadastrado',
-        'Já existe uma conta com este email. Tente entrar ou recuperar a senha.',
-        {
-          errors: [{ path: 'email', message: 'Este email já está cadastrado.' }],
-        },
-      );
-    }
-  }
-  if (cpf) {
-    const taken = await users.findActiveUserByCpf(db, cpf);
-    if (taken && taken.id !== exceptId) {
-      throw conflict('cpf-taken', 'CPF já cadastrado', 'Já existe uma conta com este CPF.', {
-        errors: [{ path: 'cpf', message: 'Este CPF já está cadastrado.' }],
-      });
-    }
-  }
+async function saveOptionalAddress(tx: Executor, userId: number, address: AddressInput, now: Date) {
+  if (address) await users.saveAddress(tx, userId, address, now);
 }
 
 export interface CustomerRegistration {
@@ -99,36 +81,44 @@ export interface CustomerRegistration {
   address?: AddressInput;
 }
 
+type HashedRegistration = CustomerRegistration & { readonly passwordHash: string };
+
+function customerRow(registration: HashedRegistration, now: Date): users.NewUser {
+  return {
+    role: 'CLIENT',
+    name: registration.name,
+    email: registration.email,
+    phone: registration.phone,
+    cpf: registration.cpf ?? null,
+    passwordHash: registration.passwordHash,
+    privacyAcceptedAt: now,
+    privacyVersion: PRIVACY_POLICY_VERSION,
+  };
+}
+
+async function insertCustomer(
+  ctx: AppContext,
+  tx: Executor,
+  registration: HashedRegistration,
+  meta: auth.ClientMeta,
+) {
+  await assertAvailable(tx, registration.email, registration.cpf);
+  const now = ctx.clock.now();
+  const user = await users.insertUser(tx, customerRow(registration, now));
+  await saveOptionalAddress(tx, user.id, registration.address, now);
+  await queueEmail(tx, user.email, 'welcome', { name: user.name, email: user.email });
+  return auth.startSession(ctx, tx, user, meta);
+}
+
 /** Self registration (UC Cadastrar Cliente): signs the customer in and sends the welcome email. */
 export async function registerCustomer(ctx: AppContext, input: CustomerRegistration, meta: auth.ClientMeta) {
-  const problem = passwordProblem(input.password, input.email);
-  if (problem) {
-    throw unprocessable('weak-password', 'Senha fraca', problem, {
-      errors: [{ path: 'password', message: problem }],
-    });
-  }
+  auth.assertStrongPassword(input.password, input.email);
   const passwordHash = await hashPassword(input.password);
-  return ctx.db.transaction(async (tx) => {
-    await assertAvailable(tx, input.email, input.cpf);
-    const now = ctx.clock.now();
-    const user = await users.insertUser(tx, {
-      role: 'CLIENT',
-      name: input.name,
-      email: input.email,
-      phone: input.phone,
-      cpf: input.cpf ?? null,
-      passwordHash,
-      privacyAcceptedAt: now,
-      privacyVersion: PRIVACY_POLICY_VERSION,
-    });
-    if (input.address) await users.saveAddress(tx, user.id, input.address, now);
-    await queueEmail(tx, user.email, 'welcome', { name: user.name, email: user.email });
-    return auth.startSession(ctx, tx, user, meta);
-  });
+  return ctx.db.transaction((tx) => insertCustomer(ctx, tx, { ...input, passwordHash }, meta));
 }
 
 export interface UserCreation {
-  role: (typeof STAFF_CREATABLE_ROLES)[number];
+  role: StaffCreatableRole;
   name: string;
   email: string;
   phone?: string | null | undefined;
@@ -136,33 +126,33 @@ export interface UserCreation {
   address?: AddressInput;
 }
 
+function invitedUserRow(input: UserCreation): users.NewUser {
+  return {
+    role: input.role,
+    name: input.name,
+    email: input.email,
+    phone: input.phone ?? null,
+    cpf: input.cpf ?? null,
+  };
+}
+
+async function insertInvitedUser(ctx: AppContext, tx: Executor, input: UserCreation, origin: AuditOrigin) {
+  await assertAvailable(tx, input.email, input.cpf);
+  const now = ctx.clock.now();
+  const user = await users.insertUser(tx, invitedUserRow(input));
+  await saveOptionalAddress(tx, user.id, input.address, now);
+  await auth.inviteUser(ctx, tx, user);
+  const detail = await detailOf(tx, user);
+  await recordUserAudit(tx, origin, { action: 'user.create', resourceId: user.id, after: detail });
+  return detail;
+}
+
 /** Registration by the staff: the person receives an invitation to define the password (decision D4). */
 export async function createUser(ctx: AppContext, actor: AccessClaims, input: UserCreation, ip: string) {
-  if (!can(actor.role, CREATE_PERMISSION[input.role]))
+  if (!can(actor.role, CREATE_PERMISSION[input.role])) {
     throw forbidden('Somente o super usuário cadastra a equipe.');
-  return ctx.db.transaction(async (tx) => {
-    await assertAvailable(tx, input.email, input.cpf);
-    const now = ctx.clock.now();
-    const user = await users.insertUser(tx, {
-      role: input.role,
-      name: input.name,
-      email: input.email,
-      phone: input.phone ?? null,
-      cpf: input.cpf ?? null,
-    });
-    if (input.address) await users.saveAddress(tx, user.id, input.address, now);
-    await auth.inviteUser(ctx, tx, user);
-    const detail = await detailOf(tx, user);
-    await recordAudit(tx, {
-      actorId: actor.userId,
-      action: 'user.create',
-      resourceType: 'user',
-      resourceId: user.id,
-      after: detail,
-      ip,
-    });
-    return detail;
-  });
+  }
+  return ctx.db.transaction((tx) => insertInvitedUser(ctx, tx, input, { actorId: actor.userId, ip }));
 }
 
 export async function listUsers(
@@ -171,23 +161,9 @@ export async function listUsers(
   query: { role: Role; q?: string | undefined; page: number; pageSize: number },
 ) {
   if (!can(actorRole, READ_PERMISSION[query.role])) throw forbidden();
-  const roles: Role[] = query.role === 'MANAGER' ? ['MANAGER', 'ADMIN'] : [query.role];
-  const { rows, total } = await users.searchUsers(ctx.db, {
-    roles,
-    q: query.q,
-    limit: query.pageSize,
-    offset: (query.page - 1) * query.pageSize,
-  });
-  const data = rows.map((u) => ({
-    id: u.id,
-    role: u.role,
-    name: u.name,
-    email: u.email,
-    phone: u.phone,
-    cpf: u.cpf,
-    createdAt: u.createdAt,
-  }));
-  return pageOf(data, query, total);
+  const roles = LISTED_ROLES[query.role] ?? [query.role];
+  const { rows, total } = await users.searchUsers(ctx.db, { roles, q: query.q, ...toLimitOffset(query) });
+  return pageOf(rows.map(toListItem), query, total);
 }
 
 async function visibleUser(ctx: AppContext, actorRole: Role, id: number): Promise<users.UserRow> {
@@ -196,39 +172,31 @@ async function visibleUser(ctx: AppContext, actorRole: Role, id: number): Promis
   return user;
 }
 
-/** Recent history shown on the user detail; each list only when the actor may open its records. */
-async function recentActivity(ctx: AppContext, actorRole: Role, user: users.UserRow) {
-  const none = { recentOrders: [], recentServiceRequests: [], recentAppointments: [] };
-  if (user.role === 'EMPLOYEE') {
-    const appointments = await users.recentEmployeeAppointments(ctx.db, user.id, RECENT_ACTIVITY_LIMIT);
-    return { ...none, recentAppointments: appointments };
-  }
-  if (user.role !== 'CLIENT') return none;
-  const activity = await users.recentCustomerActivity(ctx.db, user.id, RECENT_ACTIVITY_LIMIT);
-  return {
-    ...none,
-    recentOrders: can(actorRole, 'orders.manage')
-      ? activity.orders.map((order) => ({ ...order, number: orderNumber(order.id) }))
-      : [],
-    recentServiceRequests: can(actorRole, 'serviceRequests.manage') ? activity.serviceRequests : [],
-  };
-}
-
 export async function getUser(ctx: AppContext, actorRole: Role, id: number) {
   const user = await visibleUser(ctx, actorRole, id);
   return { ...(await detailOf(ctx.db, user)), ...(await recentActivity(ctx, actorRole, user)) };
 }
 
 async function applyChanges(tx: Executor, user: users.UserRow, changes: ProfileUpdate, now: Date) {
-  if (user.role !== 'CLIENT' && changes.cpf === null) {
-    throw unprocessable('cpf-required', 'CPF obrigatório', 'CPF é obrigatório para a equipe.', {
-      errors: [{ path: 'cpf', message: 'CPF é obrigatório para a equipe.' }],
-    });
-  }
+  if (user.role !== 'CLIENT' && changes.cpf === null) throw cpfRequired();
   const { address, ...fields } = changes;
   const updated = Object.keys(fields).length > 0 ? await users.updateUser(tx, user.id, fields, now) : user;
   if (address !== undefined) await users.saveAddress(tx, user.id, address, now);
   return updated;
+}
+
+async function updateAudited(
+  ctx: AppContext,
+  tx: Executor,
+  edit: { readonly user: users.UserRow; readonly changes: ProfileUpdate },
+  origin: AuditOrigin,
+) {
+  await assertAvailable(tx, edit.changes.email, edit.changes.cpf, edit.user.id);
+  const before = await detailOf(tx, edit.user);
+  const updated = await applyChanges(tx, edit.user, edit.changes, ctx.clock.now());
+  const after = await detailOf(tx, updated);
+  await recordUserAudit(tx, origin, { action: 'user.update', resourceId: edit.user.id, before, after });
+  return after;
 }
 
 /** Super user edit of any account, including the email (no confirmation needed). */
@@ -240,22 +208,13 @@ export async function adminUpdateUser(
   ip: string,
 ) {
   const user = await visibleUser(ctx, actor.role, id);
-  return ctx.db.transaction(async (tx) => {
-    await assertAvailable(tx, changes.email, changes.cpf, user.id);
-    const before = await detailOf(tx, user);
-    const updated = await applyChanges(tx, user, changes, ctx.clock.now());
-    const after = await detailOf(tx, updated);
-    await recordAudit(tx, {
-      actorId: actor.userId,
-      action: 'user.update',
-      resourceType: 'user',
-      resourceId: id,
-      before,
-      after,
-      ip,
-    });
-    return after;
-  });
+  return ctx.db.transaction((tx) => updateAudited(ctx, tx, { user, changes }, { actorId: actor.userId, ip }));
+}
+
+async function anonymizeAudited(ctx: AppContext, tx: Executor, user: users.UserRow, origin: AuditOrigin) {
+  const before = await detailOf(tx, user);
+  await users.anonymizeUser(tx, user.id, ctx.clock.now());
+  await recordUserAudit(tx, origin, { action: 'user.delete', resourceId: user.id, before });
 }
 
 export async function deleteUser(
@@ -265,30 +224,13 @@ export async function deleteUser(
   ip: string,
 ): Promise<void> {
   const user = await visibleUser(ctx, actor.role, id);
-  if (user.role === 'ADMIN') {
-    throw conflict(
-      'cannot-delete-admin',
-      'Não é possível excluir',
-      'O super usuário não pode ser excluído por aqui.',
-    );
-  }
-  await ctx.db.transaction(async (tx) => {
-    const before = await detailOf(tx, user);
-    await users.anonymizeUser(tx, id, ctx.clock.now());
-    await recordAudit(tx, {
-      actorId: actor.userId,
-      action: 'user.delete',
-      resourceType: 'user',
-      resourceId: id,
-      before,
-      ip,
-    });
-  });
+  if (user.role === 'ADMIN') throw adminNotDeletable();
+  await ctx.db.transaction((tx) => anonymizeAudited(ctx, tx, user, { actorId: actor.userId, ip }));
 }
 
 async function self(ctx: AppContext, userId: number): Promise<users.UserRow> {
   const user = await users.findActiveUserById(ctx.db, userId);
-  if (!user) throw new AppError(401, 'unauthorized', 'Não autenticado', 'Faça login para continuar.');
+  if (!user) throw unauthorized();
   return user;
 }
 
@@ -321,22 +263,14 @@ export async function exportOwnData(ctx: AppContext, userId: number) {
   };
 }
 
+async function anonymizeOwnAccount(ctx: AppContext, tx: Executor, user: users.UserRow, ip: string) {
+  await users.anonymizeUser(tx, user.id, ctx.clock.now());
+  await recordUserAudit(tx, { actorId: user.id, ip }, { action: 'account.delete', resourceId: user.id });
+}
+
 export async function deleteOwnAccount(ctx: AppContext, actor: AccessClaims, password: string, ip: string) {
   const user = await self(ctx, actor.userId);
   if (user.role !== 'CLIENT') throw forbidden('Contas da equipe são removidas pelo super usuário.');
-  if (!user.passwordHash || !(await verifyPassword(user.passwordHash, password))) {
-    throw unprocessable('wrong-password', 'Senha incorreta', 'A senha não confere.', {
-      errors: [{ path: 'password', message: 'A senha não confere.' }],
-    });
-  }
-  await ctx.db.transaction(async (tx) => {
-    await users.anonymizeUser(tx, user.id, ctx.clock.now());
-    await recordAudit(tx, {
-      actorId: user.id,
-      action: 'account.delete',
-      resourceType: 'user',
-      resourceId: user.id,
-      ip,
-    });
-  });
+  if (!(await matchesPassword(user.passwordHash, password))) throw wrongPassword();
+  await ctx.db.transaction((tx) => anonymizeOwnAccount(ctx, tx, user, ip));
 }
