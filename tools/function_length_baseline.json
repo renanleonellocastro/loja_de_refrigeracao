@@ -1,6 +1,6 @@
 {
   "limit": 12,
-  "total": 271,
+  "total": 237,
   "functions": [
     {
       "path": "apps/api/src/app.ts",
@@ -126,81 +126,6 @@
       "path": "apps/api/src/modules/audit/service.ts",
       "name": "listAudit",
       "length": 18
-    },
-    {
-      "path": "apps/api/src/modules/auth/repository.ts",
-      "name": "findUsableAuthToken",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/auth/routes.ts",
-      "name": "authRoutes",
-      "length": 139
-    },
-    {
-      "path": "apps/api/src/modules/auth/routes.ts",
-      "name": "authRoutes.anonymous",
-      "length": 137
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "changePassword",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "confirmEmail",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "inviteUser",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "login",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "redeemPasswordToken",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "redeemPasswordToken.transaction(callback)",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "refresh",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "refresh.transaction(callback)",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "requestEmailChange",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "requestPasswordReset",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "startSession",
-      "length": 25
-    },
-    {
-      "path": "apps/api/src/modules/auth/tokens.ts",
-      "name": "verifyAccessToken",
-      "length": 14
     },
     {
       "path": "apps/api/src/modules/dashboard/dashboard.ts",
@@ -561,101 +486,6 @@
       "path": "apps/api/src/modules/services/status.ts",
       "name": "nextRequestStatus",
       "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "adminUpdateUser",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "adminUpdateUser.transaction(callback)",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "assertAvailable",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "createUser",
-      "length": 25
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "createUser.transaction(callback)",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "deleteOwnAccount",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "deleteUser",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "listUsers",
-      "length": 18
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "recentActivity",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "registerCustomer",
-      "length": 24
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "registerCustomer.transaction(callback)",
-      "length": 15
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "toDetail",
-      "length": 22
-    },
-    {
-      "path": "apps/api/src/modules/users/cep.ts",
-      "name": "lookupCep",
-      "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "anonymizeUser",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "recentCustomerActivity",
-      "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "recentEmployeeAppointments",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "searchUsers",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/routes.ts",
-      "name": "userRoutes",
-      "length": 183
-    },
-    {
-      "path": "apps/api/src/modules/users/routes.ts",
-      "name": "userRoutes.anonymous",
-      "length": 181
     },
     {
       "path": "apps/api/src/plugins/auth.ts",
