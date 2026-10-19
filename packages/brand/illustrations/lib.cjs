@@ -53,70 +53,132 @@ const lin = (id, x1, y1, x2, y2, s) =>
   `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops(s)}</linearGradient>`;
 const rad = (id, s, extra = '') => `<radialGradient id="${id}"${extra}>${stops(s)}</radialGradient>`;
 
-// Standard gradients, prefixed per file so inline usage never collides.
-function stdDefs(p) {
-  return [
-    lin(`${p}st`, 0, 0, 1, 0, [
+const HORIZONTAL = [0, 0, 1, 0];
+const VERTICAL = [0, 0, 0, 1];
+const DIAGONAL = [0, 0, 1, 1];
+
+// Standard gradients shared by every file: id suffix, direction and stops.
+const STANDARD_LINEAR_GRADIENTS = [
+  {
+    suffix: 'st',
+    vector: HORIZONTAL,
+    stops: [
       [0, C.s300],
       [0.07, C.s50],
       [0.32, C.s100],
       [0.72, C.s300],
       [1, C.s400],
-    ]),
-    lin(`${p}wh`, 0, 0, 1, 0, [
+    ],
+  },
+  {
+    suffix: 'wh',
+    vector: HORIZONTAL,
+    stops: [
       [0, C.w],
       [0.55, C.s50],
       [1, C.s200],
-    ]),
-    lin(`${p}whv`, 0, 0, 0, 1, [
+    ],
+  },
+  {
+    suffix: 'whv',
+    vector: VERTICAL,
+    stops: [
       [0, C.w],
       [1, C.s100],
-    ]),
-    lin(`${p}dk`, 0, 0, 0, 1, [
+    ],
+  },
+  {
+    suffix: 'dk',
+    vector: VERTICAL,
+    stops: [
       [0, C.b800],
       [1, C.b950],
-    ]),
-    lin(`${p}lid`, 0, 0, 1, 1, [
+    ],
+  },
+  {
+    suffix: 'lid',
+    vector: DIAGONAL,
+    stops: [
       [0, C.b400],
       [1, C.b800],
-    ]),
-    lin(`${p}wat`, 0, 0, 1, 0, [
+    ],
+  },
+  {
+    suffix: 'wat',
+    vector: HORIZONTAL,
+    stops: [
       [0, C.f200, 0.95],
       [0.5, C.f300, 0.85],
       [1, C.b400, 0.9],
-    ]),
-    rad(`${p}glow`, [
+    ],
+  },
+];
+const STANDARD_RADIAL_GRADIENTS = [
+  {
+    suffix: 'glow',
+    stops: [
       [0, C.f200, 0.95],
       [0.55, C.f300, 0.35],
       [1, C.f300, 0],
-    ]),
-    rad(`${p}sh`, [
+    ],
+  },
+  {
+    suffix: 'sh',
+    stops: [
       [0, C.b900, 0.28],
       [1, C.b900, 0],
-    ]),
-  ].join('');
+    ],
+  },
+];
+
+// Linear then radial gradients from tables of { suffix, vector, stops }, ids prefixed per file.
+function gradientDefs(p, linearGradients, radialGradients) {
+  const linear = linearGradients.map(({ suffix, vector, stops: gradientStops }) =>
+    lin(`${p}${suffix}`, ...vector, gradientStops),
+  );
+  const radial = radialGradients.map(({ suffix, stops: gradientStops }) =>
+    rad(`${p}${suffix}`, gradientStops),
+  );
+  return [...linear, ...radial].join('');
+}
+
+// Standard gradients, prefixed per file so inline usage never collides.
+function stdDefs(p) {
+  return gradientDefs(p, STANDARD_LINEAR_GRADIENTS, STANDARD_RADIAL_GRADIENTS);
+}
+
+const BLOB_POINT_COUNT = 8;
+// Catmull Rom to cubic Bezier conversion uses a sixth of the neighbour tangent.
+const CATMULL_ROM_TENSION = 6;
+const formatPoint = ([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`;
+
+function blobPoints(cx, cy, rx, ry, seed) {
+  return Array.from({ length: BLOB_POINT_COUNT }, (_, index) => {
+    const angle = (index / BLOB_POINT_COUNT) * Math.PI * 2 + seed * 0.3;
+    const jitter = 1 + 0.035 * Math.sin(seed * 1.7 + index * 2.1) + 0.02 * Math.cos(seed + index * 3.3);
+    return [cx + Math.cos(angle) * rx * jitter, cy + Math.sin(angle) * ry * jitter];
+  });
+}
+
+function catmullRomSegment(points, index) {
+  const neighbour = (offset) => points[(index + offset + points.length) % points.length];
+  const [previous, start, end, next] = [-1, 0, 1, 2].map(neighbour);
+  const startControl = [
+    start[0] + (end[0] - previous[0]) / CATMULL_ROM_TENSION,
+    start[1] + (end[1] - previous[1]) / CATMULL_ROM_TENSION,
+  ];
+  const endControl = [
+    end[0] - (next[0] - start[0]) / CATMULL_ROM_TENSION,
+    end[1] - (next[1] - start[1]) / CATMULL_ROM_TENSION,
+  ];
+  return `C${formatPoint(startControl)} ${formatPoint(endControl)} ${formatPoint(end)}`;
 }
 
 // Organic rounded blob (Catmull Rom through jittered radial points).
 function blob(cx, cy, rx, ry, seed, fill, extra = '') {
-  const n = 8,
-    pts = [];
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2 + seed * 0.3;
-    const k = 1 + 0.035 * Math.sin(seed * 1.7 + i * 2.1) + 0.02 * Math.cos(seed + i * 3.3);
-    pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]);
-  }
-  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n],
-      p1 = pts[i],
-      p2 = pts[(i + 1) % n],
-      p3 = pts[(i + 2) % n];
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    d += `C${c1[0].toFixed(1)} ${c1[1].toFixed(1)} ${c2[0].toFixed(1)} ${c2[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
-  }
-  return `<path d="${d}Z" fill="${fill}"${extra}/>`;
+  const points = blobPoints(cx, cy, rx, ry, seed);
+  const segments = points.map((_, index) => catmullRomSegment(points, index)).join('');
+  return `<path d="M${formatPoint(points[0])}${segments}Z" fill="${fill}"${extra}/>`;
 }
 
 // Embed a logo file verbatim inside a nested svg viewport, ids prefixed.
@@ -129,15 +191,6 @@ function logo(kind, x, y, width, p) {
   const h = (width * vh) / vw;
   return `<svg x="${x}" y="${y.toFixed(1)}" width="${width}" height="${h.toFixed(1)}" viewBox="${vb}" overflow="visible">${inner}</svg>`;
 }
-const logoHeight = (kind, width) => {
-  const src = fs.readFileSync(`${LOGO_DIR}${LOGO_FILES[kind] ?? kind}.svg`, 'utf8');
-  const [, , vw, vh] = src
-    .match(/viewBox="([^"]+)"/)[1]
-    .split(/\s+/)
-    .map(Number);
-  return (width * vh) / vw;
-};
-
 const shadow = (p, cx, cy, rx, ry, op = 1) =>
   `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${p}sh)" opacity="${op}"/>`;
 const g = (t, s, extra = '') => `<g transform="${t}"${extra}>${s}</g>`;
@@ -158,8 +211,7 @@ function snowflake(r, color, w) {
 
 // ---------- Appliances (local coordinates, origin top left) ----------
 
-// Stainless duplex fridge with dispenser, 140 x 304.
-function fridge(p) {
+function fridgeShell(p) {
   return [
     `<rect width="140" height="300" rx="10" fill="url(#${p}st)"/>`,
     `<rect x="131" y="3" width="9" height="294" rx="4.5" fill="${C.s500}" opacity=".28"/>`,
@@ -167,77 +219,106 @@ function fridge(p) {
     `<rect y="98" width="140" height="5" fill="${C.s400}" opacity=".35"/>`,
     `<rect x="12" y="7" width="8" height="82" rx="4" fill="#fff" opacity=".7"/>`,
     `<rect x="12" y="105" width="8" height="186" rx="4" fill="#fff" opacity=".7"/>`,
+  ].join('');
+}
+
+function fridgeHandles() {
+  return [
     `<rect x="115" y="30" width="8" height="48" rx="4" fill="${C.s600}"/><rect x="116.5" y="32" width="2.5" height="44" rx="1.2" fill="${C.s200}"/>`,
     `<rect x="115" y="110" width="8" height="80" rx="4" fill="${C.s600}"/><rect x="116.5" y="112" width="2.5" height="76" rx="1.2" fill="${C.s200}"/>`,
+  ].join('');
+}
+
+function fridgeDispenser(p) {
+  return [
     `<rect x="30" y="118" width="50" height="68" rx="8" fill="url(#${p}dk)"/>`,
     `<rect x="36" y="125" width="38" height="9" rx="3" fill="${C.f400}"/>`,
     `<rect x="40" y="128" width="8" height="3" rx="1.5" fill="${C.f200}"/><rect x="52" y="128" width="5" height="3" rx="1.5" fill="${C.f200}"/>`,
     `<rect x="49" y="141" width="12" height="15" rx="3" fill="${C.s600}"/>`,
     `<rect x="36" y="175" width="38" height="5" rx="2.5" fill="${C.s500}"/>`,
+  ].join('');
+}
+
+function fridgeBadgeAndFeet() {
+  return [
     `<rect x="52" y="18" width="36" height="4" rx="2" fill="${C.s400}"/>`,
     `<rect x="10" y="299" width="18" height="6" rx="2" fill="${C.s800}"/><rect x="112" y="299" width="18" height="6" rx="2" fill="${C.s800}"/>`,
   ].join('');
 }
 
-// Top load washer, 170 x 200 closed (deck 72) or 170 x 232 open (deck 104).
-function washer(p, { open = false, swirl = '' } = {}) {
-  const D = open ? 104 : 72;
-  const s = [];
-  s.push(`<rect x="4" y="0" width="162" height="40" rx="12" fill="url(#${p}wh)"/>`);
-  s.push(`<rect x="4" y="30" width="162" height="10" fill="${C.s200}" opacity=".7"/>`);
-  s.push(`<rect x="58" y="10" width="54" height="16" rx="5" fill="url(#${p}dk)"/>`);
-  s.push(
+// Stainless duplex fridge with dispenser, 140 x 304.
+function fridge(p) {
+  return [fridgeShell(p), fridgeHandles(), fridgeDispenser(p), fridgeBadgeAndFeet()].join('');
+}
+
+const OPEN_WASHER_DECK_Y = 104;
+const WASHER_CABINET_HEIGHT = 126;
+
+function washerControlPanel(p) {
+  return [
+    `<rect x="4" y="0" width="162" height="40" rx="12" fill="url(#${p}wh)"/>`,
+    `<rect x="4" y="30" width="162" height="10" fill="${C.s200}" opacity=".7"/>`,
+    `<rect x="58" y="10" width="54" height="16" rx="5" fill="url(#${p}dk)"/>`,
     `<rect x="64" y="15" width="16" height="6" rx="2" fill="${C.f400}"/><rect x="84" y="15" width="8" height="6" rx="2" fill="${C.f300}" opacity=".7"/><circle cx="102" cy="18" r="3" fill="${C.f400}"/>`,
-  );
-  s.push(
     `<circle cx="28" cy="19" r="9" fill="${C.s200}"/><circle cx="27" cy="18" r="6" fill="#fff"/><circle cx="142" cy="19" r="9" fill="${C.s200}"/><circle cx="141" cy="18" r="6" fill="#fff"/>`,
-  );
-  s.push(`<path d="M0 50Q0 40 10 40H160Q170 40 170 50V${D}H0Z" fill="#fff"/>`);
-  if (!open) {
-    s.push(`<rect x="18" y="44" width="134" height="24" rx="9" fill="url(#${p}lid)"/>`);
-    s.push(`<path d="M26 50H96" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".55"/>`);
-    s.push(`<rect x="70" y="63" width="30" height="5" rx="2.5" fill="${C.s300}"/>`);
-  } else {
-    s.push(swirl);
-  }
-  const B = D + 126;
-  s.push(
-    `<path d="M0 ${D - 2}H170V${B - 10}Q170 ${B} 160 ${B}H10Q0 ${B} 0 ${B - 10}Z" fill="url(#${p}wh)"/>`,
-  );
-  s.push(`<rect y="${D - 2}" width="170" height="4" fill="${C.s200}"/>`);
-  s.push(`<rect x="10" y="${D + 8}" width="7" height="104" rx="3.5" fill="#fff"/>`);
-  s.push(`<rect x="0" y="${B - 16}" width="170" height="16" rx="6" fill="${C.s200}"/>`);
-  s.push(`<rect x="60" y="${D + 22}" width="50" height="4" rx="2" fill="${C.s300}"/>`);
-  return s.join('');
+  ].join('');
+}
+
+function washerCabinet(p, deckY) {
+  const bottomY = deckY + WASHER_CABINET_HEIGHT;
+  return [
+    `<path d="M0 ${deckY - 2}H170V${bottomY - 10}Q170 ${bottomY} 160 ${bottomY}H10Q0 ${bottomY} 0 ${bottomY - 10}Z" fill="url(#${p}wh)"/>`,
+    `<rect y="${deckY - 2}" width="170" height="4" fill="${C.s200}"/>`,
+    `<rect x="10" y="${deckY + 8}" width="7" height="104" rx="3.5" fill="#fff"/>`,
+    `<rect x="0" y="${bottomY - 16}" width="170" height="16" rx="6" fill="${C.s200}"/>`,
+    `<rect x="60" y="${deckY + 22}" width="50" height="4" rx="2" fill="${C.s300}"/>`,
+  ].join('');
+}
+
+// Top load washer body with an open deck (deck 104), 170 x 232; the drum content goes in the deck.
+function openWasherBody(p, drumContent) {
+  const deckY = OPEN_WASHER_DECK_Y;
+  return [
+    washerControlPanel(p),
+    `<path d="M0 50Q0 40 10 40H160Q170 40 170 50V${deckY}H0Z" fill="#fff"/>`,
+    drumContent,
+    washerCabinet(p, deckY),
+  ].join('');
+}
+
+function dispenserBottle(p) {
+  return [
+    `<path d="M30 112V100Q12 96 10 80V22Q10 4 30 2H70Q90 4 90 22V80Q88 96 70 100V112Z" fill="url(#${p}wat)"/>`,
+    `<path d="M12 40H88M12 64H88" stroke="#fff" stroke-width="2.5" opacity=".45"/>`,
+    `<rect x="20" y="10" width="8" height="78" rx="4" fill="#fff" opacity=".6"/>`,
+    `<path d="M30 2H70Q90 4 90 22V24H10V22Q10 4 30 2Z" fill="${C.b400}" opacity=".35"/>`,
+  ].join('');
+}
+
+function dispenserTapPanel(p) {
+  return [
+    `<rect x="2" y="110" width="96" height="190" rx="10" fill="url(#${p}wh)"/>`,
+    `<rect x="14" y="104" width="72" height="12" rx="5" fill="${C.s200}"/>`,
+    `<rect x="14" y="136" width="72" height="66" rx="9" fill="${C.s200}"/>`,
+    `<rect x="18" y="140" width="64" height="58" rx="7" fill="${C.s300}" opacity=".55"/>`,
+    `<rect x="26" y="142" width="16" height="14" rx="4" fill="${C.b500}"/><rect x="30" y="156" width="8" height="8" rx="2" fill="${C.s500}"/>`,
+    `<rect x="58" y="142" width="16" height="14" rx="4" fill="${C.s400}"/><rect x="62" y="156" width="8" height="8" rx="2" fill="${C.s500}"/>`,
+    `<rect x="22" y="188" width="56" height="7" rx="3.5" fill="${C.s500}"/>`,
+    `<circle cx="50" cy="124" r="3.5" fill="${C.f400}"/>`,
+  ].join('');
+}
+
+function dispenserDoor() {
+  return [
+    `<rect x="10" y="214" width="80" height="78" rx="6" fill="${C.s100}"/>`,
+    `<rect x="78" y="232" width="5" height="34" rx="2.5" fill="${C.s300}"/>`,
+    `<rect x="8" y="118" width="6" height="170" rx="3" fill="#fff"/>`,
+  ].join('');
 }
 
 // Water dispenser with 20 L bottle, 100 x 304.
 function dispenser(p) {
-  const s = [];
-  // bottle
-  s.push(
-    `<path d="M30 112V100Q12 96 10 80V22Q10 4 30 2H70Q90 4 90 22V80Q88 96 70 100V112Z" fill="url(#${p}wat)"/>`,
-  );
-  s.push(`<path d="M12 40H88M12 64H88" stroke="#fff" stroke-width="2.5" opacity=".45"/>`);
-  s.push(`<rect x="20" y="10" width="8" height="78" rx="4" fill="#fff" opacity=".6"/>`);
-  s.push(`<path d="M30 2H70Q90 4 90 22V24H10V22Q10 4 30 2Z" fill="${C.b400}" opacity=".35"/>`);
-  // cabinet
-  s.push(`<rect x="2" y="110" width="96" height="190" rx="10" fill="url(#${p}wh)"/>`);
-  s.push(`<rect x="14" y="104" width="72" height="12" rx="5" fill="${C.s200}"/>`);
-  s.push(`<rect x="14" y="136" width="72" height="66" rx="9" fill="${C.s200}"/>`);
-  s.push(`<rect x="18" y="140" width="64" height="58" rx="7" fill="${C.s300}" opacity=".55"/>`);
-  s.push(
-    `<rect x="26" y="142" width="16" height="14" rx="4" fill="${C.b500}"/><rect x="30" y="156" width="8" height="8" rx="2" fill="${C.s500}"/>`,
-  );
-  s.push(
-    `<rect x="58" y="142" width="16" height="14" rx="4" fill="${C.s400}"/><rect x="62" y="156" width="8" height="8" rx="2" fill="${C.s500}"/>`,
-  );
-  s.push(`<rect x="22" y="188" width="56" height="7" rx="3.5" fill="${C.s500}"/>`);
-  s.push(`<circle cx="50" cy="124" r="3.5" fill="${C.f400}"/>`);
-  s.push(`<rect x="10" y="214" width="80" height="78" rx="6" fill="${C.s100}"/>`);
-  s.push(`<rect x="78" y="232" width="5" height="34" rx="2.5" fill="${C.s300}"/>`);
-  s.push(`<rect x="8" y="118" width="6" height="170" rx="3" fill="#fff"/>`);
-  return s.join('');
+  return [dispenserBottle(p), dispenserTapPanel(p), dispenserDoor()].join('');
 }
 
 // Wall split indoor unit, 300 x 92.
@@ -255,30 +336,46 @@ function split(p) {
   ].join('');
 }
 
+const CONDENSER_FAN_BLADE_COUNT = 3;
+const CONDENSER_GRILLE_SLAT_COUNT = 9;
+const FULL_TURN_DEGREES = 360;
+
+function condenserFanBlades() {
+  const bladeAngle = FULL_TURN_DEGREES / CONDENSER_FAN_BLADE_COUNT;
+  return Array.from(
+    { length: CONDENSER_FAN_BLADE_COUNT },
+    (_, index) =>
+      `<path transform="rotate(${index * bladeAngle} 82 74)" d="M82 74Q72 40 96 30Q104 56 82 74Z" fill="${C.s400}"/>`,
+  ).join('');
+}
+
+function condenserFan() {
+  return [
+    `<circle cx="82" cy="74" r="56" fill="${C.s200}"/>`,
+    `<circle cx="82" cy="74" r="50" fill="${C.s600}"/>`,
+    condenserFanBlades(),
+    `<g fill="none" stroke="${C.s300}" stroke-width="2.4"><circle cx="82" cy="74" r="50"/><circle cx="82" cy="74" r="38"/><circle cx="82" cy="74" r="25"/><path d="M32 74H132M82 24V124"/></g>`,
+    `<circle cx="82" cy="74" r="8" fill="${C.s200}"/>`,
+  ].join('');
+}
+
+function condenserGrille() {
+  return Array.from(
+    { length: CONDENSER_GRILLE_SLAT_COUNT },
+    (_, index) => `<rect x="156" y="${22 + index * 12}" width="48" height="5" rx="2.5" fill="${C.s300}"/>`,
+  ).join('');
+}
+
 // Condenser (outdoor unit), 220 x 160.
 function condenser(p) {
-  const s = [];
-  s.push(`<rect width="220" height="150" rx="10" fill="url(#${p}wh)"/>`);
-  s.push(`<rect y="140" width="220" height="10" rx="4" fill="${C.s300}"/>`);
-  s.push(`<circle cx="82" cy="74" r="56" fill="${C.s200}"/>`);
-  s.push(`<circle cx="82" cy="74" r="50" fill="${C.s600}"/>`);
-  let blades = '';
-  for (let i = 0; i < 3; i++)
-    blades += `<path transform="rotate(${i * 120} 82 74)" d="M82 74Q72 40 96 30Q104 56 82 74Z" fill="${C.s400}"/>`;
-  s.push(blades);
-  s.push(
-    `<g fill="none" stroke="${C.s300}" stroke-width="2.4"><circle cx="82" cy="74" r="50"/><circle cx="82" cy="74" r="38"/><circle cx="82" cy="74" r="25"/><path d="M32 74H132M82 24V124"/></g>`,
-  );
-  s.push(`<circle cx="82" cy="74" r="8" fill="${C.s200}"/>`);
-  let grille = '';
-  for (let i = 0; i < 9; i++)
-    grille += `<rect x="156" y="${22 + i * 12}" width="48" height="5" rx="2.5" fill="${C.s300}"/>`;
-  s.push(grille);
-  s.push(`<rect x="8" y="8" width="6" height="128" rx="3" fill="#fff"/>`);
-  s.push(
+  return [
+    `<rect width="220" height="150" rx="10" fill="url(#${p}wh)"/>`,
+    `<rect y="140" width="220" height="10" rx="4" fill="${C.s300}"/>`,
+    condenserFan(),
+    condenserGrille(),
+    `<rect x="8" y="8" width="6" height="128" rx="3" fill="#fff"/>`,
     `<rect x="20" y="150" width="30" height="10" rx="3" fill="${C.s600}"/><rect x="170" y="150" width="30" height="10" rx="3" fill="${C.s600}"/>`,
-  );
-  return s.join('');
+  ].join('');
 }
 
 // Open end wrench, head centered at 0,0 pointing right; length about 150.
@@ -293,48 +390,65 @@ function wrench(fill = C.s400, hi = C.s200, dark = C.s600) {
   ].join('');
 }
 
+const FREEZER_VENT_SLOT_COUNT = 5;
+
+function freezerLid(p) {
+  return [
+    `<path d="M22 0H278L300 34H0Z" fill="url(#${p}whv)"/>`,
+    `<path d="M60 10H200" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`,
+    `<rect x="0" y="32" width="300" height="20" rx="5" fill="${C.s100}"/>`,
+    `<rect x="120" y="40" width="60" height="8" rx="4" fill="${C.s400}"/>`,
+    `<rect x="4" y="52" width="292" height="4" fill="${C.s400}"/>`,
+  ].join('');
+}
+
+function freezerVent() {
+  return Array.from(
+    { length: FREEZER_VENT_SLOT_COUNT },
+    (_, index) => `<rect x="${216 + index * 12}" y="142" width="6" height="18" rx="3" fill="${C.s300}"/>`,
+  ).join('');
+}
+
+function freezerBody(p) {
+  return [
+    `<path d="M4 56H296V160Q296 170 286 170H14Q4 170 4 160Z" fill="url(#${p}wh)"/>`,
+    `<rect x="14" y="64" width="7" height="94" rx="3.5" fill="#fff"/>`,
+    `<rect x="34" y="70" width="40" height="18" rx="5" fill="url(#${p}dk)"/><circle cx="44" cy="79" r="3.5" fill="${C.f400}"/><rect x="52" y="76" width="16" height="6" rx="2" fill="${C.f300}" opacity=".8"/>`,
+    freezerVent(),
+    `<rect x="4" y="164" width="292" height="6" rx="3" fill="${C.s200}"/>`,
+    `<rect x="16" y="170" width="22" height="6" rx="2" fill="${C.s800}"/><rect x="262" y="170" width="22" height="6" rx="2" fill="${C.s800}"/>`,
+  ].join('');
+}
+
 // Chest freezer, 300 x 176.
 function freezer(p) {
-  const s = [];
-  s.push(`<path d="M22 0H278L300 34H0Z" fill="url(#${p}whv)"/>`);
-  s.push(`<path d="M60 10H200" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`);
-  s.push(`<rect x="0" y="32" width="300" height="20" rx="5" fill="${C.s100}"/>`);
-  s.push(`<rect x="120" y="40" width="60" height="8" rx="4" fill="${C.s400}"/>`);
-  s.push(`<rect x="4" y="52" width="292" height="4" fill="${C.s400}"/>`);
-  s.push(`<path d="M4 56H296V160Q296 170 286 170H14Q4 170 4 160Z" fill="url(#${p}wh)"/>`);
-  s.push(`<rect x="14" y="64" width="7" height="94" rx="3.5" fill="#fff"/>`);
-  s.push(
-    `<rect x="34" y="70" width="40" height="18" rx="5" fill="url(#${p}dk)"/><circle cx="44" cy="79" r="3.5" fill="${C.f400}"/><rect x="52" y="76" width="16" height="6" rx="2" fill="${C.f300}" opacity=".8"/>`,
-  );
-  let vent = '';
-  for (let i = 0; i < 5; i++)
-    vent += `<rect x="${216 + i * 12}" y="142" width="6" height="18" rx="3" fill="${C.s300}"/>`;
-  s.push(vent);
-  s.push(`<rect x="4" y="164" width="292" height="6" rx="3" fill="${C.s200}"/>`);
-  s.push(
-    `<rect x="16" y="170" width="22" height="6" rx="2" fill="${C.s800}"/><rect x="262" y="170" width="22" height="6" rx="2" fill="${C.s800}"/>`,
-  );
-  return s.join('');
+  return freezerLid(p) + freezerBody(p);
 }
 
 // Open top load washer with lid raised and water swirl. Local box x 0..170, y -40..230.
 // Needs radial gradient `${p}drum` in defs (added by drumDef).
 const drumDef = (p) =>
   `<radialGradient id="${p}drum"><stop offset="0" stop-color="${C.b600}"/><stop offset="1" stop-color="${C.b950}"/></radialGradient>`;
-function washerOpen(p) {
-  const swirl = [
+function washerWaterSwirl(p) {
+  return [
     `<ellipse cx="85" cy="73" rx="66" ry="25" fill="${C.s200}"/>`,
     `<ellipse cx="85" cy="74" rx="60" ry="21" fill="url(#${p}drum)"/>`,
     `<ellipse cx="85" cy="78" rx="50" ry="15" fill="${C.f300}"/>`,
     `<path d="M45 78C50 68 120 66 124 78C128 90 60 92 62 80C64 72 108 72 106 79C104 86 78 86 80 80" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>`,
     `<path d="M50 86C70 92 104 92 120 84" fill="none" stroke="${C.f400}" stroke-width="3" stroke-linecap="round"/>`,
   ].join('');
+}
+
+function raisedWasherLid() {
   return [
     `<path d="M25 26L33 -34Q34 -40 41 -40H129Q136 -40 137 -34L145 26Z" fill="${C.b300}" opacity=".55"/>`,
     `<path d="M25 26L33 -34Q34 -40 41 -40H129Q136 -40 137 -34L145 26" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/>`,
     `<path d="M45 10L81 -30M69 10L99 -24" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".6"/><rect x="69" y="-44" width="32" height="8" rx="4" fill="${C.s300}"/>`,
-    washer(p, { open: true, swirl }),
   ].join('');
+}
+
+function washerOpen(p) {
+  return raisedWasherLid() + openWasherBody(p, washerWaterSwirl(p));
 }
 
 module.exports = {
@@ -346,15 +460,17 @@ module.exports = {
   rad,
   stops,
   stdDefs,
+  gradientDefs,
+  HORIZONTAL,
+  VERTICAL,
+  DIAGONAL,
   blob,
   logo,
-  logoHeight,
   shadow,
   g,
   air,
   snowflake,
   fridge,
-  washer,
   dispenser,
   split,
   condenser,

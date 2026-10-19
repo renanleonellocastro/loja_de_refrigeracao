@@ -1,4 +1,4 @@
-import createClient, { type Client } from 'openapi-fetch';
+import createClient, { type Client, type Middleware } from 'openapi-fetch';
 import type { components, paths } from './generated/api.js';
 
 export type ApiPaths = paths;
@@ -14,6 +14,18 @@ export interface ApiClientOptions {
   fetch?: typeof globalThis.fetch;
 }
 
+type AccessTokenReader = NonNullable<ApiClientOptions['getAccessToken']>;
+
+function bearerTokenMiddleware(getAccessToken: AccessTokenReader): Middleware {
+  return {
+    onRequest({ request }) {
+      const token = getAccessToken();
+      if (token) request.headers.set('authorization', `Bearer ${token}`);
+      return request;
+    },
+  };
+}
+
 /** Typed client generated from the OpenAPI document. Cookies are included for the refresh flow. */
 export function createApiClient(options: ApiClientOptions): ApiClient {
   const client = createClient<paths>({
@@ -21,12 +33,6 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     credentials: 'include',
     ...(options.fetch ? { fetch: options.fetch } : {}),
   });
-  client.use({
-    onRequest({ request }) {
-      const token = options.getAccessToken?.();
-      if (token) request.headers.set('authorization', `Bearer ${token}`);
-      return request;
-    },
-  });
+  if (options.getAccessToken) client.use(bearerTokenMiddleware(options.getAccessToken));
   return client;
 }

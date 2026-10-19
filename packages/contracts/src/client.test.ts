@@ -35,6 +35,13 @@ describe('createApiClient', () => {
     expect((fetch.mock.calls[0]![0] as Request).headers.get('authorization')).toBe('Bearer abc');
   });
 
+  it('sends no authorization header while the session has no token', async () => {
+    const fetch = fakeFetch();
+    const client = createApiClient({ baseUrl: 'http://api.test', fetch, getAccessToken: () => null });
+    await client.GET('/api/v1/audit-logs', { params: { query: {} } });
+    expect((fetch.mock.calls[0]![0] as Request).headers.get('authorization')).toBeNull();
+  });
+
   it('works with the global fetch by default', () => {
     expect(createApiClient({ baseUrl: 'http://api.test' })).toHaveProperty('GET');
   });
