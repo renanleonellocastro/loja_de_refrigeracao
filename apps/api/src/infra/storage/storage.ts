@@ -18,28 +18,34 @@ export class InvalidStorageKeyError extends Error {
   }
 }
 
+function pathIn(base: string, key: string): string {
+  if (!SAFE_KEY.test(key) || key.includes('..')) throw new InvalidStorageKeyError(key);
+  return join(base, key);
+}
+
+async function writeCreatingFolders(path: string, data: Buffer): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, data);
+}
+
+function isMissingFile(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException).code === 'ENOENT';
+}
+
+async function readIfExists(path: string): Promise<Buffer | null> {
+  try {
+    return await readFile(path);
+  } catch (error) {
+    if (isMissingFile(error)) return null;
+    throw error;
+  }
+}
+
 export function createLocalStorage(root: string): Storage {
   const base = resolve(root);
-  const pathFor = (key: string) => {
-    if (!SAFE_KEY.test(key) || key.includes('..')) throw new InvalidStorageKeyError(key);
-    return join(base, key);
-  };
   return {
-    async put(key, data) {
-      const path = pathFor(key);
-      await mkdir(dirname(path), { recursive: true });
-      await writeFile(path, data);
-    },
-    async get(key) {
-      try {
-        return await readFile(pathFor(key));
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
-        throw error;
-      }
-    },
-    async remove(prefix) {
-      await rm(pathFor(prefix), { recursive: true, force: true });
-    },
+    put: async (key, data) => writeCreatingFolders(pathIn(base, key), data),
+    get: async (key) => readIfExists(pathIn(base, key)),
+    remove: async (prefix) => rm(pathIn(base, prefix), { recursive: true, force: true }),
   };
 }

@@ -1,5 +1,5 @@
 import { and, asc, eq, isNull, lte, or, sql } from 'drizzle-orm';
-import type { Database, Executor } from '../../infra/db/client.js';
+import type { Database, Executor, Transaction } from '../../infra/db/client.js';
 import { outbox } from '../../infra/db/schema.js';
 import type { Clock } from '../../shared/clock.js';
 import { MINUTE } from '../../shared/clock.js';
@@ -19,6 +19,86 @@ export interface BatchResult {
   failed: number;
 }
 
+type OutboxEvent = typeof outbox.$inferSelect;
+type Outcome = keyof BatchResult;
+
+const RETRY_BACKOFF_BASE = 2;
+
+function isDue(now: Date) {
+  return and(
+    isNull(outbox.processedAt),
+    // New events are due at once (their availableAt comes from the database clock); retries wait.
+    or(eq(outbox.attempts, 0), lte(outbox.availableAt, now)),
+    sql`${outbox.attempts} < ${MAX_ATTEMPTS}`,
+  );
+}
+
+function dueEvents(tx: Transaction, now: Date, limit: number) {
+  return tx
+    .select()
+    .from(outbox)
+    .where(isDue(now))
+    .orderBy(asc(outbox.id))
+    .limit(limit)
+    .for('update', { skipLocked: true });
+}
+
+async function runHandler(handlers: OutboxHandlers, event: OutboxEvent): Promise<void> {
+  const handler = handlers[event.topic];
+  if (!handler) throw new Error(`No handler for topic ${event.topic}`);
+  await handler(event.payload);
+}
+
+async function markProcessed(tx: Transaction, event: OutboxEvent, now: Date): Promise<void> {
+  await tx
+    .update(outbox)
+    .set({ processedAt: now, attempts: event.attempts + 1 })
+    .where(eq(outbox.id, event.id));
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function scheduleRetry(tx: Transaction, event: OutboxEvent, now: Date, error: unknown): Promise<void> {
+  const attempts = event.attempts + 1;
+  const availableAt = new Date(now.getTime() + RETRY_BACKOFF_BASE ** attempts * MINUTE);
+  await tx
+    .update(outbox)
+    .set({ attempts, lastError: errorMessage(error), availableAt })
+    .where(eq(outbox.id, event.id));
+}
+
+async function processEvent(
+  tx: Transaction,
+  handlers: OutboxHandlers,
+  event: OutboxEvent,
+  now: Date,
+): Promise<Outcome> {
+  try {
+    await runHandler(handlers, event);
+    await markProcessed(tx, event, now);
+    return 'processed';
+  } catch (error) {
+    await scheduleRetry(tx, event, now, error);
+    return 'failed';
+  }
+}
+
+async function processDueEvents(
+  tx: Transaction,
+  handlers: OutboxHandlers,
+  clock: Clock,
+  limit: number,
+): Promise<BatchResult> {
+  const now = clock.now();
+  const result: BatchResult = { processed: 0, failed: 0 };
+  for (const event of await dueEvents(tx, now, limit)) {
+    result[await processEvent(tx, handlers, event, now)] += 1;
+  }
+  return result;
+}
+
 /**
  * Processes due events with SKIP LOCKED so several workers can run side by side.
  * Failures are retried with exponential backoff up to MAX_ATTEMPTS.
@@ -29,47 +109,5 @@ export async function processOutboxBatch(
   clock: Clock,
   limit = 20,
 ): Promise<BatchResult> {
-  return db.transaction(async (tx) => {
-    const now = clock.now();
-    const due = await tx
-      .select()
-      .from(outbox)
-      .where(
-        and(
-          isNull(outbox.processedAt),
-          // New events are due at once (their availableAt comes from the database clock); retries wait.
-          or(eq(outbox.attempts, 0), lte(outbox.availableAt, now)),
-          sql`${outbox.attempts} < ${MAX_ATTEMPTS}`,
-        ),
-      )
-      .orderBy(asc(outbox.id))
-      .limit(limit)
-      .for('update', { skipLocked: true });
-
-    const result: BatchResult = { processed: 0, failed: 0 };
-    for (const event of due) {
-      const handler = handlers[event.topic];
-      try {
-        if (!handler) throw new Error(`No handler for topic ${event.topic}`);
-        await handler(event.payload);
-        await tx
-          .update(outbox)
-          .set({ processedAt: now, attempts: event.attempts + 1 })
-          .where(eq(outbox.id, event.id));
-        result.processed += 1;
-      } catch (error) {
-        const attempts = event.attempts + 1;
-        await tx
-          .update(outbox)
-          .set({
-            attempts,
-            lastError: error instanceof Error ? error.message : String(error),
-            availableAt: new Date(now.getTime() + 2 ** attempts * MINUTE),
-          })
-          .where(eq(outbox.id, event.id));
-        result.failed += 1;
-      }
-    }
-    return result;
-  });
+  return db.transaction((tx) => processDueEvents(tx, handlers, clock, limit));
 }

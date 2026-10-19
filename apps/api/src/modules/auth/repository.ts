@@ -72,6 +72,15 @@ export async function insertAuthToken(db: Executor, values: typeof authTokens.$i
   await db.insert(authTokens).values(values);
 }
 
+function usableTokenFilter(hash: string, purpose: AuthTokenPurpose, now: Date) {
+  return and(
+    eq(authTokens.tokenHash, hash),
+    eq(authTokens.purpose, purpose),
+    isNull(authTokens.usedAt),
+    gt(authTokens.expiresAt, now),
+  );
+}
+
 export async function findUsableAuthToken(
   db: Executor,
   hash: string,
@@ -81,14 +90,7 @@ export async function findUsableAuthToken(
   const [row] = await db
     .select()
     .from(authTokens)
-    .where(
-      and(
-        eq(authTokens.tokenHash, hash),
-        eq(authTokens.purpose, purpose),
-        isNull(authTokens.usedAt),
-        gt(authTokens.expiresAt, now),
-      ),
-    )
+    .where(usableTokenFilter(hash, purpose, now))
     .limit(1);
   return row;
 }

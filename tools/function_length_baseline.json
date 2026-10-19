@@ -1,32 +1,7 @@
 {
   "limit": 12,
-  "total": 276,
+  "total": 212,
   "functions": [
-    {
-      "path": "apps/api/src/app.ts",
-      "name": "buildApp",
-      "length": 66
-    },
-    {
-      "path": "apps/api/src/infra/db/seed.ts",
-      "name": "seedDevelopment",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/infra/db/seed.ts",
-      "name": "seedProducts",
-      "length": 45
-    },
-    {
-      "path": "apps/api/src/infra/db/seed.ts",
-      "name": "seedProducts.transaction(callback)",
-      "length": 33
-    },
-    {
-      "path": "apps/api/src/infra/storage/storage.ts",
-      "name": "createLocalStorage",
-      "length": 23
-    },
     {
       "path": "apps/api/src/modules/agenda/agenda.ts",
       "name": "addReportPhotos",
@@ -111,96 +86,6 @@
       "path": "apps/api/src/modules/agenda/repository.ts",
       "name": "selectAppointments",
       "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/audit/routes.ts",
-      "name": "auditRoutes",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/audit/routes.ts",
-      "name": "auditRoutes.anonymous",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/audit/service.ts",
-      "name": "listAudit",
-      "length": 18
-    },
-    {
-      "path": "apps/api/src/modules/auth/repository.ts",
-      "name": "findUsableAuthToken",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/auth/routes.ts",
-      "name": "authRoutes",
-      "length": 139
-    },
-    {
-      "path": "apps/api/src/modules/auth/routes.ts",
-      "name": "authRoutes.anonymous",
-      "length": 137
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "changePassword",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "confirmEmail",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "inviteUser",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "login",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "redeemPasswordToken",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "redeemPasswordToken.transaction(callback)",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "refresh",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "refresh.transaction(callback)",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "requestEmailChange",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "requestPasswordReset",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/auth/service.ts",
-      "name": "startSession",
-      "length": 25
-    },
-    {
-      "path": "apps/api/src/modules/auth/tokens.ts",
-      "name": "verifyAccessToken",
-      "length": 14
     },
     {
       "path": "apps/api/src/modules/catalog/browse.ts",
@@ -373,41 +258,6 @@
       "length": 16
     },
     {
-      "path": "apps/api/src/modules/dashboard/dashboard.ts",
-      "name": "managementView",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/dashboard/routes.ts",
-      "name": "dashboardRoutes",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/dashboard/routes.ts",
-      "name": "dashboardRoutes.anonymous",
-      "length": 15
-    },
-    {
-      "path": "apps/api/src/modules/mail/service.ts",
-      "name": "emailHandler",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/mail/templates.ts",
-      "name": "emailVerification",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/mail/templates.ts",
-      "name": "invitation",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/mail/templates.ts",
-      "name": "passwordReset",
-      "length": 13
-    },
-    {
       "path": "apps/api/src/modules/media/images.ts",
       "name": "storeImage",
       "length": 18
@@ -426,31 +276,6 @@
       "path": "apps/api/src/modules/media/uploads.ts",
       "name": "readMultipart",
       "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/notifications/notify.ts",
-      "name": "notifyRoles",
-      "length": 15
-    },
-    {
-      "path": "apps/api/src/modules/notifications/notify.ts",
-      "name": "notifyUser",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/notifications/repository.ts",
-      "name": "listNotifications",
-      "length": 18
-    },
-    {
-      "path": "apps/api/src/modules/notifications/routes.ts",
-      "name": "notificationRoutes",
-      "length": 56
-    },
-    {
-      "path": "apps/api/src/modules/notifications/routes.ts",
-      "name": "notificationRoutes.anonymous",
-      "length": 54
     },
     {
       "path": "apps/api/src/modules/orders/cart.ts",
@@ -541,16 +366,6 @@
       "path": "apps/api/src/modules/orders/repository.ts",
       "name": "listOrders",
       "length": 32
-    },
-    {
-      "path": "apps/api/src/modules/outbox/service.ts",
-      "name": "processOutboxBatch",
-      "length": 41
-    },
-    {
-      "path": "apps/api/src/modules/outbox/service.ts",
-      "name": "processOutboxBatch.transaction(callback)",
-      "length": 39
     },
     {
       "path": "apps/api/src/modules/quotes/quotes.ts",
@@ -766,141 +581,6 @@
       "path": "apps/api/src/modules/store/store.ts",
       "name": "updateStoreSettings",
       "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "adminUpdateUser",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "adminUpdateUser.transaction(callback)",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "assertAvailable",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "createUser",
-      "length": 25
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "createUser.transaction(callback)",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "deleteOwnAccount",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "deleteUser",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "listUsers",
-      "length": 18
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "recentActivity",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "registerCustomer",
-      "length": 24
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "registerCustomer.transaction(callback)",
-      "length": 15
-    },
-    {
-      "path": "apps/api/src/modules/users/accounts.ts",
-      "name": "toDetail",
-      "length": 22
-    },
-    {
-      "path": "apps/api/src/modules/users/cep.ts",
-      "name": "lookupCep",
-      "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "anonymizeUser",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "recentCustomerActivity",
-      "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "recentEmployeeAppointments",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/users/repository.ts",
-      "name": "searchUsers",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/users/routes.ts",
-      "name": "userRoutes",
-      "length": 183
-    },
-    {
-      "path": "apps/api/src/modules/users/routes.ts",
-      "name": "userRoutes.anonymous",
-      "length": 181
-    },
-    {
-      "path": "apps/api/src/plugins/auth.ts",
-      "name": "authPlugin=fp(callback)",
-      "length": 35
-    },
-    {
-      "path": "apps/api/src/plugins/errors.ts",
-      "name": "registerErrorHandling",
-      "length": 80
-    },
-    {
-      "path": "apps/api/src/plugins/errors.ts",
-      "name": "registerErrorHandling.setErrorHandler(callback)",
-      "length": 65
-    },
-    {
-      "path": "apps/api/src/plugins/idempotency.ts",
-      "name": "idempotencyPlugin=fp(callback)",
-      "length": 54
-    },
-    {
-      "path": "apps/api/src/plugins/idempotency.ts",
-      "name": "idempotencyPlugin=fp(callback).addHook(callback)",
-      "length": 35
-    },
-    {
-      "path": "apps/api/src/plugins/idempotency.ts",
-      "name": "idempotencyPlugin=fp(callback).addHook(callback)",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/plugins/openapi.ts",
-      "name": "documentProblemContentType",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/plugins/openapi.ts",
-      "name": "registerOpenApi",
-      "length": 16
     },
     {
       "path": "apps/web/app/components/agenda/Calendar.vue",
