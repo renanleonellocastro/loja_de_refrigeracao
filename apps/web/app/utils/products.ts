@@ -61,28 +61,60 @@ export function productFormFrom(product: ProductDetail | null): ProductForm {
 }
 
 function isCount(value: string): boolean {
-  return /^\d+$/.test(value) && Number(value) <= MAX_STOCK;
+  return isWholeNumberText(value) && Number(value) <= MAX_STOCK;
+}
+
+const PRODUCT_LIMITS = {
+  nameMin: 3,
+  nameMax: 120,
+  brandMax: 60,
+  modelMax: 60,
+  descriptionMax: 5000,
+  priceMaxCents: 100_000_000,
+} as const;
+
+function productNameError(name: string): string | undefined {
+  const length = name.trim().length;
+  if (length < PRODUCT_LIMITS.nameMin) return 'Informe o nome do produto, com pelo menos 3 letras.';
+  return length > PRODUCT_LIMITS.nameMax ? 'Use até 120 letras no nome.' : undefined;
+}
+
+function tooLongError(text: string, max: number, message: string): string | undefined {
+  return text.length > max ? message : undefined;
+}
+
+function priceError(priceCents: number): string | undefined {
+  if (!(priceCents > 0)) return 'Informe o preço, como R$ 1.250,00.';
+  return priceCents > PRODUCT_LIMITS.priceMaxCents ? 'Preço alto demais. Confira o valor.' : undefined;
+}
+
+function initialStockError(value: string): string | undefined {
+  return isCount(String(value).trim()) ? undefined : 'Use um número inteiro de 0 a 100.000.';
+}
+
+function stockMinError(value: string): string | undefined {
+  const stockMin = String(value).trim();
+  return stockMin && !isCount(stockMin) ? 'Use um número inteiro de 0 a 100.000 ou deixe vazio.' : undefined;
+}
+
+function productFieldRules(values: ProductForm): Record<string, FieldRule> {
+  return {
+    name: () => productNameError(values.name),
+    categoryId: () => (values.categoryId ? undefined : 'Escolha a categoria.'),
+    brand: () => tooLongError(values.brand.trim(), PRODUCT_LIMITS.brandMax, 'Use até 60 letras na marca.'),
+    model: () => tooLongError(values.model.trim(), PRODUCT_LIMITS.modelMax, 'Use até 60 letras no modelo.'),
+    description: () =>
+      tooLongError(values.description, PRODUCT_LIMITS.descriptionMax, 'Use até 5.000 letras na descrição.'),
+    priceCents: () => priceError(values.priceCents),
+    stockMin: () => stockMinError(values.stockMin),
+  };
 }
 
 /** Same rules as the API, checked before sending so the person sees every problem at once. */
 export function validateProductForm(values: ProductForm, creating: boolean): FieldErrors {
-  const errors: FieldErrors = {};
-  const name = values.name.trim();
-  if (name.length < 3) errors.name = 'Informe o nome do produto, com pelo menos 3 letras.';
-  else if (name.length > 120) errors.name = 'Use até 120 letras no nome.';
-  if (!values.categoryId) errors.categoryId = 'Escolha a categoria.';
-  if (values.brand.trim().length > 60) errors.brand = 'Use até 60 letras na marca.';
-  if (values.model.trim().length > 60) errors.model = 'Use até 60 letras no modelo.';
-  if (values.description.length > 5000) errors.description = 'Use até 5.000 letras na descrição.';
-  if (!(values.priceCents > 0)) errors.priceCents = 'Informe o preço, como R$ 1.250,00.';
-  else if (values.priceCents > 100_000_000) errors.priceCents = 'Preço alto demais. Confira o valor.';
-  if (creating && !isCount(String(values.initialStock).trim())) {
-    errors.initialStock = 'Use um número inteiro de 0 a 100.000.';
-  }
-  const stockMin = String(values.stockMin).trim();
-  if (stockMin && !isCount(stockMin))
-    errors.stockMin = 'Use um número inteiro de 0 a 100.000 ou deixe vazio.';
-  return errors;
+  const rules = productFieldRules(values);
+  if (!creating) return collectFieldErrors(rules);
+  return collectFieldErrors({ ...rules, initialStock: () => initialStockError(values.initialStock) });
 }
 
 /** Body of PATCH /products/{id}; POST /products adds the initial stock. */
@@ -107,20 +139,31 @@ export function ifMatch(version: number): string {
 
 export type MovementForm = { type: ManualMovementType; quantity: string; reason: string };
 
-export function validateMovement(values: MovementForm): FieldErrors {
-  const errors: FieldErrors = {};
-  const text = String(values.quantity).trim();
+const MOVEMENT_REASON_MAX_LENGTH = 300;
+const SIGNED_INTEGER_PATTERN = /^-?\d+$/;
+
+function movementQuantityError(type: ManualMovementType, text: string): string | undefined {
   const quantity = Number(text);
-  if (!/^-?\d+$/.test(text) || Math.abs(quantity) > MAX_STOCK) {
-    errors.quantity = 'Informe um número inteiro, como 5.';
-  } else if (values.type === 'ADJUSTMENT' && quantity === 0) {
-    errors.quantity = 'Informe uma quantidade diferente de zero (negativa para retirar).';
-  } else if (values.type !== 'ADJUSTMENT' && quantity <= 0) {
-    errors.quantity = 'Informe uma quantidade maior que zero.';
+  if (!SIGNED_INTEGER_PATTERN.test(text) || Math.abs(quantity) > MAX_STOCK) {
+    return 'Informe um número inteiro, como 5.';
   }
-  if (values.type !== 'IN' && !values.reason.trim()) errors.reason = 'Informe o motivo.';
-  else if (values.reason.trim().length > 300) errors.reason = 'Use até 300 letras no motivo.';
-  return errors;
+  if (type === 'ADJUSTMENT') {
+    return quantity === 0 ? 'Informe uma quantidade diferente de zero (negativa para retirar).' : undefined;
+  }
+  return quantity <= 0 ? 'Informe uma quantidade maior que zero.' : undefined;
+}
+
+function movementReasonError(type: ManualMovementType, reason: string): string | undefined {
+  const trimmed = reason.trim();
+  if (type !== 'IN' && !trimmed) return 'Informe o motivo.';
+  return trimmed.length > MOVEMENT_REASON_MAX_LENGTH ? 'Use até 300 letras no motivo.' : undefined;
+}
+
+export function validateMovement(values: MovementForm): FieldErrors {
+  return collectFieldErrors({
+    quantity: () => movementQuantityError(values.type, String(values.quantity).trim()),
+    reason: () => movementReasonError(values.type, values.reason),
+  });
 }
 
 /** "+5" or "-2", so entries and exits read at a glance. */

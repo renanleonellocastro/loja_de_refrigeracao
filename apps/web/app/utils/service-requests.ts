@@ -106,28 +106,32 @@ export function formatVisit(appointment: { startsAt: string; endsAt: string }): 
   return `${formatDateTime(appointment.startsAt)} até ${timeFormatter.format(new Date(appointment.endsAt))}`;
 }
 
+function requestCreatedEvent(request: ServiceRequest): TimelineEvent {
+  return {
+    id: 'created',
+    title: 'Solicitação enviada',
+    when: formatDateTime(request.createdAt),
+    datetime: request.createdAt,
+    icon: statusMeta('serviceRequest', 'REQUESTED').icon,
+  };
+}
+
+function requestCurrentEvent(request: ServiceRequest): TimelineEvent {
+  const status = statusMeta('serviceRequest', request.status);
+  return {
+    id: 'current',
+    title: status.label,
+    when: formatDateTime(request.updatedAt),
+    datetime: request.updatedAt,
+    description: request.rejectionReason ?? request.cancellationReason ?? undefined,
+    icon: status.icon,
+  };
+}
+
 /** Short history for BaseTimeline, newest first: the request and its current state. */
 export function requestTimeline(request: ServiceRequest): TimelineEvent[] {
-  const events: TimelineEvent[] = [
-    {
-      id: 'created',
-      title: 'Solicitação enviada',
-      when: formatDateTime(request.createdAt),
-      datetime: request.createdAt,
-      icon: statusMeta('serviceRequest', 'REQUESTED').icon,
-    },
-  ];
-  if (request.status !== 'REQUESTED') {
-    events.push({
-      id: 'current',
-      title: statusMeta('serviceRequest', request.status).label,
-      when: formatDateTime(request.updatedAt),
-      datetime: request.updatedAt,
-      description: request.rejectionReason ?? request.cancellationReason ?? undefined,
-      icon: statusMeta('serviceRequest', request.status).icon,
-    });
-  }
-  return events.reverse();
+  if (request.status === 'REQUESTED') return [requestCreatedEvent(request)];
+  return [requestCurrentEvent(request), requestCreatedEvent(request)];
 }
 
 /** What happens next, in the words of the counter, for each status of a request (customer view). */
