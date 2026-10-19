@@ -37,22 +37,30 @@ const api = useApi();
 const PERIOD_START: Record<VisitWindow['period'], string> = { MORNING: '08:00', AFTERNOON: '13:00' };
 const today = storeDay();
 
-function initialValues() {
-  if (props.appointment) {
-    return {
-      employeeId: String(props.appointment.employee.id),
-      day: storeDay(props.appointment.startsAt),
-      time: storeTime(props.appointment.startsAt),
-      duration: String(durationOf(props.appointment)),
-    };
-  }
+const DEFAULT_START = '08:00';
+
+function valuesOfAppointment(appointment: Appointment) {
+  return {
+    employeeId: String(appointment.employee.id),
+    day: storeDay(appointment.startsAt),
+    time: storeTime(appointment.startsAt),
+    duration: String(durationOf(appointment)),
+  };
+}
+
+/** A new visit starts at the first future day the customer prefers, or tomorrow morning. */
+function valuesOfRequest() {
   const window = futureWindows.value[0];
   return {
     employeeId: '',
     day: window?.day ?? addDays(today, 1),
-    time: window ? PERIOD_START[window.period] : '08:00',
+    time: window ? PERIOD_START[window.period] : DEFAULT_START,
     duration: String(props.estimatedMinutes),
   };
+}
+
+function initialValues() {
+  return props.appointment ? valuesOfAppointment(props.appointment) : valuesOfRequest();
 }
 
 const futureWindows = computed(() =>

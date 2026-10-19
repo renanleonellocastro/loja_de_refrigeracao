@@ -39,32 +39,23 @@ async function loadTeam(): Promise<void> {
   team.value = names;
 }
 
-const {
-  page,
-  rows: logs,
-  pages,
-  loading,
-  failed,
-  load,
-  restart,
-} = usePagedList(
-  (current) =>
-    unwrap(
-      api.GET('/api/v1/audit-logs', {
-        params: {
-          query: {
-            page: current,
-            pageSize: PAGE_SIZE,
-            from: dayBoundary(filters.from, false),
-            to: dayBoundary(filters.to, true),
-            resourceType: filters.resourceType || undefined,
-            actorId: filters.actorId ? Number(filters.actorId) : undefined,
-          },
-        },
-      }),
-    ),
-  PAGE_SIZE,
-);
+/** Query of one page of the log with the filters on screen. */
+function logsQuery(current: number) {
+  return {
+    page: current,
+    pageSize: PAGE_SIZE,
+    from: dayBoundary(filters.from, false),
+    to: dayBoundary(filters.to, true),
+    resourceType: filters.resourceType || undefined,
+    actorId: filters.actorId ? Number(filters.actorId) : undefined,
+  };
+}
+
+function fetchLogs(current: number) {
+  return unwrap(api.GET('/api/v1/audit-logs', { params: { query: logsQuery(current) } }));
+}
+
+const { page, rows: logs, pages, loading, failed, load, restart } = usePagedList(fetchLogs, PAGE_SIZE);
 
 watch(filters, restart);
 

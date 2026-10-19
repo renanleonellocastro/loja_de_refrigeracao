@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Ban, Wallet } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/helpers/optional-reason';
 import { formatDateTime } from '~/utils/masks';
 import { STORE_INFO } from '~/utils/store';
 import { ORDER_NEXT_STEP, orderTimeline } from '~/utils/orders';
@@ -32,22 +34,17 @@ async function load(): Promise<void> {
   }
 }
 
+async function cancelOrder(): Promise<void> {
+  const params = { path: { id: order.value!.id } };
+  order.value = await unwrap(
+    api.POST('/api/v1/orders/{id}/cancellation', { params, body: optionalReason(reason.value) }),
+  );
+  cancelOpen.value = false;
+  toast.success({ title: 'Pedido cancelado. Os itens voltaram para a loja.' });
+}
+
 async function cancel(): Promise<void> {
-  canceling.value = true;
-  try {
-    order.value = await unwrap(
-      api.POST('/api/v1/orders/{id}/cancellation', {
-        params: { path: { id: order.value!.id } },
-        body: reason.value.trim() ? { reason: reason.value.trim() } : {},
-      }),
-    );
-    cancelOpen.value = false;
-    toast.success({ title: 'Pedido cancelado. Os itens voltaram para a loja.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    canceling.value = false;
-  }
+  await holdWhile(canceling, true, false, () => runOrToast(cancelOrder));
 }
 
 onMounted(load);

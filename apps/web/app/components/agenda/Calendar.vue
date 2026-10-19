@@ -43,17 +43,11 @@ function moved(info: EventDropArg): void {
   });
 }
 
-const options = computed<CalendarOptions>(() => ({
+/** Options that never change: plugins, Portuguese labels and the store working hours. */
+const STATIC_OPTIONS: CalendarOptions = {
   plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
   locale: ptBrLocale,
   timeZone: 'UTC',
-  now: () => toStoreWall(new Date()),
-  initialView: props.views[0],
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: props.views.length > 1 ? props.views.join(',') : '',
-  },
   // Text buttons: the icon font spans have role img without a name, which screen readers announce badly.
   buttonIcons: false,
   buttonText: {
@@ -73,15 +67,32 @@ const options = computed<CalendarOptions>(() => ({
   nowIndicator: true,
   eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
   slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-  editable: props.editable,
   eventDurationEditable: false,
-  events: props.events,
   noEventsContent: 'Nenhum atendimento neste período.',
-  datesSet: (info: DatesSetArg) => emit('range', { from: toInstant(info.start), to: toInstant(info.end) }),
-  eventClick: (info: EventClickArg) => {
-    info.jsEvent.preventDefault();
-    emit('open', Number(info.event.id));
-  },
+};
+
+function rangeChanged(info: DatesSetArg): void {
+  emit('range', { from: toInstant(info.start), to: toInstant(info.end) });
+}
+
+function opened(info: EventClickArg): void {
+  info.jsEvent.preventDefault();
+  emit('open', Number(info.event.id));
+}
+
+function headerToolbar(views: CalendarView[]): CalendarOptions['headerToolbar'] {
+  return { left: 'prev,next today', center: 'title', right: views.length > 1 ? views.join(',') : '' };
+}
+
+const options = computed<CalendarOptions>(() => ({
+  ...STATIC_OPTIONS,
+  now: () => toStoreWall(new Date()),
+  initialView: props.views[0],
+  headerToolbar: headerToolbar(props.views),
+  editable: props.editable,
+  events: props.events,
+  datesSet: rangeChanged,
+  eventClick: opened,
   eventDrop: moved,
 }));
 </script>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft, Store, Wallet } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { formatMoney } from '~/utils/masks';
 import { STORE_INFO } from '~/utils/store';
 
@@ -12,6 +13,8 @@ definePageMeta({ permission: 'orders.create' });
 useSeoMeta({ title: 'Fechar pedido | Refrigeração Castro', robots: 'noindex, nofollow' });
 
 type StockProblem = { productId: number; requested: number; available: number };
+
+const INSUFFICIENT_STOCK = 'insufficient-stock';
 
 const api = useApi();
 const cart = useCartStore();
@@ -49,34 +52,45 @@ async function fix(line: CartLine, available: number): Promise<void> {
 
 const blocked = computed(() => cart.items.some((line) => shortageOf(line) !== undefined));
 
+function postOrder() {
+  const text = notes.value.trim();
+  return api.POST('/api/v1/orders', {
+    body: text ? { notes: text } : {},
+    headers: { 'Idempotency-Key': idempotencyKey },
+  });
+}
+
+async function openOrder(orderId: number): Promise<void> {
+  cart.clearAfterOrder();
+  await navigateTo(`/carrinho/pedido/${orderId}`);
+}
+
+/** Marks each refused item with the quantity left and reloads the cart with the current stock. */
+async function showShortages(problemBody: unknown): Promise<void> {
+  const items = (problemBody as { items?: StockProblem[] }).items ?? [];
+  shortages.value = Object.fromEntries(items.map((item) => [item.productId, item.available]));
+  toast.error({ title: 'Alguns itens não têm a quantidade pedida. Ajuste e tente de novo.' });
+  await cart.load();
+}
+
+async function showRefusal(status: number, problemBody: unknown): Promise<void> {
+  const error = problemToError(status, problemBody);
+  if (error.code === INSUFFICIENT_STOCK) await showShortages(problemBody);
+  else toast.error({ title: error.message });
+}
+
+async function sendOrder(): Promise<void> {
+  const result = await postOrder();
+  if (result.data) return openOrder(result.data.id);
+  // The API answered: this attempt is over, the next one is a new order request.
+  idempotencyKey = crypto.randomUUID();
+  await showRefusal(result.response.status, result.error);
+}
+
 async function place(): Promise<void> {
-  placing.value = true;
   shortages.value = {};
-  try {
-    const result = await api.POST('/api/v1/orders', {
-      body: notes.value.trim() ? { notes: notes.value.trim() } : {},
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
-    if (result.data) {
-      cart.clearAfterOrder();
-      await navigateTo(`/carrinho/pedido/${result.data.id}`);
-      return;
-    }
-    // The API answered: this attempt is over, the next one is a new order request.
-    idempotencyKey = crypto.randomUUID();
-    const error = problemToError(result.response.status, result.error);
-    if (error.code === 'insufficient-stock') {
-      const items = (result.error as { items?: StockProblem[] }).items ?? [];
-      shortages.value = Object.fromEntries(items.map((item) => [item.productId, item.available]));
-      toast.error({ title: 'Alguns itens não têm a quantidade pedida. Ajuste e tente de novo.' });
-      await cart.load();
-    } else toast.error({ title: error.message });
-  } catch (error) {
-    // No answer: keep the same key, so trying again cannot create a second order.
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    placing.value = false;
-  }
+  // No answer keeps the same key, so trying again cannot create a second order.
+  await holdWhile(placing, true, false, () => runOrToast(sendOrder));
 }
 </script>
 

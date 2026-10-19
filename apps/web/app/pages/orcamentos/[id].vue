@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Ban, CalendarCheck, Mail, Phone, UserRound } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/helpers/optional-reason';
 import { formatDateTime, formatPhone } from '~/utils/masks';
 import { isOpenQuote, type Quote } from '~/utils/quotes';
 
@@ -45,20 +47,15 @@ function openCancel(): void {
   cancelOpen.value = true;
 }
 
+async function cancelQuote(): Promise<void> {
+  const body = optionalReason(reason.value);
+  quote.value = await unwrap(api.POST('/api/v1/quotes/{id}/cancellation', { params: params(), body }));
+  cancelOpen.value = false;
+  toast.success({ title: 'Orçamento cancelado.' });
+}
+
 async function cancel(): Promise<void> {
-  canceling.value = true;
-  try {
-    const text = reason.value.trim();
-    quote.value = await unwrap(
-      api.POST('/api/v1/quotes/{id}/cancellation', { params: params(), body: text ? { reason: text } : {} }),
-    );
-    cancelOpen.value = false;
-    toast.success({ title: 'Orçamento cancelado.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    canceling.value = false;
-  }
+  await holdWhile(canceling, true, false, () => runOrToast(cancelQuote));
 }
 
 onMounted(load);

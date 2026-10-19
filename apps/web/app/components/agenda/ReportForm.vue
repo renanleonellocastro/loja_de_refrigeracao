@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CheckCheck } from 'lucide-vue-next';
 import { MAX_REPORT_PHOTOS, clearDraft, loadDraft, saveDraft, type ReportDraft } from '~/utils/agenda';
-import { uploadWithProgress } from '~/utils/upload';
+import { usePhotoUpload } from '~/helpers/photo-upload';
 
 /**
  * UC Finalizar Serviço: defect found or not, what was repaired and photos of the work. The text is kept on
@@ -12,9 +12,8 @@ const props = defineProps<{ appointment: Appointment }>();
 const emit = defineEmits<{ done: [appointment: Appointment] }>();
 
 const api = useApi();
-const auth = useAuthStore();
-const config = useRuntimeConfig();
 const toast = useToast();
+const { progress: uploadProgress, send: sendPhotos } = usePhotoUpload();
 
 function initial(): ReportDraft {
   const draft = loadDraft(props.appointment.id);
@@ -43,7 +42,6 @@ const form = useForm(initial(), {
 });
 
 const photos = ref<File[]>([]);
-const uploadProgress = ref<number | null>(null);
 const offline = ref(false);
 const existingPhotos = computed(() => props.appointment.report?.photos.length ?? 0);
 const photoLimit = computed(() => Math.max(0, MAX_REPORT_PHOTOS - existingPhotos.value));
@@ -60,55 +58,56 @@ const DEFECT_OPTIONS = [
 ] as const;
 
 async function uploadPhotos(): Promise<Appointment | null> {
-  const body = new FormData();
-  for (const file of photos.value) body.append('files', file, file.name);
-  uploadProgress.value = 0;
   try {
-    const result = await uploadWithProgress(
-      `${config.public.apiBase}/api/v1/appointments/${props.appointment.id}/report/photos`,
-      body,
-      auth.accessToken,
-      (percent) => (uploadProgress.value = percent),
-    );
-    if (result.status !== 201) throw problemToError(result.status, result.body);
+    const path = `/api/v1/appointments/${props.appointment.id}/report/photos`;
+    const updated = await sendPhotos<Appointment>(path, photos.value);
     photos.value = [];
-    return result.body as Appointment;
+    return updated;
   } catch (error) {
     toast.error({
       title: 'O relatório foi enviado, mas as fotos não chegaram.',
       description: toApiError(error).message,
     });
     return null;
-  } finally {
-    uploadProgress.value = null;
   }
+}
+
+function reportBody(values: ReportDraft) {
+  const defectFound = values.defectFound === 'sim';
+  return {
+    defectFound,
+    defectDescription: defectFound ? values.defectDescription.trim() : undefined,
+    repairDescription: values.repairDescription.trim(),
+  };
+}
+
+/** Posts the report; a dropped connection shows the warning that the draft stays on the device. */
+async function postReport(values: ReportDraft): Promise<Appointment> {
+  try {
+    const params = { path: { id: props.appointment.id } };
+    return await unwrap(api.POST('/api/v1/appointments/{id}/report', { params, body: reportBody(values) }));
+  } catch (error) {
+    offline.value = toApiError(error).status === 0;
+    throw error;
+  }
+}
+
+async function submitReport(): Promise<Appointment | undefined> {
+  const outcome: { report?: Appointment } = {};
+  const ok = await form.submit(async (values) => {
+    outcome.report = await postReport(values);
+  });
+  return ok ? outcome.report : undefined;
 }
 
 async function send(): Promise<void> {
   offline.value = false;
-  let report: Appointment | null = null;
-  const ok = await form.submit(async (values) => {
-    try {
-      report = await unwrap(
-        api.POST('/api/v1/appointments/{id}/report', {
-          params: { path: { id: props.appointment.id } },
-          body: {
-            defectFound: values.defectFound === 'sim',
-            defectDescription: values.defectFound === 'sim' ? values.defectDescription.trim() : undefined,
-            repairDescription: values.repairDescription.trim(),
-          },
-        }),
-      );
-    } catch (error) {
-      offline.value = toApiError(error).status === 0;
-      throw error;
-    }
-  });
-  if (!ok) return;
+  const report = await submitReport();
+  if (!report) return;
   clearDraft(props.appointment.id);
   const withPhotos = photos.value.length > 0 ? await uploadPhotos() : null;
   toast.success({ title: 'Serviço finalizado. A gerência vai conferir o relatório.' });
-  emit('done', withPhotos ?? report!);
+  emit('done', withPhotos ?? report);
 }
 </script>
 

@@ -31,27 +31,36 @@ const columns: TableColumn[] = [
   { key: 'stockAvailable', label: 'Estoque', align: 'end' },
 ];
 
-const { page, rows, total, pages, loading, failed, load, restart } = usePagedList(async (current) => {
-  const q = query.value.trim();
-  const result = await unwrap(
-    api.GET('/api/v1/products', {
-      params: {
-        query: {
-          q: q || undefined,
-          categoryId: categoryId.value ? Number(categoryId.value) : undefined,
-          condition: (condition.value || undefined) as Condition | undefined,
-          available: onlyAvailable.value ? 'true' : undefined,
-          includeArchived: includeArchived.value ? 'true' : undefined,
-          sort: q ? 'relevance' : 'name',
-          page: current,
-          pageSize: PRODUCTS_PAGE_SIZE,
-        },
-      },
-    }),
-  );
-  searched.value = Boolean(q || categoryId.value || condition.value || onlyAvailable.value);
+function filterQuery(current: number) {
+  const text = query.value.trim();
+  const sort: 'relevance' | 'name' = text ? 'relevance' : 'name';
+  return {
+    q: text || undefined,
+    categoryId: categoryId.value ? Number(categoryId.value) : undefined,
+    condition: (condition.value || undefined) as Condition | undefined,
+    available: onlyAvailable.value ? ('true' as const) : undefined,
+    includeArchived: includeArchived.value ? ('true' as const) : undefined,
+    sort,
+    page: current,
+    pageSize: PRODUCTS_PAGE_SIZE,
+  };
+}
+
+/** Archived products are a view, not a search: they alone keep the "no products yet" message. */
+function hasSearchFilters(): boolean {
+  return Boolean(query.value.trim() || categoryId.value || condition.value || onlyAvailable.value);
+}
+
+async function fetchProducts(current: number) {
+  const result = await unwrap(api.GET('/api/v1/products', { params: { query: filterQuery(current) } }));
+  searched.value = hasSearchFilters();
   return result;
-}, PRODUCTS_PAGE_SIZE);
+}
+
+const { page, rows, total, pages, loading, failed, load, restart } = usePagedList(
+  fetchProducts,
+  PRODUCTS_PAGE_SIZE,
+);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 watch(query, () => {

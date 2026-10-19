@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Download, Trash2 } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 
 /** UCs Exportar Meus Dados e Excluir Minha Conta (RF-10, LGPD). Only customers see this tab. */
 const EXPORT_FILE = 'meus-dados-refrigeracao-castro.json';
@@ -19,22 +20,22 @@ const form = useForm(
   },
 );
 
+function download(data: unknown): void {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = EXPORT_FILE;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadExport(): Promise<void> {
+  download(await unwrap(api.GET('/api/v1/me/data-export')));
+  toast.success({ title: 'Pronto! Baixamos o arquivo com os seus dados.' });
+}
+
 async function exportData(): Promise<void> {
-  exporting.value = true;
-  try {
-    const data = await unwrap(api.GET('/api/v1/me/data-export'));
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = EXPORT_FILE;
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success({ title: 'Pronto! Baixamos o arquivo com os seus dados.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    exporting.value = false;
-  }
+  await holdWhile(exporting, true, false, () => runOrToast(downloadExport));
 }
 
 function openDelete(): void {

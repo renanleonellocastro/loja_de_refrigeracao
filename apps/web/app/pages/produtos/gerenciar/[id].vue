@@ -1,12 +1,31 @@
 <script setup lang="ts">
 import { can } from '@rc/contracts';
 import { Archive, ArchiveRestore, ArrowLeft, ExternalLink, RefreshCw, Trash2 } from 'lucide-vue-next';
+import type { ConfirmOptions } from '~/composables/useConfirm';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import type { ProductForm } from '~/utils/products';
 
 /**
  * UCs Editar, Arquivar, Excluir e Desarquivar Produto, Gerenciar Fotos and Movimentar Estoque (RF-12 to RF-16).
  * Editing sends If-Match with the version on screen; a 412 means someone else saved first.
  */
 definePageMeta({ layout: 'area', permission: 'products.manage', title: 'Produto' });
+
+const HTTP_NOT_FOUND = 404;
+const HTTP_PRECONDITION_FAILED = 412;
+
+const DELETE_QUESTION: ConfirmOptions = {
+  title: 'Excluir este produto?',
+  description:
+    'Se ele já foi vendido, fica arquivado: sai do catálogo e o histórico dos pedidos continua. Se nunca foi vendido, some de vez.',
+  confirmLabel: 'Excluir produto',
+  danger: true,
+};
+
+const ARCHIVED_TOAST = {
+  title: 'Produto arquivado.',
+  description: 'Ele já tinha vendas, então saiu do catálogo e o histórico dos pedidos continua.',
+};
 
 const api = useApi();
 const auth = useAuthStore();
@@ -40,88 +59,83 @@ function show(next: ProductDetail): void {
   form.reset(productFormFrom(next));
 }
 
+function fetchProductAndCategories() {
+  const id = String(Number(route.params.id));
+  return Promise.all([
+    unwrap(api.GET('/api/v1/products/{id}', { params: { path: { id } } })),
+    unwrap(api.GET('/api/v1/categories')),
+  ]);
+}
+
 async function load(): Promise<void> {
   failed.value = false;
   conflict.value = false;
   try {
-    const id = Number(route.params.id);
-    const [detail, list] = await Promise.all([
-      unwrap(api.GET('/api/v1/products/{id}', { params: { path: { id: String(id) } } })),
-      unwrap(api.GET('/api/v1/categories')),
-    ]);
+    const [detail, list] = await fetchProductAndCategories();
     categories.value = list;
     show(detail);
   } catch (error) {
-    notFound.value = toApiError(error).status === 404;
+    notFound.value = toApiError(error).status === HTTP_NOT_FOUND;
     failed.value = true;
+  }
+}
+
+function patchProduct(values: ProductForm): Promise<ProductDetail> {
+  return unwrap(
+    api.PATCH('/api/v1/products/{id}', {
+      params: { path: { id: product.value!.id } },
+      headers: { 'If-Match': ifMatch(product.value!.version) },
+      body: productToApi(values),
+    }),
+  );
+}
+
+/** A 412 means someone else saved first: the page offers to reload instead of overwriting. */
+async function saveValues(values: ProductForm): Promise<void> {
+  try {
+    show(await patchProduct(values));
+    toast.success({ title: 'Alterações salvas.' });
+  } catch (error) {
+    if (toApiError(error).status !== HTTP_PRECONDITION_FAILED) throw error;
+    conflict.value = true;
   }
 }
 
 async function save(): Promise<void> {
   conflict.value = false;
-  await form.submit(async (values) => {
-    try {
-      const saved = await unwrap(
-        api.PATCH('/api/v1/products/{id}', {
-          params: { path: { id: product.value!.id } },
-          headers: { 'If-Match': ifMatch(product.value!.version) },
-          body: productToApi(values),
-        }),
-      );
-      show(saved);
-      toast.success({ title: 'Alterações salvas.' });
-    } catch (error) {
-      if (toApiError(error).status !== 412) throw error;
-      conflict.value = true;
-    }
-  });
+  await form.submit(saveValues);
+}
+
+async function showRemoval(result: string): Promise<void> {
+  if (result === 'deleted') {
+    toast.success({ title: 'Produto excluído.' });
+    await navigateTo('/produtos/gerenciar');
+    return;
+  }
+  toast.success(ARCHIVED_TOAST);
+  await load();
+}
+
+async function deleteProduct(): Promise<void> {
+  const { result } = await unwrap(
+    api.DELETE('/api/v1/products/{id}', { params: { path: { id: product.value!.id } } }),
+  );
+  await showRemoval(result);
 }
 
 async function remove(): Promise<void> {
-  const confirmed = await confirm({
-    title: 'Excluir este produto?',
-    description:
-      'Se ele já foi vendido, fica arquivado: sai do catálogo e o histórico dos pedidos continua. Se nunca foi vendido, some de vez.',
-    confirmLabel: 'Excluir produto',
-    danger: true,
-  });
-  if (!confirmed) return;
-  busy.value = true;
-  try {
-    const { result } = await unwrap(
-      api.DELETE('/api/v1/products/{id}', { params: { path: { id: product.value!.id } } }),
-    );
-    if (result === 'deleted') {
-      toast.success({ title: 'Produto excluído.' });
-      await navigateTo('/produtos/gerenciar');
-    } else {
-      toast.success({
-        title: 'Produto arquivado.',
-        description: 'Ele já tinha vendas, então saiu do catálogo e o histórico dos pedidos continua.',
-      });
-      await load();
-    }
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    busy.value = false;
-  }
+  if (!(await confirm(DELETE_QUESTION))) return;
+  await holdWhile(busy, true, false, () => runOrToast(deleteProduct));
+}
+
+async function restoreToCatalog(): Promise<void> {
+  const params = { path: { id: product.value!.id } };
+  show(await unwrap(api.POST('/api/v1/products/{id}/unarchive', { params })));
+  toast.success({ title: 'Produto de volta ao catálogo.' });
 }
 
 async function unarchive(): Promise<void> {
-  busy.value = true;
-  try {
-    show(
-      await unwrap(
-        api.POST('/api/v1/products/{id}/unarchive', { params: { path: { id: product.value!.id } } }),
-      ),
-    );
-    toast.success({ title: 'Produto de volta ao catálogo.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    busy.value = false;
-  }
+  await holdWhile(busy, true, false, () => runOrToast(restoreToCatalog));
 }
 
 function onImages(images: ProductImageItem[]): void {

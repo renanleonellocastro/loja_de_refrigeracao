@@ -21,20 +21,31 @@ async function visitOf(requestId: number): Promise<Appointment | null> {
   return unwrap(api.GET('/api/v1/appointments/{id}', { params: { path: { id: request.appointment.id } } }));
 }
 
+function fetchWaitingRequests() {
+  return unwrap(
+    api.GET('/api/v1/service-requests', {
+      params: { query: { status: 'AWAITING_COMPLETION_APPROVAL', pageSize: QUEUE_SIZE } },
+    }),
+  );
+}
+
+function submittedOldestFirst(visits: Array<Appointment | null>): Appointment[] {
+  return visits
+    .filter((item) => item?.report?.status === 'SUBMITTED')
+    .map((item) => item!)
+    .sort((a, b) => a.report!.submittedAt.localeCompare(b.report!.submittedAt));
+}
+
+async function fetchQueue(): Promise<Appointment[]> {
+  const waiting = await fetchWaitingRequests();
+  return submittedOldestFirst(await Promise.all(waiting.data.map((item) => visitOf(item.id))));
+}
+
 async function load(): Promise<void> {
   loading.value = true;
   failed.value = false;
   try {
-    const waiting = await unwrap(
-      api.GET('/api/v1/service-requests', {
-        params: { query: { status: 'AWAITING_COMPLETION_APPROVAL', pageSize: QUEUE_SIZE } },
-      }),
-    );
-    const visits = await Promise.all(waiting.data.map((item) => visitOf(item.id)));
-    queue.value = visits
-      .filter((item) => item?.report?.status === 'SUBMITTED')
-      .map((item) => item!)
-      .sort((a, b) => a.report!.submittedAt.localeCompare(b.report!.submittedAt));
+    queue.value = await fetchQueue();
   } catch {
     failed.value = true;
   } finally {

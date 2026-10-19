@@ -39,31 +39,39 @@ function reconnect(): void {
   reloadNuxtApp({ force: true });
 }
 
-async function load(): Promise<void> {
-  if (readOnly.value) {
-    const saved = readOfflineDay(today);
-    if (saved) showSaved(saved);
-    else failed.value = true;
-    loading.value = false;
-    return;
-  }
+function showSavedOrFail(saved: SavedDay | null): void {
+  if (saved) showSaved(saved);
+  else failed.value = true;
+}
+
+/** Opened read only: the copy saved for offline use is all there is. */
+function showOfflineCopy(): void {
+  showSavedOrFail(readOfflineDay(today));
+  loading.value = false;
+}
+
+function showLive(result: Appointment[]): void {
+  visits.value = result.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  savedAt.value = null;
+  saveDay({ userId: auth.user!.id, day: today, savedAt: new Date().toISOString(), visits: visits.value });
+}
+
+/** Today's visits from the API; without signal, the copy saved on this phone. */
+async function loadLive(): Promise<void> {
   loading.value = true;
   failed.value = false;
   try {
-    const result = await unwrap(api.GET('/api/v1/appointments', { params: { query: dayRange(today) } }));
-    visits.value = result.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-    savedAt.value = null;
-    saveDay({ userId: auth.user!.id, day: today, savedAt: new Date().toISOString(), visits: visits.value });
+    showLive(await unwrap(api.GET('/api/v1/appointments', { params: { query: dayRange(today) } })));
   } catch {
-    const saved = readDay(auth.user!.id, today);
-    if (saved) {
-      showSaved(saved);
-    } else {
-      failed.value = true;
-    }
+    showSavedOrFail(readDay(auth.user!.id, today));
   } finally {
     loading.value = false;
   }
+}
+
+async function load(): Promise<void> {
+  if (readOnly.value) return showOfflineCopy();
+  await loadLive();
 }
 
 const pendingCount = computed(
