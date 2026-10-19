@@ -139,6 +139,16 @@ describe('catalog browsing', () => {
     expect(facets.statusCode).toBe(422);
   });
 
+  it.each(['/api/v1/products', '/api/v1/products/facets'])(
+    'rejects numeric filters that are not whole decimal numbers on %s',
+    async (path) => {
+      for (const query of ['minPriceCents=', 'maxPriceCents=%20', 'minPriceCents=1e3', 'categoryId=0x1']) {
+        const response = await t.app.inject({ method: 'GET', url: `${path}?${query}` });
+        expect(response.statusCode, query).toBe(422);
+      }
+    },
+  );
+
   it('sorts by name, price and relevance without a query', async () => {
     expect(names(await get('?sort=name&pageSize=2'))).toEqual([
       'Ar Condicionado Janela Gree',

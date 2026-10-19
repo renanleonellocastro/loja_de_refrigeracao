@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { dateInput } from '../../shared/schemas.js';
+import { dateInput, positiveIntegerInput } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 
 const person = z.object({ id: z.number().int(), name: z.string() });
@@ -51,7 +51,7 @@ export const rangeQuerySchema = z
   .object({
     from: dateInput('Data inicial inválida.'),
     to: dateInput('Data final inválida.'),
-    employeeId: z.coerce.number().int().positive().optional(),
+    employeeId: positiveIntegerInput().optional(),
   })
   // Only compares once both dates parsed; an invalid one already has its own message.
   .refine((q) => q.to > q.from, {

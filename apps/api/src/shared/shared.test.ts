@@ -3,7 +3,7 @@ import { FixedClock, MINUTE, systemClock } from './clock.js';
 import { assertIfMatch, etagFor } from './concurrency.js';
 import { AppError, conflict, forbidden, notFound, tooManyRequests, unauthorized } from './errors.js';
 import { pageOf, pageQuerySchema, paginated, toLimitOffset } from './pagination.js';
-import { dateInput, emailSchema } from './schemas.js';
+import { dateInput, emailSchema, integerInput } from './schemas.js';
 import { formatBrl, formatDateBr, normalizeEmail, normalizeText, onlyDigits, slugify } from './text.js';
 import { z } from 'zod';
 
@@ -106,6 +106,19 @@ describe('optimistic concurrency', () => {
     expect(() => assertIfMatch('W/"1"', 2)).toThrowError(expect.objectContaining({ status: 412 }));
     expect(() => assertIfMatch('W/"1", W/"2"', 2)).not.toThrow();
     expect(() => assertIfMatch('*', 9)).not.toThrow();
+  });
+});
+
+describe('integerInput', () => {
+  const schema = integerInput(z.number().int().min(0));
+
+  it('converts decimal digits only', () => {
+    expect(schema.parse('42')).toBe(42);
+    expect(schema.parse('0')).toBe(0);
+  });
+
+  it.each(['', ' ', '1e3', '0x1', '1.5', ['1', '2']])('rejects %j instead of coercing it', (value) => {
+    expect(schema.safeParse(value).success).toBe(false);
   });
 });
 
