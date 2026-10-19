@@ -13,7 +13,7 @@ import {
   technicianColor,
 } from '~/utils/agenda';
 import type { ConfirmOptions } from '~/composables/useConfirm';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { formatDateTime, formatMoney, formatPhone } from '~/utils/masks';
 
 /**

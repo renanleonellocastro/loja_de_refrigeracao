@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { errorKindFor } from '~/utils/errors';
 import { htmlEncodingFor } from '~/utils/compression';
 import { lowerScriptPreloadPriority } from '~/utils/resource-hints';
+import { optionalReason } from '~/utils/optional-reason';
 import { pageSlots } from '~/utils/pagination';
 import { passwordStrength } from '~/utils/password';
 import { STATUS_META, statusMeta } from '~/utils/status';
@@ -164,5 +165,12 @@ describe('controlFrameClasses', () => {
   it('marks errors and disabled controls', () => {
     expect(controlFrameClasses(true).join(' ')).toContain('border-danger');
     expect(controlFrameClasses(false, true).join(' ')).toContain('cursor-not-allowed');
+  });
+});
+
+describe('optionalReason', () => {
+  it('sends the trimmed reason and leaves a blank one out', () => {
+    expect(optionalReason('  Cliente desistiu ')).toEqual({ reason: 'Cliente desistiu' });
+    expect(optionalReason('   ')).toEqual({});
   });
 });

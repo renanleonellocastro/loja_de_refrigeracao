@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ref } from 'vue';
 import { useToast } from '~/composables/useToast';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { ApiError } from '~/utils/api-error';
 
 const toastTitles = () => useToast().toasts.value.map((toast) => toast.title);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft, Store, Wallet } from 'lucide-vue-next';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { formatMoney } from '~/utils/masks';
 import { STORE_INFO } from '~/utils/store';
 

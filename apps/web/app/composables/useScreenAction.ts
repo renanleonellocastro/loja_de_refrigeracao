@@ -1,3 +1,4 @@
+/** What a screen wraps around each of its actions: failure feedback in a toast and a busy state. */
 import type { Ref } from 'vue';
 import { useToast } from '~/composables/useToast';
 import { toApiError } from '~/utils/api-error';

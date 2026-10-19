@@ -2,7 +2,7 @@
 import { can } from '@rc/contracts';
 import { Archive, ArchiveRestore, ArrowLeft, ExternalLink, RefreshCw, Trash2 } from 'lucide-vue-next';
 import type { ConfirmOptions } from '~/composables/useConfirm';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import type { ProductForm } from '~/utils/products';
 
 /**

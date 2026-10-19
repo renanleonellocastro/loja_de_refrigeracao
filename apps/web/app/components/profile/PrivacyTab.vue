@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Download, Trash2 } from 'lucide-vue-next';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 
 /** UCs Exportar Meus Dados e Excluir Minha Conta (RF-10, LGPD). Only customers see this tab. */
 const EXPORT_FILE = 'meus-dados-refrigeracao-castro.json';

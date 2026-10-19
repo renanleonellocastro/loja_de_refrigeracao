@@ -2,7 +2,7 @@
 import { Clock, Pencil, Plus, Power, PowerOff, Trash2 } from 'lucide-vue-next';
 import type { ConfirmOptions } from '~/composables/useConfirm';
 import type { ToastOptions } from '~/composables/useToast';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { countLabel } from '~/utils/catalog';
 import { durationLabel, type ServiceType } from '~/utils/service-requests';
 import {

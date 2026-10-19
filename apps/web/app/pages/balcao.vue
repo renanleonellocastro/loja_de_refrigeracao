@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { can } from '@rc/contracts';
 import { CircleCheck, Plus, Search, Trash2 } from 'lucide-vue-next';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import type { ApiError } from '~/utils/api-error';
 import { countLabel } from '~/utils/catalog';
 import { addToCounter, counterLimit, counterTotal, COUNTER_SEARCH_SIZE } from '~/utils/counter';
