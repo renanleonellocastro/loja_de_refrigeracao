@@ -9,6 +9,7 @@ import { etagFor } from '../../shared/concurrency.js';
 import { pageQuerySchema, paginated } from '../../shared/pagination.js';
 import { errorResponses, idParamSchema, noContentSchema, problemSchema } from '../../shared/schemas.js';
 import { readMultipart } from '../media/service.js';
+import type { AuditMeta } from './audit.js';
 import { productFacets, listProducts } from './browse.js';
 import * as categories from './categories.js';
 import * as gallery from './gallery.js';
@@ -40,7 +41,7 @@ import * as stock from './stock.js';
 
 const security = [{ bearerAuth: [] }];
 
-function meta(request: FastifyRequest): categories.AuditMeta {
+function meta(request: FastifyRequest): AuditMeta {
   return { actor: requireAuth(request), ip: request.ip };
 }
 
