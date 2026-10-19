@@ -8,10 +8,20 @@ export interface CepAddress {
   state: string;
 }
 
+/** Where looked up addresses are remembered between requests (port). */
+export interface CepCache {
+  find(cep: string): CepAddress | undefined;
+  remember(cep: string, address: CepAddress): void;
+}
+
+/** What a CEP lookup needs from the outside: outbound HTTP and the cache. */
+export interface CepLookupDependencies {
+  fetch: typeof globalThis.fetch;
+  cache: CepCache;
+}
+
 type ViaCepBody = Record<string, string>;
 
-const cache = new Map<string, CepAddress>();
-const CACHE_LIMIT = 500;
 const VIACEP_TIMEOUT_MS = 3000;
 
 export const cepNotFound = () =>
@@ -48,23 +58,17 @@ function toCepAddress(cep: string, body: ViaCepBody): CepAddress {
   };
 }
 
-/** Keeps the cache bounded by dropping the oldest entry (Map keeps insertion order). */
-function remember(cep: string, address: CepAddress): void {
-  if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
-  cache.set(cep, address);
-}
-
-/** Looks up a CEP on ViaCEP (free), with an in memory cache. */
-export async function lookupCep(fetchFn: typeof globalThis.fetch, cep: string): Promise<CepAddress> {
-  const cached = cache.get(cep);
-  if (cached) return cached;
+async function fetchCepAddress(fetchFn: typeof globalThis.fetch, cep: string): Promise<CepAddress> {
   const body = await fetchViaCep(fetchFn, cep);
   if (body.erro) throw cepNotFound();
-  const address = toCepAddress(cep, body);
-  remember(cep, address);
-  return address;
+  return toCepAddress(cep, body);
 }
 
-export function clearCepCache(): void {
-  cache.clear();
+/** Looks up a CEP on ViaCEP (free), answering from the cache when it already knows the CEP. */
+export async function lookupCep({ fetch, cache }: CepLookupDependencies, cep: string): Promise<CepAddress> {
+  const cached = cache.find(cep);
+  if (cached) return cached;
+  const address = await fetchCepAddress(fetch, cep);
+  cache.remember(cep, address);
+  return address;
 }

@@ -1,5 +1,6 @@
 import { BRAZILIAN_STATES, ROLES, digits, isValidCep, isValidCpf, isValidPhone } from '@rc/contracts';
 import { z } from 'zod';
+import { pageQuerySchema } from '../../shared/pagination.js';
 import { orderStatusEnum, serviceRequestStatusEnum } from '../../infra/db/schema.js';
 import { emailSchema } from '../../shared/schemas.js';
 
@@ -183,8 +184,7 @@ export const userListItemSchema = z
 export const userListQuerySchema = z.object({
   role: z.enum(ROLES),
   q: z.string().trim().max(100).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  ...pageQuerySchema.shape,
 });
 
 export const cepQuerySchema = z.object({

@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { integerInput } from './schemas.js';
 
+// prefault, not default: zod leaves `default` out of the OpenAPI schema of a preprocessed input.
 export const pageQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  page: integerInput(z.number().int().min(1)).prefault(1),
+  pageSize: integerInput(z.number().int().min(1).max(100)).prefault(20),
 });
 
 export type PageQuery = z.infer<typeof pageQuerySchema>;

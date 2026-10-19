@@ -9,7 +9,7 @@ import { defineRoute, registerRoutes } from '../../shared/routes.js';
 import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
 import { sessionResponseSchema } from '../auth/schemas.js';
 import * as accounts from './accounts.js';
-import { lookupCep } from './cep.js';
+import { lookupCep, type CepCache } from './cep.js';
 import {
   accountDeletionSchema,
   cepLookupSchema,
@@ -196,18 +196,19 @@ const deleteOwnAccountRoute = defineRoute({
   },
 });
 
-const cepLookupRoute = defineRoute({
-  method: 'GET',
-  url: '/addresses/lookup',
-  config: { public: true, rateLimit: { max: 30, timeWindow: '1 minute' } },
-  schema: {
-    tags,
-    summary: 'Consultar endereço pelo CEP',
-    querystring: cepQuerySchema,
-    response: { 200: cepLookupSchema, ...errorResponses },
-  },
-  handle: async ({ ctx, request }) => lookupCep(ctx.fetch, request.query.cep),
-});
+const cepLookupRoute = (cache: CepCache) =>
+  defineRoute({
+    method: 'GET',
+    url: '/addresses/lookup',
+    config: { public: true, rateLimit: { max: 30, timeWindow: '1 minute' } },
+    schema: {
+      tags,
+      summary: 'Consultar endereço pelo CEP',
+      querystring: cepQuerySchema,
+      response: { 200: cepLookupSchema, ...errorResponses },
+    },
+    handle: async ({ ctx, request }) => lookupCep({ fetch: ctx.fetch, cache }, request.query.cep),
+  });
 
 const USER_ROUTES = [
   registerCustomerRoute,
@@ -220,9 +221,9 @@ const USER_ROUTES = [
   updateProfileRoute,
   dataExportRoute,
   deleteOwnAccountRoute,
-  cepLookupRoute,
 ];
 
-export function userRoutes(ctx: AppContext): FastifyPluginAsyncZod {
-  return async (app) => registerRoutes(app, ctx, USER_ROUTES);
+/** The CEP cache comes from the composition root, so each app instance owns its own. */
+export function userRoutes(ctx: AppContext, cepCache: CepCache): FastifyPluginAsyncZod {
+  return async (app) => registerRoutes(app, ctx, [...USER_ROUTES, cepLookupRoute(cepCache)]);
 }

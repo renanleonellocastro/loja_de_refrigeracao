@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { ROLE_LABELS } from '@rc/contracts';
 import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
-import { DAY, MINUTE } from '../../shared/clock.js';
+import { DAY, MINUTE, SECOND } from '../../shared/clock.js';
 import { AppError, tooManyRequests, unauthorized, unprocessable } from '../../shared/errors.js';
 import { normalizeEmail } from '../../shared/text.js';
 import { queueEmail } from '../mail/service.js';
@@ -18,8 +18,6 @@ export const MAX_FAILURES_PER_IP = 20;
 export const RESET_TTL = 30 * MINUTE;
 export const INVITATION_TTL = 7 * DAY;
 export const EMAIL_VERIFICATION_TTL = DAY;
-
-const MILLISECONDS_PER_SECOND = 1000;
 
 const RESET_PASSWORD_PATH = '/redefinir-senha';
 const DEFINE_PASSWORD_PATH = '/definir-senha';
@@ -85,10 +83,7 @@ const invalidCredentials = () =>
   new AppError(401, 'invalid-credentials', 'Email ou senha incorretos', 'Confira os dados e tente de novo.');
 
 const tooManyLoginAttempts = () =>
-  tooManyRequests(
-    LOGIN_WINDOW / MILLISECONDS_PER_SECOND,
-    'Muitas tentativas de login. Aguarde 15 minutos e tente de novo.',
-  );
+  tooManyRequests(LOGIN_WINDOW / SECOND, 'Muitas tentativas de login. Aguarde 15 minutos e tente de novo.');
 
 const sessionExpired = () => unauthorized('Sua sessão expirou. Entre novamente.');
 

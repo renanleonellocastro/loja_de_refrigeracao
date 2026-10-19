@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 import { isRole, type Role } from '@rc/contracts';
+import { SECOND } from '../../shared/clock.js';
 
 export interface AccessClaims {
   userId: number;
@@ -10,7 +11,6 @@ export interface AccessClaims {
 
 const ISSUER = 'refrigeracao-castro';
 const ALGORITHM = 'HS256';
-const MILLISECONDS_PER_SECOND = 1000;
 const OPAQUE_TOKEN_BYTES = 32;
 
 function key(secret: string): Uint8Array {
@@ -18,7 +18,7 @@ function key(secret: string): Uint8Array {
 }
 
 export async function signAccessToken(claims: AccessClaims, secret: string, ttlSeconds: number, now: Date) {
-  const issuedAt = Math.floor(now.getTime() / MILLISECONDS_PER_SECOND);
+  const issuedAt = Math.floor(now.getTime() / SECOND);
   return new SignJWT({ role: claims.role, sid: claims.sessionId })
     .setProtectedHeader({ alg: ALGORITHM })
     .setSubject(String(claims.userId))
