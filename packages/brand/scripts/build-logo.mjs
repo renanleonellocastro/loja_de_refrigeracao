@@ -152,26 +152,43 @@ function logo({ fill, background, relief, title = 'Refrigeração Castro' }) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="${title}"><title>${title}</title>${defs}${bg}<g fill="${paint}"${relief ? ' filter="url(#relief)"' : ''}>${['C', 'S', 'T', 'R', 'O'].map((c) => `<path d="${letters[c].d}"/>`).join('')}<path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}${smallPaths.map((d) => `<path d="${d}"/>`).join('')}</g></svg>\n`;
 }
 
+const SYMBOL_PADDING = 30;
+// The maskable icon keeps the symbol inside the 72% safe zone of the launcher mask.
+const MASKABLE_SAFE_ZONE = 0.72;
+const SYMBOL_CORNER_RATIO = 0.22;
+const SYMBOL_SILVER_DEFS = `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D5D9DE"/></linearGradient></defs>`;
+
+function symbolSquare(maskable) {
+  const minSymbolX = w1[0] - jawR - SYMBOL_PADDING;
+  const maxSymbolX = Math.max(bx + bw, A.box.x2) + SYMBOL_PADDING;
+  const minSymbolY = head.cy - head.r - SYMBOL_PADDING;
+  const maxSymbolY = baseline + SYMBOL_PADDING;
+  const extent = Math.max(maxSymbolX - minSymbolX, maxSymbolY - minSymbolY);
+  const side = extent / (maskable ? MASKABLE_SAFE_ZONE : 1);
+  const centerX = (minSymbolX + maxSymbolX) / 2;
+  const centerY = (minSymbolY + maxSymbolY) / 2;
+  return { left: centerX - side / 2, top: centerY - side / 2, side };
+}
+
+function symbolDefs({ relief, shadow }) {
+  if (shadow) return RELIEF_DEFS;
+  return relief ? SYMBOL_SILVER_DEFS : '';
+}
+
+function symbolBackground({ left, top, side }, background, maskable) {
+  if (!background) return '';
+  const cornerRadius = maskable ? 0 : fmt(side * SYMBOL_CORNER_RATIO);
+  return `<rect x="${fmt(left)}" y="${fmt(top)}" width="${fmt(side)}" height="${fmt(side)}" rx="${cornerRadius}" fill="${background}"/>`;
+}
+
 function symbol({ fill, background, relief, shadow = false, maskable = false }) {
-  const pad = 30;
-  const sMinX = w1[0] - jawR - pad;
-  const sMaxX = Math.max(bx + bw, A.box.x2) + pad;
-  const sMinY = head.cy - head.r - pad;
-  const sMaxY = baseline + pad;
-  const side = Math.max(sMaxX - sMinX, sMaxY - sMinY) / (maskable ? 0.72 : 1);
-  const cx = (sMinX + sMaxX) / 2;
-  const cy = (sMinY + sMaxY) / 2;
-  const vb = [cx - side / 2, cy - side / 2, side, side].map(fmt).join(' ');
+  const square = symbolSquare(maskable);
+  const viewBoxValue = [square.left, square.top, square.side, square.side].map(fmt).join(' ');
   const paint = relief ? 'url(#silver)' : fill;
-  const defs = shadow
-    ? RELIEF_DEFS
-    : relief
-      ? `<defs><linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D5D9DE"/></linearGradient></defs>`
-      : '';
-  const bg = background
-    ? `<rect x="${fmt(cx - side / 2)}" y="${fmt(cy - side / 2)}" width="${fmt(side)}" height="${fmt(side)}" rx="${maskable ? 0 : fmt(side * 0.22)}" fill="${background}"/>`
-    : '';
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img" aria-label="Refrigeração Castro"><title>Refrigeração Castro</title>${defs}${bg}<g fill="${paint}"${shadow ? ' filter="url(#relief)"' : ''}><path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}</g></svg>\n`;
+  const filter = shadow ? ' filter="url(#relief)"' : '';
+  const artwork = `<g fill="${paint}"${filter}><path fill-rule="evenodd" d="${aPath}"/>${mascot(paint)}</g>`;
+  const header = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxValue}" role="img" aria-label="Refrigeração Castro"><title>Refrigeração Castro</title>`;
+  return `${header}${symbolDefs({ relief, shadow })}${symbolBackground(square, background, maskable)}${artwork}</svg>\n`;
 }
 
 const out = new URL('../../../apps/web/public/brand/', here);
