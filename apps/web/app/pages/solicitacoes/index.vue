@@ -34,23 +34,25 @@ const columns: TableColumn[] = [
   { key: 'createdAt', label: 'Pedida em', priority: 'low' },
 ];
 
-const { page, rows, pages, loading, failed, load, restart } = usePagedList(async (current) => {
-  const q = query.value.trim();
-  const result = await unwrap(
-    api.GET('/api/v1/service-requests', {
-      params: {
-        query: {
-          status: status.value === ALL ? undefined : (status.value as ServiceRequest['status']),
-          q: q || undefined,
-          page: current,
-          pageSize: REQUESTS_PAGE_SIZE,
-        },
-      },
-    }),
-  );
-  searched.value = q;
+function requestsQuery(current: number, search: string) {
+  return {
+    status: status.value === ALL ? undefined : (status.value as ServiceRequest['status']),
+    q: search || undefined,
+    page: current,
+    pageSize: REQUESTS_PAGE_SIZE,
+  };
+}
+
+/** One page of the queue; the search shown above the results is the one this answer is for. */
+async function fetchRequests(current: number) {
+  const search = query.value.trim();
+  const params = { query: requestsQuery(current, search) };
+  const result = await unwrap(api.GET('/api/v1/service-requests', { params }));
+  searched.value = search;
   return result;
-}, REQUESTS_PAGE_SIZE);
+}
+
+const { page, rows, pages, loading, failed, load, restart } = usePagedList(fetchRequests, REQUESTS_PAGE_SIZE);
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 watch(query, () => {

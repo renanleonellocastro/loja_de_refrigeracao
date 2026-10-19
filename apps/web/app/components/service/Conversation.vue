@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Send } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { formatDateTime } from '~/utils/masks';
 
 /**
@@ -33,18 +34,40 @@ const error = ref('');
 const sending = ref(false);
 
 const path = () => ({ path: { id: props.requestId } });
+const isQuote = () => props.resource === 'quotes';
+
+function fetchMessages(): Promise<RequestMessage[]> {
+  const options = { params: path() };
+  return unwrap(
+    isQuote()
+      ? api.GET('/api/v1/quotes/{id}/messages', options)
+      : api.GET('/api/v1/service-requests/{id}/messages', options),
+  );
+}
+
+function postMessage(text: string): Promise<RequestMessage[]> {
+  const options = { params: path(), body: { body: text } };
+  return unwrap(
+    isQuote()
+      ? api.POST('/api/v1/quotes/{id}/messages', options)
+      : api.POST('/api/v1/service-requests/{id}/messages', options),
+  );
+}
 
 async function load(): Promise<void> {
   failed.value = false;
   try {
-    messages.value = await unwrap(
-      props.resource === 'quotes'
-        ? api.GET('/api/v1/quotes/{id}/messages', { params: path() })
-        : api.GET('/api/v1/service-requests/{id}/messages', { params: path() }),
-    );
+    messages.value = await fetchMessages();
   } catch {
     failed.value = true;
   }
+}
+
+async function deliver(text: string): Promise<void> {
+  messages.value = await postMessage(text);
+  body.value = '';
+  toast.success({ title: 'Mensagem enviada.' });
+  emit('sent');
 }
 
 async function send(): Promise<void> {
@@ -54,22 +77,7 @@ async function send(): Promise<void> {
     return;
   }
   error.value = '';
-  sending.value = true;
-  try {
-    const options = { params: path(), body: { body: text } };
-    messages.value = await unwrap(
-      props.resource === 'quotes'
-        ? api.POST('/api/v1/quotes/{id}/messages', options)
-        : api.POST('/api/v1/service-requests/{id}/messages', options),
-    );
-    body.value = '';
-    toast.success({ title: 'Mensagem enviada.' });
-    emit('sent');
-  } catch (caught) {
-    toast.error({ title: toApiError(caught).message });
-  } finally {
-    sending.value = false;
-  }
+  await holdWhile(sending, true, false, () => runOrToast(() => deliver(text)));
 }
 
 onMounted(load);

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Ban, CalendarClock, Info, UserRound } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/helpers/optional-reason';
 import { formatDateTime } from '~/utils/masks';
 import {
   CANCEL_RULE,
@@ -40,23 +42,17 @@ async function load(): Promise<void> {
   }
 }
 
+async function cancelRequest(): Promise<void> {
+  const body = optionalReason(reason.value);
+  request.value = await unwrap(
+    api.POST('/api/v1/service-requests/{id}/cancellation', { params: params(), body }),
+  );
+  cancelOpen.value = false;
+  toast.success({ title: 'Agendamento cancelado.' });
+}
+
 async function cancel(): Promise<void> {
-  canceling.value = true;
-  try {
-    const text = reason.value.trim();
-    request.value = await unwrap(
-      api.POST('/api/v1/service-requests/{id}/cancellation', {
-        params: params(),
-        body: text ? { reason: text } : {},
-      }),
-    );
-    cancelOpen.value = false;
-    toast.success({ title: 'Agendamento cancelado.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    canceling.value = false;
-  }
+  await holdWhile(canceling, true, false, () => runOrToast(cancelRequest));
 }
 
 onMounted(load);

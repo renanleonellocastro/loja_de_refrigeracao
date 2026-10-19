@@ -15,6 +15,7 @@ import {
   serviceIllustration,
   type VisitWindow,
 } from '~/utils/service-requests';
+import { usePhotoUpload } from '~/helpers/photo-upload';
 
 /**
  * UC Solicitar Agendamento de Reparo/Manutenção (RF-31): a step by step form. The request goes with an
@@ -38,10 +39,28 @@ const STEP_LABELS: Record<StepKey, string> = {
 
 const ADDRESS_OPTIONS = ['profile', 'other'] as const;
 
+const MIN_PRODUCT_KIND_LENGTH = 2;
+const MIN_PROBLEM_LENGTH = 10;
+const PHOTO_WARNING =
+  'Sua solicitação foi registrada, mas as fotos não chegaram. Mande pela conversa do agendamento se precisar.';
+
+/** Step of each top level field, to bring the person back to the field the API refused. */
+const FIELD_STEPS: Record<string, StepKey> = {
+  customerId: 'cliente',
+  serviceTypeId: 'servico',
+  productKind: 'aparelho',
+  brand: 'aparelho',
+  model: 'aparelho',
+  problem: 'problema',
+  windows: 'datas',
+  addressMode: 'endereco',
+  address: 'endereco',
+};
+
 const api = useApi();
 const auth = useAuthStore();
 const route = useRoute();
-const config = useRuntimeConfig();
+const { progress: uploadProgress, send: sendPhotos } = usePhotoUpload();
 
 const staff = computed(() => can(auth.actor, 'serviceRequests.manage'));
 const steps = computed<StepKey[]>(() => [
@@ -63,7 +82,6 @@ const profileAddress = ref<ApiAddress | null>(null);
 const customer = ref<PickedCustomer | null>(null);
 const photos = ref<File[]>([]);
 const created = ref<ServiceRequest | null>(null);
-const uploadProgress = ref<number | null>(null);
 const photoWarning = ref('');
 let idempotencyKey = crypto.randomUUID();
 
@@ -79,15 +97,21 @@ interface Values extends Record<string, unknown> {
   address: AddressForm;
 }
 
+type RequestFields = Pick<
+  Values,
+  'serviceTypeId' | 'productKind' | 'brand' | 'model' | 'problem' | 'windows'
+>;
+
+/** The fields of one request, blank: a new request after a sent one starts from these. */
+function blankRequestFields(): RequestFields {
+  return { serviceTypeId: '', productKind: '', brand: '', model: '', problem: '', windows: [] };
+}
+
 const form = useForm<Values>(
   {
     customerId: 0,
+    ...blankRequestFields(),
     serviceTypeId: typeof route.query.servico === 'string' ? route.query.servico : '',
-    productKind: '',
-    brand: '',
-    model: '',
-    problem: '',
-    windows: [],
     addressMode: 'profile',
     address: emptyAddress(),
   },
@@ -102,42 +126,48 @@ const selectedType = computed(() =>
 /** The customer has no address on file: the visit needs one typed here. */
 const needsAddress = computed(() => !staff.value && !profileAddress.value);
 
+/** The visit goes to an address typed here instead of the one on file. */
+function usesOtherAddress(values: Values): boolean {
+  return values.addressMode === 'other' || needsAddress.value;
+}
+
+/** The message of a field when its check fails, no error otherwise. */
+function errorWhen(isInvalid: boolean, field: string, message: string): FieldErrors {
+  return isInvalid ? { [field]: message } : {};
+}
+
+/** Field errors of one step: only the step on screen is checked before moving on. */
+const STEP_VALIDATORS: Record<StepKey, (values: Values) => FieldErrors> = {
+  cliente: (values) => errorWhen(!values.customerId, 'customerId', 'Escolha o cliente.'),
+  servico: (values) => errorWhen(!values.serviceTypeId, 'serviceTypeId', 'Escolha o serviço.'),
+  aparelho: (values) =>
+    errorWhen(
+      values.productKind.trim().length < MIN_PRODUCT_KIND_LENGTH,
+      'productKind',
+      'Diga qual é o aparelho, como geladeira duplex.',
+    ),
+  problema: (values) =>
+    errorWhen(
+      values.problem.trim().length < MIN_PROBLEM_LENGTH,
+      'problem',
+      'Conte um pouco mais sobre o problema, com pelo menos 10 letras.',
+    ),
+  datas: (values) =>
+    errorWhen(values.windows.length === 0, 'windows', 'Escolha pelo menos um dia e período.'),
+  endereco: (values) => (usesOtherAddress(values) ? validateAddress(values.address, true) : {}),
+  revisao: () => ({}),
+};
+
 function validateStep(key: StepKey, values: Values): FieldErrors {
-  const errors: FieldErrors = {};
-  if (key === 'cliente' && !values.customerId) errors.customerId = 'Escolha o cliente.';
-  if (key === 'servico' && !values.serviceTypeId) errors.serviceTypeId = 'Escolha o serviço.';
-  if (key === 'aparelho' && values.productKind.trim().length < 2) {
-    errors.productKind = 'Diga qual é o aparelho, como geladeira duplex.';
-  }
-  if (key === 'problema' && values.problem.trim().length < 10) {
-    errors.problem = 'Conte um pouco mais sobre o problema, com pelo menos 10 letras.';
-  }
-  if (key === 'datas' && values.windows.length === 0) errors.windows = 'Escolha pelo menos um dia e período.';
-  if (key === 'endereco' && (values.addressMode === 'other' || needsAddress.value)) {
-    Object.assign(errors, validateAddress(values.address, true));
-  }
-  return errors;
+  return STEP_VALIDATORS[key](values);
 }
 
 function validateAll(values: Values): FieldErrors {
   return Object.assign({}, ...steps.value.map((key) => validateStep(key, values)));
 }
 
-/** Step of a field path, to bring the person back to the field the API refused. */
 function stepOf(path: string): StepKey {
-  const root = path.split('.')[0]!;
-  const map: Record<string, StepKey> = {
-    customerId: 'cliente',
-    serviceTypeId: 'servico',
-    productKind: 'aparelho',
-    brand: 'aparelho',
-    model: 'aparelho',
-    problem: 'problema',
-    windows: 'datas',
-    addressMode: 'endereco',
-    address: 'endereco',
-  };
-  return map[root]!;
+  return FIELD_STEPS[path.split('.')[0]!]!;
 }
 
 async function goTo(index: number): Promise<void> {
@@ -177,51 +207,46 @@ async function loadProfile(): Promise<void> {
 }
 
 async function uploadPhotos(id: number): Promise<void> {
-  const body = new FormData();
-  for (const file of photos.value) body.append('files', file, file.name);
-  uploadProgress.value = 0;
   try {
-    const result = await uploadWithProgress(
-      `${config.public.apiBase}/api/v1/service-requests/${id}/photos`,
-      body,
-      auth.accessToken,
-      (percent) => (uploadProgress.value = percent),
-    );
-    if (result.status !== 201) throw problemToError(result.status, result.body);
+    await sendPhotos(`/api/v1/service-requests/${id}/photos`, photos.value);
   } catch {
-    photoWarning.value =
-      'Sua solicitação foi registrada, mas as fotos não chegaram. Mande pela conversa do agendamento se precisar.';
-  } finally {
-    uploadProgress.value = null;
+    photoWarning.value = PHOTO_WARNING;
   }
 }
 
-async function send(): Promise<void> {
-  const ok = await form.submit(async (values) => {
-    const otherAddress = values.addressMode === 'other' || needsAddress.value;
-    const result = await api.POST('/api/v1/service-requests', {
-      body: {
-        customerId: staff.value ? values.customerId : undefined,
-        serviceTypeId: Number(values.serviceTypeId),
-        productKind: values.productKind.trim(),
-        brand: values.brand.trim() || undefined,
-        model: values.model.trim() || undefined,
-        problem: values.problem.trim(),
-        windows: values.windows,
-        address: otherAddress ? addressToApi(values.address)! : undefined,
-      },
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
-    // The API answered: the next attempt is a new request.
-    idempotencyKey = crypto.randomUUID();
-    if (!result.data) throw problemToError(result.response.status, result.error);
-    created.value = result.data;
+function requestBody(values: Values) {
+  return {
+    customerId: staff.value ? values.customerId : undefined,
+    serviceTypeId: Number(values.serviceTypeId),
+    productKind: values.productKind.trim(),
+    brand: values.brand.trim() || undefined,
+    model: values.model.trim() || undefined,
+    problem: values.problem.trim(),
+    windows: values.windows,
+    address: usesOtherAddress(values) ? addressToApi(values.address)! : undefined,
+  };
+}
+
+async function createRequest(values: Values): Promise<void> {
+  const result = await api.POST('/api/v1/service-requests', {
+    body: requestBody(values),
+    headers: { 'Idempotency-Key': idempotencyKey },
   });
-  if (!ok) {
-    const first = Object.keys(form.errors.value)[0];
-    if (first) await goTo(steps.value.indexOf(stepOf(first)));
-    return;
-  }
+  // The API answered: the next attempt is a new request.
+  idempotencyKey = crypto.randomUUID();
+  if (!result.data) throw problemToError(result.response.status, result.error);
+  created.value = result.data;
+}
+
+/** Brings the person back to the step of the first field the API refused. */
+async function returnToRefusedStep(): Promise<void> {
+  const first = Object.keys(form.errors.value)[0];
+  if (first) await goTo(steps.value.indexOf(stepOf(first)));
+}
+
+async function send(): Promise<void> {
+  const ok = await form.submit(createRequest);
+  if (!ok) return returnToRefusedStep();
   if (photos.value.length > 0) await uploadPhotos(created.value!.id);
 }
 
@@ -230,15 +255,7 @@ function startOver(): void {
   photos.value = [];
   photoWarning.value = '';
   customer.value = null;
-  form.reset({
-    ...form.values,
-    serviceTypeId: '',
-    productKind: '',
-    brand: '',
-    model: '',
-    problem: '',
-    windows: [],
-  });
+  form.reset({ ...form.values, ...blankRequestFields() });
   current.value = 0;
 }
 
@@ -246,33 +263,34 @@ const detailLink = computed(() =>
   staff.value ? `/solicitacoes/${created.value!.id}` : `/minha-conta/agendamentos/${created.value!.id}`,
 );
 
+function applianceDetail(values: Values): string {
+  return [values.productKind, values.brand, values.model].filter(Boolean).join(' · ');
+}
+
+function photosDetail(count: number): string {
+  return count ? `${count} de ${MAX_REQUEST_PHOTOS}` : 'Nenhuma';
+}
+
+function addressDetail(values: Values): string {
+  if (usesOtherAddress(values)) return formatAddress(addressToApi(values.address));
+  return staff.value ? 'Endereço do cadastro do cliente' : formatAddress(profileAddress.value);
+}
+
+function customerItems(): DescriptionItem[] {
+  return staff.value ? [{ term: 'Cliente', detail: customer.value!.name }] : [];
+}
+
 const review = computed<DescriptionItem[]>(() => {
   const values = form.values;
-  const otherAddress = values.addressMode === 'other' || needsAddress.value;
-  const items: DescriptionItem[] = [];
-  if (staff.value) items.push({ term: 'Cliente', detail: customer.value!.name });
-  items.push(
+  return [
+    ...customerItems(),
     { term: 'Serviço', detail: selectedType.value!.name },
-    {
-      term: 'Aparelho',
-      detail: [values.productKind, values.brand, values.model].filter(Boolean).join(' · '),
-    },
+    { term: 'Aparelho', detail: applianceDetail(values) },
     { term: 'Problema', detail: values.problem },
-    {
-      term: 'Fotos',
-      detail: photos.value.length ? `${photos.value.length} de ${MAX_REQUEST_PHOTOS}` : 'Nenhuma',
-    },
+    { term: 'Fotos', detail: photosDetail(photos.value.length) },
     { term: 'Datas', detail: values.windows.map(formatWindow).join('; ') },
-    {
-      term: 'Endereço',
-      detail: otherAddress
-        ? formatAddress(addressToApi(values.address))
-        : staff.value
-          ? 'Endereço do cadastro do cliente'
-          : formatAddress(profileAddress.value),
-    },
-  );
-  return items;
+    { term: 'Endereço', detail: addressDetail(values) },
+  ];
 });
 
 onMounted(() => Promise.all([loadTypes(), loadProfile()]));

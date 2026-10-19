@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, FolderPlus, Pencil, Trash2 } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { countLabel } from '~/utils/catalog';
 import { moveItem } from '~/utils/products';
 
@@ -9,6 +10,8 @@ import { moveItem } from '~/utils/products';
  */
 definePageMeta({ layout: 'area', permission: 'categories.manage', title: 'Categorias' });
 useHead({ title: 'Categorias | Refrigeração Castro' });
+
+const CATEGORY_IN_USE = 'category-in-use';
 
 const api = useApi();
 const toast = useToast();
@@ -83,33 +86,34 @@ function startRename(category: Category): void {
   editing.value = { id: category.id, name: category.name };
 }
 
+async function createCategory(body: { name: string }): Promise<void> {
+  await unwrap(api.POST('/api/v1/categories', { body }));
+  toast.success({ title: `Categoria ${body.name} criada.` });
+}
+
+async function renameCategory(id: number, body: { name: string }): Promise<void> {
+  await unwrap(api.PATCH('/api/v1/categories/{id}', { params: { path: { id } }, body }));
+  toast.success({ title: 'Categoria renomeada.' });
+}
+
 async function save(): Promise<void> {
   const target = editing.value!;
-  const done = await form.submit(async (values) => {
+  const done = await form.submit((values) => {
     const body = { name: values.name.trim() };
-    if (target.id === null) {
-      await unwrap(api.POST('/api/v1/categories', { body }));
-      toast.success({ title: `Categoria ${body.name} criada.` });
-    } else {
-      await unwrap(api.PATCH('/api/v1/categories/{id}', { params: { path: { id: target.id } }, body }));
-      toast.success({ title: 'Categoria renomeada.' });
-    }
+    return target.id === null ? createCategory(body) : renameCategory(target.id, body);
   });
   if (!done) return;
   editing.value = null;
   await load();
 }
 
+async function saveOrder(ids: number[]): Promise<void> {
+  categories.value = await unwrap(api.PUT('/api/v1/categories/order', { body: { ids } }));
+}
+
 async function move(index: number, to: number): Promise<void> {
   const ids = moveItem(categories.value, index, to).map((category) => category.id);
-  reordering.value = true;
-  try {
-    categories.value = await unwrap(api.PUT('/api/v1/categories/order', { body: { ids } }));
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    reordering.value = false;
-  }
+  await holdWhile(reordering, true, false, () => runOrToast(() => saveOrder(ids)));
 }
 
 function openMove(category: Category): void {
@@ -132,26 +136,33 @@ async function startRemove(category: Category): Promise<void> {
   if (confirmed) await remove(category, undefined);
 }
 
+async function deleteCategory(category: Category, target: number | undefined): Promise<void> {
+  await unwrap(
+    api.DELETE('/api/v1/categories/{id}', {
+      params: { path: { id: category.id }, query: { moveTo: target } },
+    }),
+  );
+  toast.success({ title: `Categoria ${category.name} excluída.` });
+  await load();
+}
+
+/** Archived products are not counted but still belong to the category: ask where they go. */
+function showRemovalFailure(category: Category, target: number | undefined, error: unknown): void {
+  const failure = toApiError(error);
+  if (failure.code === CATEGORY_IN_USE && target === undefined) openMove(category);
+  else toast.error({ title: failure.message });
+}
+
 async function remove(category: Category, target: number | undefined): Promise<boolean> {
-  deleting.value = true;
-  try {
-    await unwrap(
-      api.DELETE('/api/v1/categories/{id}', {
-        params: { path: { id: category.id }, query: { moveTo: target } },
-      }),
-    );
-    toast.success({ title: `Categoria ${category.name} excluída.` });
-    await load();
-    return true;
-  } catch (error) {
-    const failure = toApiError(error);
-    // Archived products are not counted but still belong to the category: ask where they go.
-    if (failure.code === 'category-in-use' && target === undefined) openMove(category);
-    else toast.error({ title: failure.message });
-    return false;
-  } finally {
-    deleting.value = false;
-  }
+  return holdWhile(deleting, true, false, async () => {
+    try {
+      await deleteCategory(category, target);
+      return true;
+    } catch (error) {
+      showRemovalFailure(category, target, error);
+      return false;
+    }
+  });
 }
 
 async function confirmMove(): Promise<void> {

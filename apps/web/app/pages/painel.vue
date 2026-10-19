@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ApiSchemas } from '@rc/contracts';
+import type { Component } from 'vue';
 import {
   BadgeCheck,
   CalendarDays,
@@ -22,6 +23,51 @@ type Management = NonNullable<ApiSchemas['Dashboard']['management']>;
 /** The indicators refresh on their own while the page stays open (issue #78). */
 const REFRESH_MS = 60_000;
 
+/** Indicators of the management, each one linking to the list it counts. */
+const DASHBOARD_TILES: ReadonlyArray<{
+  label: string;
+  to: string;
+  icon: Component;
+  count: (management: Management) => number;
+}> = [
+  {
+    label: 'Pedidos em análise',
+    to: '/pedidos?estado=PENDING_REVIEW',
+    icon: Package,
+    count: (management) => management.ordersByStatus.PENDING_REVIEW,
+  },
+  {
+    label: 'Prontos para retirada',
+    to: '/pedidos?estado=READY_FOR_PICKUP',
+    icon: PackageCheck,
+    count: (management) => management.ordersByStatus.READY_FOR_PICKUP,
+  },
+  {
+    label: 'Solicitações novas',
+    to: '/solicitacoes?estado=REQUESTED',
+    icon: Inbox,
+    count: (management) => management.openServiceRequests.REQUESTED,
+  },
+  {
+    label: 'Aguardando o cliente',
+    to: '/solicitacoes?estado=AWAITING_CUSTOMER',
+    icon: MessageCircle,
+    count: (management) => management.openServiceRequests.AWAITING_CUSTOMER,
+  },
+  {
+    label: 'Orçamentos a responder',
+    to: '/orcamentos?estado=REQUESTED',
+    icon: ReceiptText,
+    count: (management) => management.quotesAwaitingAnswer,
+  },
+  {
+    label: 'Finalizações a aprovar',
+    to: '/aprovacoes',
+    icon: BadgeCheck,
+    count: (management) => management.reportsAwaitingApproval,
+  },
+];
+
 const api = useApi();
 const auth = useAuthStore();
 
@@ -42,47 +88,9 @@ async function load(): Promise<void> {
   }
 }
 
-const tiles = computed(() => {
-  const m = management.value!;
-  return [
-    {
-      label: 'Pedidos em análise',
-      value: m.ordersByStatus.PENDING_REVIEW,
-      to: '/pedidos?estado=PENDING_REVIEW',
-      icon: Package,
-    },
-    {
-      label: 'Prontos para retirada',
-      value: m.ordersByStatus.READY_FOR_PICKUP,
-      to: '/pedidos?estado=READY_FOR_PICKUP',
-      icon: PackageCheck,
-    },
-    {
-      label: 'Solicitações novas',
-      value: m.openServiceRequests.REQUESTED,
-      to: '/solicitacoes?estado=REQUESTED',
-      icon: Inbox,
-    },
-    {
-      label: 'Aguardando o cliente',
-      value: m.openServiceRequests.AWAITING_CUSTOMER,
-      to: '/solicitacoes?estado=AWAITING_CUSTOMER',
-      icon: MessageCircle,
-    },
-    {
-      label: 'Orçamentos a responder',
-      value: m.quotesAwaitingAnswer,
-      to: '/orcamentos?estado=REQUESTED',
-      icon: ReceiptText,
-    },
-    {
-      label: 'Finalizações a aprovar',
-      value: m.reportsAwaitingApproval,
-      to: '/aprovacoes',
-      icon: BadgeCheck,
-    },
-  ];
-});
+const tiles = computed(() =>
+  DASHBOARD_TILES.map(({ count, ...tile }) => ({ ...tile, value: count(management.value!) })),
+);
 
 const visitsToday = computed(() =>
   management.value!.agendaToday.reduce((sum, group) => sum + group.appointments.length, 0),

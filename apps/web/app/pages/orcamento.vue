@@ -3,6 +3,7 @@ import { can } from '@rc/contracts';
 import { CircleCheck, Send } from 'lucide-vue-next';
 import { MAX_QUOTE_PHOTOS, type Quote } from '~/utils/quotes';
 import { serviceIllustration } from '~/utils/service-requests';
+import { usePhotoUpload } from '~/helpers/photo-upload';
 
 /**
  * UC Solicitar Orçamento: service type, description and optional photos. The quote goes with an
@@ -12,10 +13,14 @@ import { serviceIllustration } from '~/utils/service-requests';
 definePageMeta({ layout: 'area', permission: 'quotes.create', title: 'Pedir orçamento' });
 useHead({ title: 'Pedir orçamento | Refrigeração Castro' });
 
+const MIN_DESCRIPTION_LENGTH = 10;
+const PHOTO_WARNING =
+  'Seu pedido de orçamento foi registrado, mas as fotos não chegaram. Mande pela conversa do orçamento se precisar.';
+
 const api = useApi();
 const auth = useAuthStore();
 const route = useRoute();
-const config = useRuntimeConfig();
+const { progress: uploadProgress, send: sendPhotos } = usePhotoUpload();
 
 const staff = computed(() => can(auth.actor, 'quotes.answer'));
 
@@ -24,7 +29,6 @@ const typesFailed = ref(false);
 const customer = ref<PickedCustomer | null>(null);
 const photos = ref<File[]>([]);
 const created = ref<Quote | null>(null);
-const uploadProgress = ref<number | null>(null);
 const photoWarning = ref('');
 let idempotencyKey = crypto.randomUUID();
 
@@ -49,7 +53,7 @@ function validate(values: Values): FieldErrors {
   const errors: FieldErrors = {};
   if (staff.value && !values.customerId) errors.customerId = 'Escolha o cliente.';
   if (!values.serviceTypeId) errors.serviceTypeId = 'Escolha o serviço.';
-  if (values.description.trim().length < 10) {
+  if (values.description.trim().length < MIN_DESCRIPTION_LENGTH) {
     errors.description = 'Conte um pouco mais sobre o serviço, com pelo menos 10 letras.';
   }
   return errors;
@@ -65,40 +69,34 @@ async function loadTypes(): Promise<void> {
 }
 
 async function uploadPhotos(id: number): Promise<void> {
-  const body = new FormData();
-  for (const file of photos.value) body.append('files', file, file.name);
-  uploadProgress.value = 0;
   try {
-    const result = await uploadWithProgress(
-      `${config.public.apiBase}/api/v1/quotes/${id}/photos`,
-      body,
-      auth.accessToken,
-      (percent) => (uploadProgress.value = percent),
-    );
-    if (result.status !== 201) throw problemToError(result.status, result.body);
+    await sendPhotos(`/api/v1/quotes/${id}/photos`, photos.value);
   } catch {
-    photoWarning.value =
-      'Seu pedido de orçamento foi registrado, mas as fotos não chegaram. Mande pela conversa do orçamento se precisar.';
-  } finally {
-    uploadProgress.value = null;
+    photoWarning.value = PHOTO_WARNING;
   }
 }
 
-async function send(): Promise<void> {
-  const ok = await form.submit(async (values) => {
-    const result = await api.POST('/api/v1/quotes', {
-      body: {
-        customerId: staff.value ? values.customerId : undefined,
-        serviceTypeId: Number(values.serviceTypeId),
-        description: values.description.trim(),
-      },
-      headers: { 'Idempotency-Key': idempotencyKey },
-    });
-    // The API answered: the next attempt is a new quote.
-    idempotencyKey = crypto.randomUUID();
-    if (!result.data) throw problemToError(result.response.status, result.error);
-    created.value = result.data;
+function quoteBody(values: Values) {
+  return {
+    customerId: staff.value ? values.customerId : undefined,
+    serviceTypeId: Number(values.serviceTypeId),
+    description: values.description.trim(),
+  };
+}
+
+async function createQuote(values: Values): Promise<void> {
+  const result = await api.POST('/api/v1/quotes', {
+    body: quoteBody(values),
+    headers: { 'Idempotency-Key': idempotencyKey },
   });
+  // The API answered: the next attempt is a new quote.
+  idempotencyKey = crypto.randomUUID();
+  if (!result.data) throw problemToError(result.response.status, result.error);
+  created.value = result.data;
+}
+
+async function send(): Promise<void> {
+  const ok = await form.submit(createQuote);
   if (ok && photos.value.length > 0) await uploadPhotos(created.value!.id);
 }
 
