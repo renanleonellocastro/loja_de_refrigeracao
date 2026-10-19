@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, GripVertical, Star, Trash2, Upload } from 'lucide-vue-next';
 import type { ConfirmOptions } from '~/composables/useConfirm';
-import { holdWhile, runOrToast } from '~/helpers/actions';
-import { usePhotoUpload } from '~/helpers/photo-upload';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
+import { usePhotoUpload } from '~/composables/usePhotoUpload';
 import { MAX_PHOTOS_PER_UPLOAD, MAX_PRODUCT_PHOTOS, moveItem } from '~/utils/products';
 
 /**

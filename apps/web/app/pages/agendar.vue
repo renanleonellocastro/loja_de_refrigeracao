@@ -15,7 +15,7 @@ import {
   serviceIllustration,
   type VisitWindow,
 } from '~/utils/service-requests';
-import { usePhotoUpload } from '~/helpers/photo-upload';
+import { usePhotoUpload } from '~/composables/usePhotoUpload';
 
 /**
  * UC Solicitar Agendamento de Reparo/Manutenção (RF-31): a step by step form. The request goes with an

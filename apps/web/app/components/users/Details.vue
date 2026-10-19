@@ -2,7 +2,7 @@
 import { can, ROLE_LABELS } from '@rc/contracts';
 import { MailCheck, MailWarning, Pencil, Trash2 } from 'lucide-vue-next';
 import type { ConfirmOptions } from '~/composables/useConfirm';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { formatCpf, formatDate, formatPhone } from '~/utils/masks';
 
 /**

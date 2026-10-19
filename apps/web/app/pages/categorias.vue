@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowDown, ArrowUp, FolderPlus, Pencil, Trash2 } from 'lucide-vue-next';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { countLabel } from '~/utils/catalog';
 import { moveItem } from '~/utils/products';
 

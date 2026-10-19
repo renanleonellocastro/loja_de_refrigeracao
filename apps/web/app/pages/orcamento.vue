@@ -3,7 +3,7 @@ import { can } from '@rc/contracts';
 import { CircleCheck, Send } from 'lucide-vue-next';
 import { MAX_QUOTE_PHOTOS, type Quote } from '~/utils/quotes';
 import { serviceIllustration } from '~/utils/service-requests';
-import { usePhotoUpload } from '~/helpers/photo-upload';
+import { usePhotoUpload } from '~/composables/usePhotoUpload';
 
 /**
  * UC Solicitar Orçamento: service type, description and optional photos. The quote goes with an

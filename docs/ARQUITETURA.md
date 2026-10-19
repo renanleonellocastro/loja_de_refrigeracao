@@ -60,7 +60,8 @@ apps/
       pages/                  rotas por arquivo
       layouts/                public, customer, staff
       components/             base (design system) e de domínio
-      composables/            useApi, useAuth, useCart, useBreakpoint
+      composables/            hooks com estado: useApi, useToast, usePhotoUpload, useScreenAction
+      utils/                  funções puras: formatação, máscaras, regras de exibição
       stores/                 Pinia
     tests/                    unitários e de componente
   e2e/                        Playwright: um arquivo por caso de uso

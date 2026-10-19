@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Send } from 'lucide-vue-next';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { formatDateTime } from '~/utils/masks';
 
 /**

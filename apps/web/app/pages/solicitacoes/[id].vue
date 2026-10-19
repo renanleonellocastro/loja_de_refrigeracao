@@ -10,8 +10,8 @@ import {
   ThumbsUp,
   UserRound,
 } from 'lucide-vue-next';
-import { optionalReason } from '~/helpers/optional-reason';
-import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/utils/optional-reason';
+import { holdWhile, runOrToast } from '~/composables/useScreenAction';
 import { formatDateTime, formatPhone } from '~/utils/masks';
 import { canTalk, formatVisit, isOpenRequest, requestTimeline } from '~/utils/service-requests';
 

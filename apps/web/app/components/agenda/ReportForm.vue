@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CheckCheck } from 'lucide-vue-next';
 import { MAX_REPORT_PHOTOS, clearDraft, loadDraft, saveDraft, type ReportDraft } from '~/utils/agenda';
-import { usePhotoUpload } from '~/helpers/photo-upload';
+import { usePhotoUpload } from '~/composables/usePhotoUpload';
 
 /**
  * UC Finalizar Serviço: defect found or not, what was repaired and photos of the work. The text is kept on
