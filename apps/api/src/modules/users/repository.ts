@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, ilike, inArray, isNull, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray, isNull, sql } from 'drizzle-orm';
 import type { Role } from '@rc/contracts';
 import type { Executor } from '../../infra/db/client.js';
 import {
@@ -128,10 +128,17 @@ export interface UserSearch {
   offset: number;
 }
 
+function containsPattern(text: string): string {
+  return `%${normalizeText(text).replace(/[%_]/g, '')}%`;
+}
+
+function userSearchFilter(search: UserSearch) {
+  const textFilter = search.q ? [ilike(users.searchText, containsPattern(search.q))] : [];
+  return and(inArray(users.role, search.roles), isNull(users.deletedAt), ...textFilter);
+}
+
 export async function searchUsers(db: Executor, search: UserSearch) {
-  const conditions: SQL[] = [inArray(users.role, search.roles), isNull(users.deletedAt)];
-  if (search.q) conditions.push(ilike(users.searchText, `%${normalizeText(search.q).replace(/[%_]/g, '')}%`));
-  const where = and(...conditions);
+  const where = userSearchFilter(search);
   const [rows, totals] = await Promise.all([
     db
       .select()
@@ -159,33 +166,56 @@ export async function exportUserData(db: Executor, userId: number) {
   return { orders: userOrders, serviceRequests: requests, quotes: userQuotes };
 }
 
+const RECENT_ORDER_COLUMNS = {
+  id: orders.id,
+  status: orders.status,
+  totalCents: orders.totalCents,
+  createdAt: orders.createdAt,
+};
+
+const RECENT_SERVICE_REQUEST_COLUMNS = {
+  id: serviceRequests.id,
+  status: serviceRequests.status,
+  serviceType: serviceTypes.name,
+  productKind: serviceRequests.productKind,
+  createdAt: serviceRequests.createdAt,
+};
+
+const EMPLOYEE_APPOINTMENT_COLUMNS = {
+  id: appointments.id,
+  startsAt: appointments.startsAt,
+  endsAt: appointments.endsAt,
+  status: serviceRequests.status,
+  serviceType: serviceTypes.name,
+  customerName: users.name,
+};
+
+const REMOVED_ACCOUNT_NAME = 'Conta removida';
+
+function recentOrdersOf(db: Executor, customerId: number, limit: number) {
+  return db
+    .select(RECENT_ORDER_COLUMNS)
+    .from(orders)
+    .where(eq(orders.customerId, customerId))
+    .orderBy(desc(orders.createdAt), desc(orders.id))
+    .limit(limit);
+}
+
+function recentServiceRequestsOf(db: Executor, customerId: number, limit: number) {
+  return db
+    .select(RECENT_SERVICE_REQUEST_COLUMNS)
+    .from(serviceRequests)
+    .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
+    .where(eq(serviceRequests.customerId, customerId))
+    .orderBy(desc(serviceRequests.createdAt), desc(serviceRequests.id))
+    .limit(limit);
+}
+
 /** Latest orders and service requests of a customer, newest first (user detail for the staff). */
 export async function recentCustomerActivity(db: Executor, customerId: number, limit: number) {
   const [recentOrders, recentRequests] = await Promise.all([
-    db
-      .select({
-        id: orders.id,
-        status: orders.status,
-        totalCents: orders.totalCents,
-        createdAt: orders.createdAt,
-      })
-      .from(orders)
-      .where(eq(orders.customerId, customerId))
-      .orderBy(desc(orders.createdAt), desc(orders.id))
-      .limit(limit),
-    db
-      .select({
-        id: serviceRequests.id,
-        status: serviceRequests.status,
-        serviceType: serviceTypes.name,
-        productKind: serviceRequests.productKind,
-        createdAt: serviceRequests.createdAt,
-      })
-      .from(serviceRequests)
-      .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
-      .where(eq(serviceRequests.customerId, customerId))
-      .orderBy(desc(serviceRequests.createdAt), desc(serviceRequests.id))
-      .limit(limit),
+    recentOrdersOf(db, customerId, limit),
+    recentServiceRequestsOf(db, customerId, limit),
   ]);
   return { orders: recentOrders, serviceRequests: recentRequests };
 }
@@ -193,14 +223,7 @@ export async function recentCustomerActivity(db: Executor, customerId: number, l
 /** Latest appointments of a technician by start time, newest first (user detail for the staff). */
 export async function recentEmployeeAppointments(db: Executor, employeeId: number, limit: number) {
   return db
-    .select({
-      id: appointments.id,
-      startsAt: appointments.startsAt,
-      endsAt: appointments.endsAt,
-      status: serviceRequests.status,
-      serviceType: serviceTypes.name,
-      customerName: users.name,
-    })
+    .select(EMPLOYEE_APPOINTMENT_COLUMNS)
     .from(appointments)
     .innerJoin(serviceRequests, eq(serviceRequests.id, appointments.serviceRequestId))
     .innerJoin(serviceTypes, eq(serviceTypes.id, serviceRequests.serviceTypeId))
@@ -210,27 +233,36 @@ export async function recentEmployeeAppointments(db: Executor, employeeId: numbe
     .limit(limit);
 }
 
-/** Removes personal data while keeping orders and services for the store records (decision D8). */
-export async function anonymizeUser(db: Executor, userId: number, now: Date): Promise<void> {
+async function deletePersonalRecords(db: Executor, userId: number): Promise<void> {
   await db.delete(addresses).where(eq(addresses.userId, userId));
   await db.delete(cartItems).where(eq(cartItems.userId, userId));
   await db.delete(notifications).where(eq(notifications.userId, userId));
   await db.delete(authTokens).where(eq(authTokens.userId, userId));
+}
+
+async function revokeActiveSessions(db: Executor, userId: number, now: Date): Promise<void> {
   await db
     .update(sessions)
     .set({ revokedAt: now })
     .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
-  await db
-    .update(users)
-    .set({
-      name: 'Conta removida',
-      email: `removido-${userId}@anonimo.invalid`,
-      cpf: null,
-      phone: null,
-      passwordHash: null,
-      searchText: '',
-      deletedAt: now,
-      updatedAt: now,
-    })
-    .where(eq(users.id, userId));
+}
+
+function anonymizedProfile(userId: number, now: Date) {
+  return {
+    name: REMOVED_ACCOUNT_NAME,
+    email: `removido-${userId}@anonimo.invalid`,
+    cpf: null,
+    phone: null,
+    passwordHash: null,
+    searchText: '',
+    deletedAt: now,
+    updatedAt: now,
+  };
+}
+
+/** Removes personal data while keeping orders and services for the store records (decision D8). */
+export async function anonymizeUser(db: Executor, userId: number, now: Date): Promise<void> {
+  await deletePersonalRecords(db, userId);
+  await revokeActiveSessions(db, userId, now);
+  await db.update(users).set(anonymizedProfile(userId, now)).where(eq(users.id, userId));
 }
