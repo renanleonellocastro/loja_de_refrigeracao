@@ -2,6 +2,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { pageQuerySchema, paginated } from '../../shared/pagination.js';
+import { defineRoute, registerRoutes } from '../../shared/routes.js';
 import { errorResponses, dateInput } from '../../shared/schemas.js';
 import { listAudit } from './service.js';
 
@@ -26,21 +27,22 @@ const querySchema = pageQuerySchema.extend({
   to: dateInput().optional(),
 });
 
+const listAuditRoute = defineRoute({
+  method: 'GET',
+  url: '/audit-logs',
+  config: { permission: 'audit.read' },
+  schema: {
+    tags: ['Auditoria'],
+    summary: 'Trilha de auditoria das ações administrativas',
+    security: [{ bearerAuth: [] }],
+    querystring: querySchema,
+    response: { 200: paginated(auditLogSchema), ...errorResponses },
+  },
+  handle: async ({ ctx, request }) => listAudit(ctx.db, request.query),
+});
+
+const AUDIT_ROUTES = [listAuditRoute];
+
 export function auditRoutes(ctx: AppContext): FastifyPluginAsyncZod {
-  return async (app) => {
-    app.get(
-      '/audit-logs',
-      {
-        config: { permission: 'audit.read' },
-        schema: {
-          tags: ['Auditoria'],
-          summary: 'Trilha de auditoria das ações administrativas',
-          security: [{ bearerAuth: [] }],
-          querystring: querySchema,
-          response: { 200: paginated(auditLogSchema), ...errorResponses },
-        },
-      },
-      async (request) => listAudit(ctx.db, request.query),
-    );
-  };
+  return async (app) => registerRoutes(app, ctx, AUDIT_ROUTES);
 }
