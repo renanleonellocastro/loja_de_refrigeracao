@@ -10,7 +10,9 @@ export {
   updateRequest,
 } from './repository.js';
 export type { RequestRow, ServiceTypeRow } from './repository.js';
-export { createRequest, loadVisible } from './requests.js';
+export { loadVisible } from './request-access.js';
+export { createRequest } from './request-creation.js';
+export { toPhotoView } from './request-views.js';
 export {
   REQUEST_STATUS_LABELS,
   customerCancellationDeadline,
