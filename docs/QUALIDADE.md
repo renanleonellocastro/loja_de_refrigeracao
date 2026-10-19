@@ -21,21 +21,15 @@ Também valem: DRY, KISS e YAGNI; alta coesão e baixo acoplamento; Lei de Demé
 
 ## Como o `make check` verifica
 
-`make check` roda os mesmos passos do job de qualidade do CI: build dos pacotes, OpenAPI e cliente sem divergência, ESLint e Prettier, fronteiras da API, TypeScript, a catraca do tamanho das funções, testes com 100% de cobertura (num PostgreSQL descartável na porta 5482, que não encosta no banco de desenvolvimento) e o build do site. Rode `pnpm install` antes da primeira vez.
+`make check` roda os mesmos passos do job de qualidade do CI: build dos pacotes, OpenAPI e cliente sem divergência, ESLint e Prettier, fronteiras da API, TypeScript, a verificação estrita do tamanho das funções, testes com 100% de cobertura (num PostgreSQL descartável na porta 5482, que não encosta no banco de desenvolvimento) e o build do site. Rode `pnpm install` antes da primeira vez.
 
-### Catraca do tamanho das funções
+### Tamanho das funções (estrito)
 
-O verificador fica em `tools/quality` (compilador do TypeScript para `.ts`, `.mjs` e `.cjs`, e `@vue/compiler-sfc` para os blocos `<script>` dos componentes). A configuração está em `tools/function_length.json` e a linha de base em `tools/function_length_baseline.json`, com as funções que já passavam do limite quando a regra entrou.
+O verificador fica em `tools/quality` (compilador do TypeScript para `.ts`, `.mjs` e `.cjs`, e `@vue/compiler-sfc` para os blocos `<script>` dos componentes), com a configuração em `tools/function_length.json`. A dívida antiga foi paga nas ondas de refatoração e a linha de base chegou a zero, então `make function-length` roda em modo estrito (`--strict`): qualquer função de produção com corpo acima de 12 linhas faz o `make check` e o CI falharem.
 
-O `make check` falha quando:
+`make function-length-list` lista as funções acima do limite, da maior para a menor, para achar o que dividir.
 
-* uma função que não está na linha de base passa de 12 linhas (inclui função nova, renomeada ou movida de arquivo);
-* uma função da linha de base cresce;
-* o total passa o total da linha de base.
-
-Quando você encurta ou elimina funções da linha de base, o relatório avisa quanto ela pode encolher. Rode `make function-length-baseline` para gravar a linha de base menor e inclua o arquivo no PR. Esse alvo só aceita encolher; `make function-length-baseline ALLOW_GROWTH=1` aceita crescer e é exceção, com a justificativa escrita no PR.
-
-`make function-length-list` lista todas as funções acima do limite, da maior para a menor. A dívida é paga em ondas de refatoração; quando a linha de base chegar a zero, o gate passa a ser estrito (`--strict`).
+`tools/function_length_baseline.json` fica vazio e não é mais usado pelo gate. O modo de catraca do verificador continua disponível só para a exceção de uma regra nova que entre com dívida; voltar a usar uma linha de base exige justificativa escrita no PR.
 
 ## Testes
 
