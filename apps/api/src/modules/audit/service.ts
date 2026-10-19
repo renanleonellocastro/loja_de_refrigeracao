@@ -33,22 +33,41 @@ export interface AuditFilters extends PageQuery {
   to?: Date | undefined;
 }
 
+type FilterCondition = (filters: AuditFilters) => SQL | undefined;
+
+/** One condition per filter; a filter left out matches every entry. */
+const FILTER_CONDITIONS: readonly FilterCondition[] = [
+  ({ actorId }) => (actorId === undefined ? undefined : eq(auditLogs.actorId, actorId)),
+  ({ resourceType }) => (resourceType ? eq(auditLogs.resourceType, resourceType) : undefined),
+  ({ from }) => (from ? gte(auditLogs.createdAt, from) : undefined),
+  ({ to }) => (to ? lte(auditLogs.createdAt, to) : undefined),
+];
+
+function whereOf(filters: AuditFilters): SQL | undefined {
+  const conditions = FILTER_CONDITIONS.map((condition) => condition(filters)).filter(
+    (condition): condition is SQL => condition !== undefined,
+  );
+  return conditions.length > 0 ? and(...conditions) : undefined;
+}
+
+function newestFirst(
+  db: Database,
+  where: SQL | undefined,
+  { limit, offset }: { limit: number; offset: number },
+) {
+  return db
+    .select()
+    .from(auditLogs)
+    .where(where)
+    .orderBy(desc(auditLogs.createdAt), desc(auditLogs.id))
+    .limit(limit)
+    .offset(offset);
+}
+
 export async function listAudit(db: Database, filters: AuditFilters) {
-  const conditions: SQL[] = [];
-  if (filters.actorId !== undefined) conditions.push(eq(auditLogs.actorId, filters.actorId));
-  if (filters.resourceType) conditions.push(eq(auditLogs.resourceType, filters.resourceType));
-  if (filters.from) conditions.push(gte(auditLogs.createdAt, filters.from));
-  if (filters.to) conditions.push(lte(auditLogs.createdAt, filters.to));
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
-  const { limit, offset } = toLimitOffset(filters);
+  const where = whereOf(filters);
   const [rows, totals] = await Promise.all([
-    db
-      .select()
-      .from(auditLogs)
-      .where(where)
-      .orderBy(desc(auditLogs.createdAt), desc(auditLogs.id))
-      .limit(limit)
-      .offset(offset),
+    newestFirst(db, where, toLimitOffset(filters)),
     db.select({ value: count() }).from(auditLogs).where(where),
   ]);
   return pageOf(rows, filters, totals[0]!.value);
