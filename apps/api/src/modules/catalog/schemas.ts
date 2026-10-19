@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { imageSchema } from '../media/schemas.js';
 import { pageQuerySchema } from '../../shared/pagination.js';
+import { integerInput, positiveIntegerInput } from '../../shared/schemas.js';
 
 export const PRODUCT_CONDITIONS = ['NEW', 'USED'] as const;
 export const PRODUCT_SORTS = ['relevance', 'name', 'newest', 'priceAsc', 'priceDesc'] as const;
@@ -27,7 +28,7 @@ const categoryNameSchema = z
 export const categoryInputSchema = z.object({ name: categoryNameSchema });
 
 export const categoryDeletionQuerySchema = z.object({
-  moveTo: z.coerce.number().int().positive().optional(),
+  moveTo: positiveIntegerInput().optional(),
 });
 
 export const categoryOrderSchema = z.object({
@@ -108,11 +109,11 @@ const booleanQuery = z
 
 const catalogFilters = {
   q: z.string().trim().max(100).optional(),
-  categoryId: z.coerce.number().int().positive().optional(),
+  categoryId: positiveIntegerInput().optional(),
   condition: z.enum(PRODUCT_CONDITIONS).optional(),
   brand: z.string().trim().min(1).max(60).optional(),
-  minPriceCents: z.coerce.number().int().min(0).optional(),
-  maxPriceCents: z.coerce.number().int().min(0).optional(),
+  minPriceCents: integerInput(z.number().int().min(0)).optional(),
+  maxPriceCents: integerInput(z.number().int().min(0)).optional(),
   available: booleanQuery.optional(),
   includeArchived: booleanQuery
     .optional()
@@ -154,8 +155,8 @@ export const idOrSlugParamsSchema = z.object({
 });
 
 export const imageParamsSchema = z.object({
-  id: z.coerce.number().int().positive(),
-  imageId: z.coerce.number().int().positive(),
+  id: positiveIntegerInput(),
+  imageId: positiveIntegerInput(),
 });
 
 export const imageOrderSchema = z.object({

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+const DECIMAL_INTEGER = /^-?\d+$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}(?:[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:?\d{2})?)?$/;
 
 /** An ISO 8601 date or date-time input; anything else (a bare number, free text) is rejected. */
@@ -10,7 +11,21 @@ export const dateInput = (error = 'Data inválida.') =>
     .pipe(z.coerce.date({ error }))
     .meta({ type: 'string', format: 'date-time' });
 
-export const idParamSchema = z.object({ id: z.coerce.number().int().positive() });
+function parseDecimalInteger(value: unknown): unknown {
+  return typeof value === 'string' && DECIMAL_INTEGER.test(value) ? Number(value) : value;
+}
+
+/**
+ * A whole number read from a path or query string. Only decimal digits convert: a blank value or
+ * another notation (`1e3`, `0x1`) reaches the schema as text and fails it, where `z.coerce` would
+ * have turned it into a number (`''` into 0).
+ */
+export const integerInput = (schema: z.ZodNumber) => z.preprocess(parseDecimalInteger, schema);
+
+/** A positive whole number (an id) read from a path or query string. */
+export const positiveIntegerInput = () => integerInput(z.number().int().positive());
+
+export const idParamSchema = z.object({ id: positiveIntegerInput() });
 
 export const problemSchema = z
   .object({

@@ -14,7 +14,7 @@ A API é o produto: o site usa exatamente a mesma API pública que qualquer outr
 | Criação | `201 Created` com cabeçalho `Location` e o recurso no corpo. |
 | Ação sem corpo de resposta | `204 No Content`. |
 | Paginação | `?page=1&pageSize=20` (máximo 100) com resposta `{ "data": [...], "meta": { "page", "pageSize", "total" } }`; listas operacionais grandes aceitam `?cursor=`. |
-| Filtros e ordenação | Parâmetros com o nome do campo (`?categoryId=2&condition=USED`), busca livre em `?q=`, ordenação em `?sort=-createdAt,name`. |
+| Filtros e ordenação | Parâmetros com o nome do campo (`?categoryId=2&condition=USED`), busca livre em `?q=`, ordenação em `?sort=-createdAt,name`. Parâmetros numéricos (ids, preços, página) aceitam só dígitos decimais: vazio (`?minPriceCents=`), `1e3` ou `0x1` respondem `422`. |
 | Concorrência | Recursos editáveis por várias pessoas (produto, serviço na agenda) devolvem `ETag`; `PATCH` exige `If-Match` e responde `412` se o recurso mudou. |
 | Idempotência | `POST /orders`, `POST /counter-sales`, `POST /service-requests` e `POST /quotes` aceitam `Idempotency-Key`; repetir a chave devolve a mesma resposta. |
 | Erros | `application/problem+json` (RFC 9457) com `type`, `title`, `status`, `detail`, `instance`, `requestId` e, em validação, `errors: [{ "path", "message" }]` com mensagens em português. |
