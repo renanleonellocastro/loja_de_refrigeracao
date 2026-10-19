@@ -8,7 +8,11 @@ import { errorResponses, idParamSchema } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { readMultipart } from '../media/service.js';
 import { messageInputSchema, messageSchema } from '../services/schemas.js';
-import * as quotes from './quotes.js';
+import { loadVisible } from './access.js';
+import { addPhotos, listQuoteMessages, MAX_QUOTE_PHOTOS, postQuoteMessage } from './conversation.js';
+import { createQuote } from './creation.js';
+import { acceptQuote, answerQuote, cancelQuote, declineQuote } from './decisions.js';
+import { listVisibleQuotes, quoteDetail } from './quotes.js';
 import {
   acceptanceResultSchema,
   acceptanceSchema,
@@ -40,8 +44,8 @@ const createQuoteRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    const created = await quotes.createQuote(ctx, auth, request.body, request.ip);
-    const detail = await quotes.quoteDetail(ctx, auth, created.id);
+    const created = await createQuote(ctx, auth, request.body, request.ip);
+    const detail = await quoteDetail(ctx, auth, created.id);
     return reply.code(201).header('location', `/api/v1/quotes/${created.id}`).send(detail);
   },
 });
@@ -58,7 +62,7 @@ const listVisibleQuotesRoute = defineRoute({
     querystring: quoteListQuerySchema,
     response: { 200: paginated(quoteListItemSchema), ...errorResponses },
   },
-  handle: async ({ ctx, request }) => quotes.listVisibleQuotes(ctx, requireAuth(request), request.query),
+  handle: async ({ ctx, request }) => listVisibleQuotes(ctx, requireAuth(request), request.query),
 });
 
 const quoteDetailRoute = defineRoute({
@@ -72,7 +76,7 @@ const quoteDetailRoute = defineRoute({
     params: idParamSchema,
     response: { 200: quoteDetailSchema, ...errorResponses },
   },
-  handle: async ({ ctx, request }) => quotes.quoteDetail(ctx, requireAuth(request), request.params.id),
+  handle: async ({ ctx, request }) => quoteDetail(ctx, requireAuth(request), request.params.id),
 });
 
 const addQuotePhotosRoute = defineRoute({
@@ -89,9 +93,9 @@ const addQuotePhotosRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    await quotes.loadVisible(ctx.db, auth, request.params.id);
-    const form = await readMultipart(request, quotes.MAX_QUOTE_PHOTOS);
-    return reply.code(201).send(await quotes.addPhotos(ctx, auth, request.params.id, form.files));
+    await loadVisible(ctx.db, auth, request.params.id);
+    const form = await readMultipart(request, MAX_QUOTE_PHOTOS);
+    return reply.code(201).send(await addPhotos(ctx, auth, request.params.id, form.files));
   },
 });
 
@@ -106,7 +110,7 @@ const listQuoteMessagesRoute = defineRoute({
     params: idParamSchema,
     response: { 200: z.array(messageSchema), ...errorResponses },
   },
-  handle: async ({ ctx, request }) => quotes.listQuoteMessages(ctx, requireAuth(request), request.params.id),
+  handle: async ({ ctx, request }) => listQuoteMessages(ctx, requireAuth(request), request.params.id),
 });
 
 const postQuoteMessageRoute = defineRoute({
@@ -123,8 +127,8 @@ const postQuoteMessageRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    await quotes.postQuoteMessage(ctx, auth, request.params.id, request.body.body);
-    return reply.code(201).send(await quotes.listQuoteMessages(ctx, auth, request.params.id));
+    await postQuoteMessage(ctx, auth, request.params.id, request.body.body);
+    return reply.code(201).send(await listQuoteMessages(ctx, auth, request.params.id));
   },
 });
 
@@ -143,8 +147,8 @@ const answerQuoteRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await quotes.answerQuote(ctx, auth, request.params.id, request.body, request.ip);
-    return quotes.quoteDetail(ctx, auth, request.params.id);
+    await answerQuote(ctx, auth, request.params.id, request.body, request.ip);
+    return quoteDetail(ctx, auth, request.params.id);
   },
 });
 
@@ -164,8 +168,8 @@ const acceptQuoteRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    const serviceRequestId = await quotes.acceptQuote(ctx, auth, request.params.id, request.body, request.ip);
-    return { quote: await quotes.quoteDetail(ctx, auth, request.params.id), serviceRequestId };
+    const serviceRequestId = await acceptQuote(ctx, auth, request.params.id, request.body, request.ip);
+    return { quote: await quoteDetail(ctx, auth, request.params.id), serviceRequestId };
   },
 });
 
@@ -183,8 +187,8 @@ const declineQuoteRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await quotes.declineQuote(ctx, auth, request.params.id, request.body.reason);
-    return quotes.quoteDetail(ctx, auth, request.params.id);
+    await declineQuote(ctx, auth, request.params.id, request.body.reason);
+    return quoteDetail(ctx, auth, request.params.id);
   },
 });
 
@@ -204,8 +208,8 @@ const cancelQuoteRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await quotes.cancelQuote(ctx, auth, request.params.id, request.body.reason, request.ip);
-    return quotes.quoteDetail(ctx, auth, request.params.id);
+    await cancelQuote(ctx, auth, request.params.id, request.body.reason, request.ip);
+    return quoteDetail(ctx, auth, request.params.id);
   },
 });
 

@@ -69,31 +69,35 @@ export interface QuoteFilters {
   offset: number;
 }
 
-export async function listQuotes(db: Executor, filters: QuoteFilters) {
-  const conditions: SQL[] = [];
-  if (filters.customerId !== undefined) conditions.push(eq(quotes.customerId, filters.customerId));
-  if (filters.statuses?.length) conditions.push(inArray(quotes.status, filters.statuses));
-  if (filters.q) {
-    // A number searches the quote number; anything else searches the customer.
-    conditions.push(
-      /^\d+$/.test(filters.q)
-        ? eq(quotes.id, Number(filters.q))
-        : ilike(users.searchText, `%${normalizeText(filters.q).replace(/[%_]/g, '')}%`),
-    );
-  }
-  const where = conditions.length ? and(...conditions) : undefined;
-  const rows = await db
-    .select({
-      id: quotes.id,
-      status: quotes.status,
-      serviceType: serviceTypes.name,
-      customerId: users.id,
-      customerName: users.name,
-      amountCents: quotes.amountCents,
-      validUntil: quotes.validUntil,
-      createdAt: quotes.createdAt,
-      updatedAt: quotes.updatedAt,
-    })
+/** A number searches the quote number; anything else searches the customer. */
+function searchCondition(q: string): SQL {
+  if (/^\d+$/.test(q)) return eq(quotes.id, Number(q));
+  return ilike(users.searchText, `%${normalizeText(q).replace(/[%_]/g, '')}%`);
+}
+
+function filterConditions(filters: QuoteFilters): SQL | undefined {
+  return and(
+    filters.customerId === undefined ? undefined : eq(quotes.customerId, filters.customerId),
+    filters.statuses?.length ? inArray(quotes.status, filters.statuses) : undefined,
+    filters.q ? searchCondition(filters.q) : undefined,
+  );
+}
+
+const LIST_COLUMNS = {
+  id: quotes.id,
+  status: quotes.status,
+  serviceType: serviceTypes.name,
+  customerId: users.id,
+  customerName: users.name,
+  amountCents: quotes.amountCents,
+  validUntil: quotes.validUntil,
+  createdAt: quotes.createdAt,
+  updatedAt: quotes.updatedAt,
+};
+
+function pageOfQuotes(db: Executor, where: SQL | undefined, filters: QuoteFilters) {
+  return db
+    .select(LIST_COLUMNS)
     .from(quotes)
     .innerJoin(serviceTypes, eq(serviceTypes.id, quotes.serviceTypeId))
     .innerJoin(users, eq(users.id, quotes.customerId))
@@ -101,10 +105,19 @@ export async function listQuotes(db: Executor, filters: QuoteFilters) {
     .orderBy(desc(quotes.updatedAt), desc(quotes.id))
     .limit(filters.limit)
     .offset(filters.offset);
-  const totals = await db
+}
+
+async function countQuotes(db: Executor, where: SQL | undefined): Promise<number> {
+  const [row] = await db
     .select({ value: count() })
     .from(quotes)
     .innerJoin(users, eq(users.id, quotes.customerId))
     .where(where);
-  return { rows, total: totals[0]!.value };
+  return row!.value;
+}
+
+export async function listQuotes(db: Executor, filters: QuoteFilters) {
+  const where = filterConditions(filters);
+  const rows = await pageOfQuotes(db, where, filters);
+  return { rows, total: await countQuotes(db, where) };
 }

@@ -3,22 +3,21 @@ import { dateInput } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { ORDER_STATUSES } from './status.js';
 
+/** Most units of one product a single cart line or order line may hold. */
+export const MAX_LINE_QUANTITY = 99;
+
+const lineQuantity = z
+  .number()
+  .int()
+  .min(1, { error: 'Quantidade mínima é 1.' })
+  .max(MAX_LINE_QUANTITY, { error: `Quantidade máxima é ${MAX_LINE_QUANTITY}.` });
+
 const itemInput = z.object({
   productId: z.number().int().positive(),
-  quantity: z
-    .number()
-    .int()
-    .min(1, { error: 'Quantidade mínima é 1.' })
-    .max(99, { error: 'Quantidade máxima é 99.' }),
+  quantity: lineQuantity,
 });
 
-export const cartQuantitySchema = z.object({
-  quantity: z
-    .number()
-    .int()
-    .min(1, { error: 'Quantidade mínima é 1.' })
-    .max(99, { error: 'Quantidade máxima é 99.' }),
-});
+export const cartQuantitySchema = z.object({ quantity: lineQuantity });
 
 export const cartMergeSchema = z.object({ items: z.array(itemInput).max(50) });
 

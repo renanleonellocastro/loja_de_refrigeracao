@@ -1,6 +1,6 @@
 {
   "limit": 12,
-  "total": 312,
+  "total": 277,
   "functions": [
     {
       "path": "apps/api/src/app.ts",
@@ -453,96 +453,6 @@
       "length": 54
     },
     {
-      "path": "apps/api/src/modules/orders/cart.ts",
-      "name": "cartView",
-      "length": 35
-    },
-    {
-      "path": "apps/api/src/modules/orders/cart.ts",
-      "name": "cartView.items=flatMap(callback)",
-      "length": 22
-    },
-    {
-      "path": "apps/api/src/modules/orders/cart.ts",
-      "name": "mergeCart",
-      "length": 16
-    },
-    {
-      "path": "apps/api/src/modules/orders/cart.ts",
-      "name": "setQuantity",
-      "length": 22
-    },
-    {
-      "path": "apps/api/src/modules/orders/label.ts",
-      "name": "orderLabelPdf",
-      "length": 55
-    },
-    {
-      "path": "apps/api/src/modules/orders/label.ts",
-      "name": "wrap",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "changeOrderStatus",
-      "length": 64
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "changeOrderStatus.transaction(callback)",
-      "length": 62
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "createCounterSale",
-      "length": 34
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "createCounterSale.transaction(callback)",
-      "length": 32
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "createOrder",
-      "length": 61
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "createOrder.transaction(callback)",
-      "length": 58
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "listVisibleOrders",
-      "length": 32
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "orderDetail",
-      "length": 36
-    },
-    {
-      "path": "apps/api/src/modules/orders/orders.ts",
-      "name": "placeOrder",
-      "length": 48
-    },
-    {
-      "path": "apps/api/src/modules/orders/repository.ts",
-      "name": "eventsOf",
-      "length": 13
-    },
-    {
-      "path": "apps/api/src/modules/orders/repository.ts",
-      "name": "filterConditions",
-      "length": 14
-    },
-    {
-      "path": "apps/api/src/modules/orders/repository.ts",
-      "name": "listOrders",
-      "length": 32
-    },
-    {
       "path": "apps/api/src/modules/outbox/service.ts",
       "name": "processOutboxBatch",
       "length": 41
@@ -551,91 +461,6 @@
       "path": "apps/api/src/modules/outbox/service.ts",
       "name": "processOutboxBatch.transaction(callback)",
       "length": 39
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "acceptQuote",
-      "length": 40
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "acceptQuote.transaction(callback)",
-      "length": 38
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "addPhotos",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "answerQuote",
-      "length": 38
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "answerQuote.transaction(callback)",
-      "length": 36
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "cancelQuote",
-      "length": 27
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "cancelQuote.transaction(callback)",
-      "length": 25
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "createQuote",
-      "length": 59
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "createQuote.transaction(callback)",
-      "length": 42
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "expireQuotes",
-      "length": 21
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "expireQuotes.transaction(callback)",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "listVisibleQuotes",
-      "length": 20
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "postQuoteMessage",
-      "length": 19
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "postQuoteMessage.transaction(callback)",
-      "length": 17
-    },
-    {
-      "path": "apps/api/src/modules/quotes/quotes.ts",
-      "name": "quoteDetail",
-      "length": 33
-    },
-    {
-      "path": "apps/api/src/modules/quotes/repository.ts",
-      "name": "listQuotes",
-      "length": 36
-    },
-    {
-      "path": "apps/api/src/modules/quotes/status.ts",
-      "name": "nextQuoteStatus",
-      "length": 21
     },
     {
       "path": "apps/api/src/modules/services/repository.ts",
