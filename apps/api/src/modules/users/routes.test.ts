@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   appointments,
   auditLogs,
@@ -10,7 +10,8 @@ import {
   users,
 } from '../../infra/db/schema.js';
 import { TEST_PASSWORD, useTestApp } from '../../../test/harness.js';
-import { clearCepCache, lookupCep } from './cep.js';
+import { createMemoryCepCache } from './cep-cache.js';
+import { lookupCep } from './cep.js';
 
 const ADDRESS = {
   cep: '13800-061',
@@ -32,7 +33,6 @@ const registration = {
 
 describe('user routes', () => {
   const t = useTestApp();
-  beforeEach(() => clearCepCache());
 
   describe('POST /customers', () => {
     it('creates the customer, signs in and sends the welcome email', async () => {
@@ -511,24 +511,30 @@ describe('user routes', () => {
   });
 
   describe('lookupCep', () => {
-    it('fills missing fields with empty strings and keeps the cache bounded', async () => {
+    it('fills missing fields with empty strings', async () => {
       const cityWide: typeof fetch = async () =>
         new Response(JSON.stringify({ cep: '13800-000', localidade: 'Mogi Mirim', uf: 'SP' }));
-      expect(await lookupCep(cityWide, '13800000')).toEqual({
+      expect(await lookupCep({ fetch: cityWide, cache: createMemoryCepCache() }, '13800000')).toEqual({
         cep: '13800000',
         street: '',
         district: '',
         city: 'Mogi Mirim',
         state: 'SP',
       });
+    });
+
+    it('answers known CEPs from the injected cache and keeps it bounded', async () => {
       let calls = 0;
       const counting: typeof fetch = async () => {
         calls += 1;
         return new Response(JSON.stringify({ logradouro: 'R', bairro: 'B', localidade: 'C', uf: 'SP' }));
       };
-      for (let i = 0; i < 501; i += 1) await lookupCep(counting, String(10000000 + i));
-      await lookupCep(counting, '10000000');
-      expect(calls).toBe(502);
+      const dependencies = { fetch: counting, cache: createMemoryCepCache(2) };
+      for (const cep of ['10000000', '10000001', '10000001']) await lookupCep(dependencies, cep);
+      expect(calls).toBe(2);
+      await lookupCep(dependencies, '10000002');
+      await lookupCep(dependencies, '10000000');
+      expect(calls).toBe(4);
     });
   });
 
