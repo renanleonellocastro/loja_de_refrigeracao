@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { AppContext } from '../../context.js';
 import { requireAuth } from '../../plugins/auth.js';
 import { pageMetaSchema, pageQuerySchema } from '../../shared/pagination.js';
+import { defineRoute, registerRoutes } from '../../shared/routes.js';
 import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
 import * as inbox from './inbox.js';
 
@@ -20,64 +21,65 @@ const notificationSchema = z
 
 const security = [{ bearerAuth: [] }];
 
+const tags = ['Notificações'];
+
+const config = { permission: 'notifications.read' } as const;
+
+const listInboxRoute = defineRoute({
+  method: 'GET',
+  url: '/me/notifications',
+  config,
+  schema: {
+    tags,
+    summary: 'Minhas notificações, mais recentes primeiro',
+    security,
+    querystring: pageQuerySchema.extend({ unread: z.enum(['true', 'false']).optional() }),
+    response: {
+      200: z.object({
+        data: z.array(notificationSchema),
+        meta: pageMetaSchema.extend({ unread: z.number().int() }),
+      }),
+      ...errorResponses,
+    },
+  },
+  handle: async ({ ctx, request }) => inbox.listInbox(ctx, requireAuth(request).userId, request.query),
+});
+
+const markReadRoute = defineRoute({
+  method: 'POST',
+  url: '/me/notifications/:id/read',
+  config,
+  schema: {
+    tags,
+    summary: 'Marcar como lida',
+    security,
+    params: idParamSchema,
+    response: { 204: noContentSchema, ...errorResponses },
+  },
+  handle: async ({ ctx, request, reply }) => {
+    await inbox.markNotificationRead(ctx, requireAuth(request).userId, request.params.id);
+    return reply.code(204).send();
+  },
+});
+
+const markAllReadRoute = defineRoute({
+  method: 'POST',
+  url: '/me/notifications/read-all',
+  config,
+  schema: {
+    tags,
+    summary: 'Marcar todas como lidas',
+    security,
+    response: { 204: noContentSchema, ...errorResponses },
+  },
+  handle: async ({ ctx, request, reply }) => {
+    await inbox.markAllNotificationsRead(ctx, requireAuth(request).userId);
+    return reply.code(204).send();
+  },
+});
+
+const NOTIFICATION_ROUTES = [listInboxRoute, markReadRoute, markAllReadRoute];
+
 export function notificationRoutes(ctx: AppContext): FastifyPluginAsyncZod {
-  return async (app) => {
-    const tags = ['Notificações'];
-
-    app.get(
-      '/me/notifications',
-      {
-        config: { permission: 'notifications.read' },
-        schema: {
-          tags,
-          summary: 'Minhas notificações, mais recentes primeiro',
-          security,
-          querystring: pageQuerySchema.extend({ unread: z.enum(['true', 'false']).optional() }),
-          response: {
-            200: z.object({
-              data: z.array(notificationSchema),
-              meta: pageMetaSchema.extend({ unread: z.number().int() }),
-            }),
-            ...errorResponses,
-          },
-        },
-      },
-      async (request) => inbox.listInbox(ctx, requireAuth(request).userId, request.query),
-    );
-
-    app.post(
-      '/me/notifications/:id/read',
-      {
-        config: { permission: 'notifications.read' },
-        schema: {
-          tags,
-          summary: 'Marcar como lida',
-          security,
-          params: idParamSchema,
-          response: { 204: noContentSchema, ...errorResponses },
-        },
-      },
-      async (request, reply) => {
-        await inbox.markNotificationRead(ctx, requireAuth(request).userId, request.params.id);
-        return reply.code(204).send();
-      },
-    );
-
-    app.post(
-      '/me/notifications/read-all',
-      {
-        config: { permission: 'notifications.read' },
-        schema: {
-          tags,
-          summary: 'Marcar todas como lidas',
-          security,
-          response: { 204: noContentSchema, ...errorResponses },
-        },
-      },
-      async (request, reply) => {
-        await inbox.markAllNotificationsRead(ctx, requireAuth(request).userId);
-        return reply.code(204).send();
-      },
-    );
-  };
+  return async (app) => registerRoutes(app, ctx, NOTIFICATION_ROUTES);
 }
