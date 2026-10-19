@@ -22,6 +22,7 @@ import { notificationRoutes } from './modules/notifications/routes.js';
 import { quoteRoutes } from './modules/quotes/routes.js';
 import { serviceRoutes } from './modules/services/routes.js';
 import { storeRoutes } from './modules/store/routes.js';
+import { createMemoryCepCache } from './modules/users/cep-cache.js';
 import { userRoutes } from './modules/users/routes.js';
 import { authRoutes } from './modules/auth/routes.js';
 import { authPlugin } from './plugins/auth.js';
@@ -49,7 +50,7 @@ const API_MODULES: readonly ModuleRoutes[] = [
   authRoutes,
   auditRoutes,
   (ctx) => mediaRoutes(ctx.storage),
-  userRoutes,
+  (ctx) => userRoutes(ctx, createMemoryCepCache()),
   serviceRoutes,
   catalogRoutes,
   agendaRoutes,
