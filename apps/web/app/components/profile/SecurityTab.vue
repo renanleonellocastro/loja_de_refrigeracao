@@ -12,15 +12,15 @@ const form = useForm(EMPTY, {
   }),
 });
 
+type PasswordValues = typeof EMPTY;
+
+async function changePassword(values: PasswordValues): Promise<void> {
+  const body = { currentPassword: values.currentPassword, newPassword: values.newPassword };
+  await unwrap(api.PUT('/api/v1/me/password', { body }));
+}
+
 async function submit(): Promise<void> {
-  const saved = await form.submit(async (values) => {
-    await unwrap(
-      api.PUT('/api/v1/me/password', {
-        body: { currentPassword: values.currentPassword, newPassword: values.newPassword },
-      }),
-    );
-  });
-  if (!saved) return;
+  if (!(await form.submit(changePassword))) return;
   form.reset(EMPTY);
   toast.success({
     title: 'Senha alterada!',

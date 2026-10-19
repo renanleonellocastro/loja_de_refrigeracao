@@ -5,25 +5,29 @@ import { LinkIcon, MailCheck } from 'lucide-vue-next';
 definePageMeta({ layout: 'auth' });
 useSeoMeta({ title: 'Confirmar email | Refrigeração Castro', robots: 'noindex' });
 
+/** Answers that mean the link no longer works: gone, unknown or already used. */
+const EXPIRED_LINK_STATUSES = new Set([404, 410, 422]);
+
 const route = useRoute();
 const api = useApi();
 const auth = useAuthStore();
 const state = ref<'loading' | 'done' | 'expired' | 'error'>('loading');
 const message = ref('');
 
+function showFailure(caught: unknown): void {
+  const error = toApiError(caught);
+  state.value = EXPIRED_LINK_STATUSES.has(error.status) ? 'expired' : 'error';
+  message.value = error.message;
+}
+
 async function confirm(): Promise<void> {
   state.value = 'loading';
   try {
-    await unwrap(
-      api.POST('/api/v1/auth/email-verifications/{token}', {
-        params: { path: { token: String(route.params.token) } },
-      }),
-    );
+    const params = { path: { token: String(route.params.token) } };
+    await unwrap(api.POST('/api/v1/auth/email-verifications/{token}', { params }));
     state.value = 'done';
   } catch (caught) {
-    const error = toApiError(caught);
-    state.value = error.status === 410 || error.status === 404 || error.status === 422 ? 'expired' : 'error';
-    message.value = error.message;
+    showFailure(caught);
   }
 }
 

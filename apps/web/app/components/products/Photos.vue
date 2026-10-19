@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, GripVertical, Star, Trash2, Upload } from 'lucide-vue-next';
+import type { ConfirmOptions } from '~/composables/useConfirm';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { usePhotoUpload } from '~/helpers/photo-upload';
 import { MAX_PHOTOS_PER_UPLOAD, MAX_PRODUCT_PHOTOS, moveItem } from '~/utils/products';
 
 /**
@@ -10,58 +13,43 @@ const props = defineProps<{ productId: number; images: ProductImageItem[] }>();
 const emit = defineEmits<{ change: [images: ProductImageItem[]] }>();
 
 const api = useApi();
-const auth = useAuthStore();
-const config = useRuntimeConfig();
 const toast = useToast();
 const { confirm } = useConfirm();
+const { progress, send: sendPhotos } = usePhotoUpload();
 
 const files = ref<File[]>([]);
-const progress = ref<number | null>(null);
 const saving = ref(false);
 const dragging = ref<number | null>(null);
 
 const remaining = computed(() => MAX_PRODUCT_PHOTOS - props.images.length);
 const uploadMax = computed(() => Math.max(1, Math.min(MAX_PHOTOS_PER_UPLOAD, remaining.value)));
 
+function uploadedTitle(count: number): string {
+  return count === 1 ? 'Foto enviada.' : `${count} fotos enviadas.`;
+}
+
 async function upload(): Promise<void> {
-  const form = new FormData();
-  for (const file of files.value) form.append('files', file, file.name);
-  progress.value = 0;
-  try {
-    const result = await uploadWithProgress(
-      `${config.public.apiBase}/api/v1/products/${props.productId}/images`,
-      form,
-      auth.accessToken,
-      (percent) => (progress.value = percent),
-    );
-    if (result.status !== 201) throw problemToError(result.status, result.body);
-    emit('change', result.body as ProductImageItem[]);
-    toast.success({
-      title: files.value.length === 1 ? 'Foto enviada.' : `${files.value.length} fotos enviadas.`,
-    });
+  await runOrToast(async () => {
+    const path = `/api/v1/products/${props.productId}/images`;
+    emit('change', await sendPhotos<ProductImageItem[]>(path, files.value));
+    toast.success({ title: uploadedTitle(files.value.length) });
     files.value = [];
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    progress.value = null;
-  }
+  });
+}
+
+function putOrder(imageIds: number[], coverId?: number): Promise<ProductImageItem[]> {
+  return unwrap(
+    api.PUT('/api/v1/products/{id}/images/order', {
+      params: { path: { id: props.productId } },
+      body: { imageIds, coverId },
+    }),
+  );
 }
 
 async function saveOrder(imageIds: number[], coverId?: number): Promise<void> {
-  saving.value = true;
-  try {
-    const images = await unwrap(
-      api.PUT('/api/v1/products/{id}/images/order', {
-        params: { path: { id: props.productId } },
-        body: { imageIds, coverId },
-      }),
-    );
-    emit('change', images);
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    saving.value = false;
-  }
+  await holdWhile(saving, true, false, () =>
+    runOrToast(async () => emit('change', await putOrder(imageIds, coverId))),
+  );
 }
 
 function move(from: number, to: number): void {
@@ -81,36 +69,35 @@ function onDrop(index: number): void {
   dragging.value = null;
 }
 
-async function remove(image: ProductImageItem, index: number): Promise<void> {
-  const confirmed = await confirm({
+function removalQuestion(image: ProductImageItem, index: number): ConfirmOptions {
+  return {
     title: `Remover a foto ${index + 1}?`,
     description: image.isCover
       ? 'Ela é a capa: a próxima foto vira a capa.'
       : 'Ela sai da galeria do produto.',
     confirmLabel: 'Remover foto',
     danger: true,
-  });
-  if (!confirmed) return;
-  try {
-    await unwrap(
-      api.DELETE('/api/v1/products/{id}/images/{imageId}', {
-        params: { path: { id: props.productId, imageId: image.id } },
-      }),
-    );
-    const rest = props.images.filter((item) => item.id !== image.id);
-    // The API promotes the next photo when the cover leaves.
-    emit(
-      'change',
-      rest.map((item, position) => ({
-        ...item,
-        position,
-        isCover: image.isCover ? position === 0 : item.isCover,
-      })),
-    );
+  };
+}
+
+/** Gallery after a removal, as the API keeps it: the next photo is promoted when the cover leaves. */
+function galleryWithout(removed: ProductImageItem): ProductImageItem[] {
+  const rest = props.images.filter((item) => item.id !== removed.id);
+  return rest.map((item, position) => ({
+    ...item,
+    position,
+    isCover: removed.isCover ? position === 0 : item.isCover,
+  }));
+}
+
+async function remove(image: ProductImageItem, index: number): Promise<void> {
+  if (!(await confirm(removalQuestion(image, index)))) return;
+  await runOrToast(async () => {
+    const path = { id: props.productId, imageId: image.id };
+    await unwrap(api.DELETE('/api/v1/products/{id}/images/{imageId}', { params: { path } }));
+    emit('change', galleryWithout(image));
     toast.success({ title: 'Foto removida.' });
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  }
+  });
 }
 </script>
 

@@ -36,22 +36,27 @@ const form = useForm<Values>(
   },
 );
 
+function answerBody(values: Values) {
+  return {
+    amountCents: values.amountCents,
+    validityDays: Number(values.validityDays),
+    included: values.included.trim(),
+    notes: values.notes.trim() || undefined,
+  };
+}
+
+async function answer(values: Values): Promise<void> {
+  const quote = await unwrap(
+    api.POST('/api/v1/quotes/{id}/answer', {
+      params: { path: { id: props.quoteId } },
+      body: answerBody(values),
+    }),
+  );
+  emit('answered', quote);
+}
+
 async function send(): Promise<void> {
-  await form.submit(async (values) => {
-    const notes = values.notes.trim();
-    const quote = await unwrap(
-      api.POST('/api/v1/quotes/{id}/answer', {
-        params: { path: { id: props.quoteId } },
-        body: {
-          amountCents: values.amountCents,
-          validityDays: Number(values.validityDays),
-          included: values.included.trim(),
-          notes: notes || undefined,
-        },
-      }),
-    );
-    emit('answered', quote);
-  });
+  await form.submit(answer);
 }
 </script>
 

@@ -40,25 +40,30 @@ watch(open, (now) => {
   if (now) form.reset(blank());
 });
 
-async function save(): Promise<void> {
-  const done = await form.submit(async (values) => {
-    const result = await unwrap(
-      api.POST('/api/v1/products/{id}/stock-movements', {
-        params: { path: { id: props.product.id } },
-        body: {
-          type: values.type,
-          quantity: Number(String(values.quantity).trim()),
-          reason: values.reason.trim() || undefined,
-        },
-      }),
-    );
-    emit('change', { stockAvailable: result.stockAvailable, lowStock: result.lowStock });
-    toast.success({
-      title: `Estoque atualizado: ${countLabel(result.stockAvailable, 'disponível', 'disponíveis')}.`,
-    });
-    restart();
+function movementBody(values: MovementForm) {
+  return {
+    type: values.type,
+    quantity: Number(String(values.quantity).trim()),
+    reason: values.reason.trim() || undefined,
+  };
+}
+
+async function recordMovement(values: MovementForm): Promise<void> {
+  const result = await unwrap(
+    api.POST('/api/v1/products/{id}/stock-movements', {
+      params: { path: { id: props.product.id } },
+      body: movementBody(values),
+    }),
+  );
+  emit('change', { stockAvailable: result.stockAvailable, lowStock: result.lowStock });
+  toast.success({
+    title: `Estoque atualizado: ${countLabel(result.stockAvailable, 'disponível', 'disponíveis')}.`,
   });
-  if (done) open.value = false;
+  restart();
+}
+
+async function save(): Promise<void> {
+  if (await form.submit(recordMovement)) open.value = false;
 }
 </script>
 

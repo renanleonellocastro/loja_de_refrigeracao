@@ -12,6 +12,8 @@ import {
   storeDay,
   technicianColor,
 } from '~/utils/agenda';
+import type { ConfirmOptions } from '~/composables/useConfirm';
+import { holdWhile, runOrToast } from '~/helpers/actions';
 import { formatDateTime, formatMoney, formatPhone } from '~/utils/masks';
 
 /**
@@ -20,6 +22,13 @@ import { formatDateTime, formatMoney, formatPhone } from '~/utils/masks';
  * finalizes the service here (UC Finalizar Serviço).
  */
 definePageMeta({ layout: 'area', permission: 'appointments.read', title: 'Atendimento' });
+
+const REMOVAL_QUESTION: ConfirmOptions = {
+  title: 'Excluir este atendimento da agenda?',
+  description: 'A solicitação volta a esperar agendamento e o cliente e o técnico são avisados.',
+  confirmLabel: 'Excluir atendimento',
+  danger: true,
+};
 
 const api = useApi();
 const route = useRoute();
@@ -44,6 +53,13 @@ const canFinish = computed(
   () => can(actor.value, 'appointments.complete') && appointment.value?.request.status === 'SCHEDULED',
 );
 
+/** The photos of the problem come with the request; without them the visit still shows. */
+async function loadRequest(requestId: number): Promise<void> {
+  request.value = await unwrap(
+    api.GET('/api/v1/service-requests/{id}', { params: { path: { id: requestId } } }),
+  ).catch(() => null);
+}
+
 async function load(): Promise<void> {
   failed.value = false;
   const result = await api
@@ -56,10 +72,7 @@ async function load(): Promise<void> {
   }
   appointment.value = result.data;
   etag.value = result.response.headers.get('etag') ?? '';
-  // The photos of the problem come with the request; without them the visit still shows.
-  request.value = await unwrap(
-    api.GET('/api/v1/service-requests/{id}', { params: { path: { id: result.data.request.id } } }),
-  ).catch(() => null);
+  await loadRequest(result.data.request.id);
 }
 
 function saved(next: Appointment): void {
@@ -78,24 +91,15 @@ function finished(next: Appointment): void {
   void load();
 }
 
+async function deleteAppointment(): Promise<void> {
+  await unwrap(api.DELETE('/api/v1/appointments/{id}', { params: { path: { id: id.value } } }));
+  toast.success({ title: 'Atendimento excluído da agenda.' });
+  await navigateTo('/agenda');
+}
+
 async function remove(): Promise<void> {
-  const confirmed = await confirm({
-    title: 'Excluir este atendimento da agenda?',
-    description: 'A solicitação volta a esperar agendamento e o cliente e o técnico são avisados.',
-    confirmLabel: 'Excluir atendimento',
-    danger: true,
-  });
-  if (!confirmed) return;
-  deleting.value = true;
-  try {
-    await unwrap(api.DELETE('/api/v1/appointments/{id}', { params: { path: { id: id.value } } }));
-    toast.success({ title: 'Atendimento excluído da agenda.' });
-    await navigateTo('/agenda');
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    deleting.value = false;
-  }
+  if (!(await confirm(REMOVAL_QUESTION))) return;
+  await holdWhile(deleting, true, false, () => runOrToast(deleteAppointment));
 }
 
 onMounted(load);

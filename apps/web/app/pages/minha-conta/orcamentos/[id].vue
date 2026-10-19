@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Ban, CalendarCheck, CheckCheck, ThumbsDown } from 'lucide-vue-next';
+import { holdWhile, runOrToast } from '~/helpers/actions';
+import { optionalReason } from '~/helpers/optional-reason';
 import { formatDateTime } from '~/utils/masks';
 import { isOpenQuote, QUOTE_NEXT_STEP, type Quote } from '~/utils/quotes';
 
@@ -67,24 +69,23 @@ function open(next: Decision): void {
   decision.value = next;
 }
 
+/** API call of each decision; both send the reason only when one was typed. */
+const DECISION_REQUESTS: Record<Decision, (text: string) => Promise<Quote>> = {
+  decline: (text) =>
+    unwrap(api.POST('/api/v1/quotes/{id}/decline', { params: params(), body: optionalReason(text) })),
+  cancel: (text) =>
+    unwrap(api.POST('/api/v1/quotes/{id}/cancellation', { params: params(), body: optionalReason(text) })),
+};
+
+async function decide(kind: Decision): Promise<void> {
+  quote.value = await DECISION_REQUESTS[kind](reason.value);
+  toast.success({ title: DIALOGS[kind].done });
+  decision.value = null;
+}
+
 async function confirm(): Promise<void> {
   const kind = decision.value!;
-  const text = reason.value.trim();
-  const options = { params: params(), body: text ? { reason: text } : {} };
-  acting.value = true;
-  try {
-    quote.value = await unwrap(
-      kind === 'decline'
-        ? api.POST('/api/v1/quotes/{id}/decline', options)
-        : api.POST('/api/v1/quotes/{id}/cancellation', options),
-    );
-    toast.success({ title: DIALOGS[kind].done });
-    decision.value = null;
-  } catch (error) {
-    toast.error({ title: toApiError(error).message });
-  } finally {
-    acting.value = false;
-  }
+  await holdWhile(acting, true, false, () => runOrToast(() => decide(kind)));
 }
 
 function accepted(next: Quote): void {
