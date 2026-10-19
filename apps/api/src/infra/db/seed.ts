@@ -7,7 +7,7 @@ import { productSearchText } from '../../modules/catalog/service.js';
 import { storeImage, type StoredImage } from '../../modules/media/service.js';
 import { slugify } from '../../shared/text.js';
 import type { Storage } from '../storage/storage.js';
-import type { Database } from './client.js';
+import type { Database, Transaction } from './client.js';
 import { categories, productImages, products, serviceTypes, stockMovements, users } from './schema.js';
 
 export const CATEGORIES = [
@@ -279,51 +279,102 @@ async function illustrationPhoto(storage: Storage, name: Illustration): Promise<
   return storeImage(storage, photo);
 }
 
-async function seedProducts(db: Database, storage: Storage | undefined): Promise<boolean> {
+type CategoryIds = ReadonlyMap<string, number>;
+type Photos = ReadonlyMap<Illustration, StoredImage>;
+
+const INITIAL_STOCK_REASON = 'Estoque inicial';
+
+async function hasProducts(db: Database): Promise<boolean> {
   const [existing] = await db.select({ value: count() }).from(products);
-  if (existing!.value > 0) return false;
-  const categoryIds = new Map((await db.select().from(categories)).map((c) => [c.name, c.id]));
+  return existing!.value > 0;
+}
+
+async function categoryIdsByName(db: Database): Promise<CategoryIds> {
+  return new Map((await db.select().from(categories)).map((category) => [category.name, category.id]));
+}
+
+/** One photo per illustration the catalog uses; none without a storage. */
+async function renderPhotos(storage: Storage | undefined): Promise<Photos> {
   const photos = new Map<Illustration, StoredImage>();
-  for (const sample of SAMPLE_PRODUCTS) {
-    if (storage && !photos.has(sample.illustration)) {
-      photos.set(sample.illustration, await illustrationPhoto(storage, sample.illustration));
-    }
+  if (!storage) return photos;
+  for (const illustration of new Set(SAMPLE_PRODUCTS.map((sample) => sample.illustration))) {
+    photos.set(illustration, await illustrationPhoto(storage, illustration));
   }
-  await db.transaction(async (tx) => {
-    for (const sample of SAMPLE_PRODUCTS) {
-      const [product] = await tx
-        .insert(products)
-        .values({
-          slug: slugify(sample.name),
-          name: sample.name,
-          categoryId: categoryIds.get(sample.category)!,
-          brand: sample.brand,
-          model: sample.model,
-          condition: sample.condition,
-          description: sample.description,
-          priceCents: sample.priceCents,
-          stockAvailable: sample.stock,
-          stockMin: sample.stockMin ?? null,
-          searchText: productSearchText(sample, sample.category),
-        })
-        .returning();
-      if (sample.stock > 0) {
-        await tx
-          .insert(stockMovements)
-          .values({ productId: product!.id, type: 'IN', quantity: sample.stock, reason: 'Estoque inicial' });
-      }
-      const photo = photos.get(sample.illustration);
-      if (photo) {
-        await tx.insert(productImages).values({
-          productId: product!.id,
-          storageKey: photo.key,
-          width: photo.width,
-          height: photo.height,
-          isCover: true,
-        });
-      }
-    }
-  });
+  return photos;
+}
+
+function listingOf({ brand, model, condition, description, priceCents }: SampleProduct) {
+  return { brand, model, condition, description, priceCents };
+}
+
+function productValues(sample: SampleProduct, categoryIds: CategoryIds) {
+  return {
+    slug: slugify(sample.name),
+    name: sample.name,
+    categoryId: categoryIds.get(sample.category)!,
+    ...listingOf(sample),
+    stockAvailable: sample.stock,
+    stockMin: sample.stockMin ?? null,
+    searchText: productSearchText(sample, sample.category),
+  };
+}
+
+async function recordInitialStock(tx: Transaction, productId: number, quantity: number): Promise<void> {
+  if (quantity <= 0) return;
+  await tx.insert(stockMovements).values({ productId, type: 'IN', quantity, reason: INITIAL_STOCK_REASON });
+}
+
+async function attachCover(
+  tx: Transaction,
+  productId: number,
+  photo: StoredImage | undefined,
+): Promise<void> {
+  if (!photo) return;
+  const { key: storageKey, width, height } = photo;
+  await tx.insert(productImages).values({ productId, storageKey, width, height, isCover: true });
+}
+
+async function insertSampleProduct(
+  tx: Transaction,
+  sample: SampleProduct,
+  categoryIds: CategoryIds,
+  photos: Photos,
+) {
+  const [product] = await tx.insert(products).values(productValues(sample, categoryIds)).returning();
+  await recordInitialStock(tx, product!.id, sample.stock);
+  await attachCover(tx, product!.id, photos.get(sample.illustration));
+}
+
+async function insertSampleProducts(
+  tx: Transaction,
+  categoryIds: CategoryIds,
+  photos: Photos,
+): Promise<void> {
+  for (const sample of SAMPLE_PRODUCTS) await insertSampleProduct(tx, sample, categoryIds, photos);
+}
+
+async function seedProducts(db: Database, storage: Storage | undefined): Promise<boolean> {
+  if (await hasProducts(db)) return false;
+  const categoryIds = await categoryIdsByName(db);
+  const photos = await renderPhotos(storage);
+  await db.transaction((tx) => insertSampleProducts(tx, categoryIds, photos));
+  return true;
+}
+
+async function insertBaseData(tx: Transaction, passwordHash: string): Promise<void> {
+  await tx
+    .insert(users)
+    .values(SAMPLE_USERS.map((user) => ({ ...user, passwordHash, emailVerifiedAt: new Date() })));
+  await tx.insert(categories).values(CATEGORIES.map((name, position) => ({ name, position })));
+  await tx.insert(serviceTypes).values(SERVICE_TYPES.map((type, position) => ({ ...type, position })));
+}
+
+/** Accounts, categories and service types, only into a database without accounts. */
+async function seedBaseData(db: Database): Promise<boolean> {
+  const [existing] = await db.select({ value: count() }).from(users);
+  if (existing!.value > 0) return false;
+  const passwordHash = await hashPassword(SAMPLE_PASSWORD);
+  await db.transaction((tx) => insertBaseData(tx, passwordHash));
   return true;
 }
 
@@ -333,18 +384,7 @@ async function seedProducts(db: Database, storage: Storage | undefined): Promise
  * when a storage is given. Returns false when there was nothing to add.
  */
 export async function seedDevelopment(db: Database, storage?: Storage): Promise<boolean> {
-  const [existing] = await db.select({ value: count() }).from(users);
-  const seedBase = existing!.value === 0;
-  if (seedBase) {
-    const passwordHash = await hashPassword(SAMPLE_PASSWORD);
-    await db.transaction(async (tx) => {
-      await tx
-        .insert(users)
-        .values(SAMPLE_USERS.map((u) => ({ ...u, passwordHash, emailVerifiedAt: new Date() })));
-      await tx.insert(categories).values(CATEGORIES.map((name, position) => ({ name, position })));
-      await tx.insert(serviceTypes).values(SERVICE_TYPES.map((type, position) => ({ ...type, position })));
-    });
-  }
+  const seededBase = await seedBaseData(db);
   const seededProducts = await seedProducts(db, storage);
-  return seedBase || seededProducts;
+  return seededBase || seededProducts;
 }

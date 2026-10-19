@@ -41,32 +41,39 @@ function byTechnician(visits: Visit[]) {
   return [...groups.values()].sort((a, b) => a.employee.name.localeCompare(b.employee.name, 'pt-BR'));
 }
 
-async function managementView(ctx: AppContext, viewer: AccessClaims, now: Date) {
-  const period = storePeriods(now);
-  const [orders, requests, quotes, reports, revenue, visits, lowStock] = await Promise.all([
+const todayOf = (period: ReturnType<typeof storePeriods>) => ({ from: period.dayStart, to: period.dayEnd });
+
+/** Orders, requests, quotes and reports still waiting for the store. */
+async function pendingWork(ctx: AppContext) {
+  const [orders, requests, quotes, reports] = await Promise.all([
     repo.countOrdersByStatus(ctx.db),
     repo.countRequestsByStatus(ctx.db, OPEN_REQUEST_STATUSES),
     repo.countQuotesAwaitingAnswer(ctx.db),
     repo.countReportsAwaitingApproval(ctx.db),
-    repo.approvedServiceRevenue(ctx.db, period.monthStart, now),
-    agenda.listAgenda(ctx, viewer, { from: period.dayStart, to: period.dayEnd }),
-    catalog.lowStockProducts(ctx.db, LOW_STOCK_LIMIT),
   ]);
   return {
     ordersByStatus: countsOf(ORDER_STATUSES, orders),
     openServiceRequests: countsOf(OPEN_REQUEST_STATUSES, requests),
     quotesAwaitingAnswer: quotes,
     reportsAwaitingApproval: reports,
-    serviceRevenueMonthCents: revenue,
-    agendaToday: byTechnician(visits),
-    lowStock,
   };
+}
+
+async function managementView(ctx: AppContext, viewer: AccessClaims, now: Date) {
+  const period = storePeriods(now);
+  const [work, revenue, visits, lowStock] = await Promise.all([
+    pendingWork(ctx),
+    repo.approvedServiceRevenue(ctx.db, period.monthStart, now),
+    agenda.listAgenda(ctx, viewer, todayOf(period)),
+    catalog.lowStockProducts(ctx.db, LOW_STOCK_LIMIT),
+  ]);
+  return { ...work, serviceRevenueMonthCents: revenue, agendaToday: byTechnician(visits), lowStock };
 }
 
 async function employeeView(ctx: AppContext, viewer: AccessClaims, now: Date) {
   const period = storePeriods(now);
   const [visitsToday, pendingReports] = await Promise.all([
-    agenda.listAgenda(ctx, viewer, { from: period.dayStart, to: period.dayEnd }),
+    agenda.listAgenda(ctx, viewer, todayOf(period)),
     repo.countPendingReports(ctx.db, viewer.userId, period.dayEnd),
   ]);
   return { visitsToday, pendingReports };
