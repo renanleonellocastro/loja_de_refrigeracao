@@ -1,5 +1,6 @@
 import type { ApiSchemas } from '@rc/contracts';
 import { defineStore } from 'pinia';
+import type { ComputedRef, Ref } from 'vue';
 
 export type Cart = ApiSchemas['Cart'];
 export type CartLine = Cart['items'][number];
@@ -72,202 +73,320 @@ export function cartProductOf(product: ProductSummary | ProductDetail): CartProd
   };
 }
 
+interface CartState {
+  guest: Ref<GuestLine[]>;
+  server: Ref<Cart | null>;
+  /** True once the cart of the current person was read, so pages can show skeletons until then. */
+  loaded: Ref<boolean>;
+  busy: Ref<boolean>;
+}
+
+type CartToast = Pick<ReturnType<typeof useToast>, 'error' | 'success'>;
+
+/** Where the lines of the cart live: this browser for visitors, the account for signed in people. */
+interface CartBackend {
+  setQuantity(product: CartProduct, quantity: number): Promise<boolean>;
+  remove(productId: number): Promise<boolean>;
+  load(): Promise<void>;
+}
+
+const EMPTY_CART: Readonly<Cart> = { items: [], itemCount: 0, totalCents: 0, ready: false };
+
+function clampQuantity(wanted: number): number {
+  return Math.min(Math.max(1, Math.floor(wanted)), MAX_QUANTITY);
+}
+
+function stockLimitMessage(stockAvailable: number): string {
+  if (stockAvailable === 0) return 'Este produto acabou de esgotar.';
+  return `Temos só ${countLabel(stockAvailable, 'unidade disponível', 'unidades disponíveis')}.`;
+}
+
+/** Fresh price and stock of a visitor line, since they may have changed since it was added. */
+async function refreshGuestLine(api: Api, line: GuestLine): Promise<GuestLine> {
+  try {
+    const product = await unwrap(
+      api.GET('/api/v1/products/{id}', { params: { path: { id: line.product.slug } } }),
+    );
+    return { ...line, product: cartProductOf(product) };
+  } catch (error) {
+    // A product that no longer exists stays as unavailable; a network failure keeps the copy.
+    if (toApiError(error).status !== 404) return line;
+    return { ...line, product: { ...line.product, stockAvailable: 0 } };
+  }
+}
+
+function withLine(lines: readonly GuestLine[], line: GuestLine): GuestLine[] {
+  const exists = lines.some((item) => item.productId === line.productId);
+  if (!exists) return [...lines, line];
+  return lines.map((item) => (item.productId === line.productId ? line : item));
+}
+
+/** Visitor cart kept in localStorage, with a copy of each product. */
+class GuestCart implements CartBackend {
+  private readonly state: CartState;
+  private readonly api: Api;
+  private readonly toast: CartToast;
+
+  constructor(state: CartState, api: Api, toast: CartToast) {
+    this.state = state;
+    this.api = api;
+    this.toast = toast;
+  }
+
+  async setQuantity(product: CartProduct, quantity: number): Promise<boolean> {
+    if (this.isFullFor(product.id)) {
+      this.toast.error({ title: `O carrinho aceita até ${MAX_LINES} produtos diferentes.` });
+      return false;
+    }
+    const capped = Math.min(quantity, Math.max(product.stockAvailable, 1));
+    this.save(withLine(this.state.guest.value, { productId: product.id, quantity: capped, product }));
+    return true;
+  }
+
+  async remove(productId: number): Promise<boolean> {
+    this.save(this.state.guest.value.filter((line) => line.productId !== productId));
+    return true;
+  }
+
+  async load(): Promise<void> {
+    this.state.guest.value = readGuest();
+    this.save(await Promise.all(this.state.guest.value.map((line) => refreshGuestLine(this.api, line))));
+  }
+
+  /** Back to the visitor cart of this browser. */
+  reload(): void {
+    this.state.guest.value = readGuest();
+  }
+
+  save(lines: GuestLine[]): void {
+    this.state.guest.value = lines;
+    writeGuest(lines);
+  }
+
+  private isFullFor(productId: number): boolean {
+    const lines = this.state.guest.value;
+    return !lines.some((line) => line.productId === productId) && lines.length >= MAX_LINES;
+  }
+}
+
+/** Cart of the signed in person, kept by the API (/me/cart). */
+class AccountCart implements CartBackend {
+  private readonly state: CartState;
+  private readonly api: Api;
+  private readonly toast: CartToast;
+
+  constructor(state: CartState, api: Api, toast: CartToast) {
+    this.state = state;
+    this.api = api;
+    this.toast = toast;
+  }
+
+  setQuantity(product: CartProduct, quantity: number): Promise<boolean> {
+    return this.change(() =>
+      unwrap(
+        this.api.PUT('/api/v1/me/cart/items/{productId}', {
+          params: { path: { productId: product.id } },
+          body: { quantity },
+        }),
+      ),
+    );
+  }
+
+  remove(productId: number): Promise<boolean> {
+    return this.change(() =>
+      unwrap(this.api.DELETE('/api/v1/me/cart/items/{productId}', { params: { path: { productId } } })),
+    );
+  }
+
+  async load(): Promise<void> {
+    this.state.server.value = await this.fetchCart();
+  }
+
+  /** Joins visitor lines into the account cart (the API caps them by stock); no lines just reads it. */
+  async merge(lines: readonly GuestLine[]): Promise<void> {
+    if (lines.length === 0) {
+      this.state.server.value = await this.fetchCart();
+      return;
+    }
+    const items = lines.map(({ productId, quantity }) => ({ productId, quantity }));
+    this.state.server.value = await unwrap(this.api.POST('/api/v1/me/cart/merge', { body: { items } }));
+  }
+
+  private fetchCart(): Promise<Cart> {
+    return unwrap(this.api.GET('/api/v1/me/cart'));
+  }
+
+  /** Runs a change of the signed in cart; a refused change shows the reason and keeps the cart as it was. */
+  private async change(action: () => Promise<Cart>): Promise<boolean> {
+    this.state.busy.value = true;
+    try {
+      this.state.server.value = await action();
+      return true;
+    } catch (error) {
+      this.toast.error({ title: toApiError(error).message });
+      return false;
+    } finally {
+      this.state.busy.value = false;
+    }
+  }
+}
+
+/** Collaborators of the cart actions: the two places a cart lives and how to tell which one is in use. */
+interface CartParts {
+  state: CartState;
+  isRemote: ComputedRef<boolean>;
+  items: ComputedRef<CartLine[]>;
+  guest: GuestCart;
+  account: AccountCart;
+  toast: CartToast;
+}
+
+/** Actions of the cart, sent to the visitor or the account cart depending on who is signed in. */
+class CartKeeper {
+  private merging: Promise<void> | null = null;
+  private readonly parts: CartParts;
+
+  constructor(parts: CartParts) {
+    this.parts = parts;
+  }
+
+  quantityOf(productId: number): number {
+    return this.parts.items.value.find((line) => line.product.id === productId)?.quantity ?? 0;
+  }
+
+  /** Puts a line at an exact quantity, capped by the stock and the API limit. */
+  setQuantity(product: CartProduct, wanted: number): Promise<boolean> {
+    return this.backend().setQuantity(product, clampQuantity(wanted));
+  }
+
+  /** Adds units of a product on top of what is already in the cart. */
+  async add(product: CartProduct, quantity = 1): Promise<boolean> {
+    const total = this.quantityOf(product.id) + quantity;
+    if (total > product.stockAvailable) {
+      this.parts.toast.error({ title: stockLimitMessage(product.stockAvailable) });
+      return false;
+    }
+    const done = await this.setQuantity(product, total);
+    if (done) this.announceAdded(product, total);
+    return done;
+  }
+
+  remove(productId: number): Promise<boolean> {
+    return this.backend().remove(productId);
+  }
+
+  /** Reads the cart of the current person: the account cart, or the visitor cart with fresh prices. */
+  async load(): Promise<void> {
+    // Right after signing in, the merge decides the account cart; reading before it ends could show it empty.
+    await this.merging;
+    try {
+      await this.backend().load();
+    } catch {
+      // Without a connection the page shows what it has; the next visit tries again.
+    } finally {
+      this.parts.state.loaded.value = true;
+    }
+  }
+
+  /** After signing in: joins the visitor cart into the account (capped by stock) and forgets the local copy. */
+  syncAfterSignIn(): Promise<void> {
+    this.merging = this.mergeGuest();
+    return this.merging;
+  }
+
+  /** Back to the visitor cart of this browser, after signing out. */
+  switchToGuest(): void {
+    this.parts.state.server.value = null;
+    this.parts.guest.reload();
+    this.parts.state.loaded.value = true;
+  }
+
+  /** The API empties the account cart when the order is placed. */
+  clearAfterOrder(): void {
+    this.parts.state.server.value = { ...EMPTY_CART, items: [] };
+    this.parts.guest.save([]);
+  }
+
+  private backend(): CartBackend {
+    return this.parts.isRemote.value ? this.parts.account : this.parts.guest;
+  }
+
+  private announceAdded(product: CartProduct, total: number): void {
+    this.parts.toast.success({
+      title: `${product.name} no carrinho.`,
+      description: countLabel(total, 'unidade', 'unidades'),
+    });
+  }
+
+  private async mergeGuest(): Promise<void> {
+    const lines = readGuest();
+    try {
+      await this.parts.account.merge(lines);
+      if (lines.length > 0) this.parts.guest.save([]);
+      this.parts.state.loaded.value = true;
+    } catch {
+      // The visitor cart stays in this browser and is merged on the next sign in.
+    }
+  }
+}
+
+function createCartState(): CartState {
+  return {
+    guest: ref<GuestLine[]>([]),
+    server: ref<Cart | null>(null),
+    loaded: ref(false),
+    busy: ref(false),
+  };
+}
+
+function sumOf(lines: readonly CartLine[], amount: (line: CartLine) => number): number {
+  return lines.reduce((sum, line) => sum + amount(line), 0);
+}
+
+function cartGetters(state: CartState, isRemote: ComputedRef<boolean>) {
+  const items = computed<CartLine[]>(() =>
+    isRemote.value ? (state.server.value?.items ?? []) : state.guest.value.map(guestLineView),
+  );
+  const count = computed(() => sumOf(items.value, (line) => line.quantity));
+  const totalCents = computed(() => sumOf(items.value, (line) => line.subtotalCents));
+  const ready = computed(() => items.value.length > 0 && items.value.every((line) => line.problem === null));
+  return { items, count, totalCents, ready };
+}
+
+function createCartKeeper(
+  state: CartState,
+  getters: ReturnType<typeof cartGetters>,
+  isRemote: ComputedRef<boolean>,
+) {
+  const api = useApi();
+  const toast = useToast();
+  const guest = new GuestCart(state, api, toast);
+  const account = new AccountCart(state, api, toast);
+  return new CartKeeper({ state, isRemote, items: getters.items, guest, account, toast });
+}
+
+function cartActions(keeper: CartKeeper) {
+  return {
+    quantityOf: keeper.quantityOf.bind(keeper),
+    add: keeper.add.bind(keeper),
+    setQuantity: keeper.setQuantity.bind(keeper),
+    remove: keeper.remove.bind(keeper),
+    load: keeper.load.bind(keeper),
+    syncAfterSignIn: keeper.syncAfterSignIn.bind(keeper),
+    switchToGuest: keeper.switchToGuest.bind(keeper),
+    clearAfterOrder: keeper.clearAfterOrder.bind(keeper),
+  };
+}
+
 /**
  * Cart of RF-21 (UC Comprar Produto). Visitors keep it in localStorage; signed in people use /me/cart, and
  * signing in merges the visitor cart into the account (POST /me/cart/merge). Quantities never pass the stock.
  */
 export const useCartStore = defineStore('cart', () => {
   const auth = useAuthStore();
-  const api = useApi();
-  const toast = useToast();
-
-  const guest = ref<GuestLine[]>([]);
-  const server = ref<Cart | null>(null);
-  /** True once the cart of the current person was read, so pages can show skeletons until then. */
-  const loaded = ref(false);
-  const busy = ref(false);
-  let merging: Promise<void> | null = null;
-
-  const remote = computed(() => auth.signedIn);
-  const items = computed<CartLine[]>(() =>
-    remote.value ? (server.value?.items ?? []) : guest.value.map(guestLineView),
-  );
-  const count = computed(() => items.value.reduce((sum, line) => sum + line.quantity, 0));
-  const totalCents = computed(() => items.value.reduce((sum, line) => sum + line.subtotalCents, 0));
-  const ready = computed(() => items.value.length > 0 && items.value.every((line) => line.problem === null));
-
-  function quantityOf(productId: number): number {
-    return items.value.find((line) => line.product.id === productId)?.quantity ?? 0;
-  }
-
-  function saveGuest(lines: GuestLine[]): void {
-    guest.value = lines;
-    writeGuest(lines);
-  }
-
-  /** Runs a change of the signed in cart; a refused change shows the reason and keeps the cart as it was. */
-  async function change(action: () => Promise<Cart>): Promise<boolean> {
-    busy.value = true;
-    try {
-      server.value = await action();
-      return true;
-    } catch (error) {
-      toast.error({ title: toApiError(error).message });
-      return false;
-    } finally {
-      busy.value = false;
-    }
-  }
-
-  /** Puts a line at an exact quantity, capped by the stock and the API limit. */
-  async function setQuantity(product: CartProduct, wanted: number): Promise<boolean> {
-    const quantity = Math.min(Math.max(1, Math.floor(wanted)), MAX_QUANTITY);
-    if (remote.value) {
-      return change(() =>
-        unwrap(
-          api.PUT('/api/v1/me/cart/items/{productId}', {
-            params: { path: { productId: product.id } },
-            body: { quantity },
-          }),
-        ),
-      );
-    }
-    const existing = guest.value.some((line) => line.productId === product.id);
-    if (!existing && guest.value.length >= MAX_LINES) {
-      toast.error({ title: `O carrinho aceita até ${MAX_LINES} produtos diferentes.` });
-      return false;
-    }
-    const capped = Math.min(quantity, Math.max(product.stockAvailable, 1));
-    const line: GuestLine = { productId: product.id, quantity: capped, product };
-    saveGuest(
-      existing
-        ? guest.value.map((item) => (item.productId === product.id ? line : item))
-        : [...guest.value, line],
-    );
-    return true;
-  }
-
-  /** Adds units of a product on top of what is already in the cart. */
-  async function add(product: CartProduct, quantity = 1): Promise<boolean> {
-    const total = quantityOf(product.id) + quantity;
-    if (total > product.stockAvailable) {
-      toast.error({
-        title:
-          product.stockAvailable === 0
-            ? 'Este produto acabou de esgotar.'
-            : `Temos só ${countLabel(product.stockAvailable, 'unidade disponível', 'unidades disponíveis')}.`,
-      });
-      return false;
-    }
-    const done = await setQuantity(product, total);
-    if (done) {
-      toast.success({
-        title: `${product.name} no carrinho.`,
-        description: countLabel(total, 'unidade', 'unidades'),
-      });
-    }
-    return done;
-  }
-
-  async function remove(productId: number): Promise<boolean> {
-    if (remote.value) {
-      return change(() =>
-        unwrap(api.DELETE('/api/v1/me/cart/items/{productId}', { params: { path: { productId } } })),
-      );
-    }
-    saveGuest(guest.value.filter((line) => line.productId !== productId));
-    return true;
-  }
-
-  /** Visitor cart: refreshes price and stock of each copy, since they may have changed since it was added. */
-  async function refreshGuest(): Promise<void> {
-    const lines = await Promise.all(
-      guest.value.map(async (line) => {
-        try {
-          const product = await unwrap(
-            api.GET('/api/v1/products/{id}', { params: { path: { id: line.product.slug } } }),
-          );
-          return { ...line, product: cartProductOf(product) };
-        } catch (error) {
-          // A product that no longer exists stays as unavailable; a network failure keeps the copy.
-          if (toApiError(error).status !== 404) return line;
-          return { ...line, product: { ...line.product, stockAvailable: 0 } };
-        }
-      }),
-    );
-    saveGuest(lines);
-  }
-
-  /** Reads the cart of the current person: the account cart, or the visitor cart with fresh prices. */
-  async function load(): Promise<void> {
-    // Right after signing in, the merge decides the account cart; reading before it ends could show it empty.
-    await merging;
-    try {
-      if (remote.value) server.value = await unwrap(api.GET('/api/v1/me/cart'));
-      else {
-        guest.value = readGuest();
-        await refreshGuest();
-      }
-    } catch {
-      // Without a connection the page shows what it has; the next visit tries again.
-    } finally {
-      loaded.value = true;
-    }
-  }
-
-  /** After signing in: joins the visitor cart into the account (capped by stock) and forgets the local copy. */
-  function syncAfterSignIn(): Promise<void> {
-    merging = mergeGuest();
-    return merging;
-  }
-
-  async function mergeGuest(): Promise<void> {
-    const lines = readGuest();
-    try {
-      server.value =
-        lines.length > 0
-          ? await unwrap(
-              api.POST('/api/v1/me/cart/merge', {
-                body: { items: lines.map(({ productId, quantity }) => ({ productId, quantity })) },
-              }),
-            )
-          : await unwrap(api.GET('/api/v1/me/cart'));
-      if (lines.length > 0) saveGuest([]);
-      loaded.value = true;
-    } catch {
-      // The visitor cart stays in this browser and is merged on the next sign in.
-    }
-  }
-
-  /** Back to the visitor cart of this browser, after signing out. */
-  function switchToGuest(): void {
-    server.value = null;
-    guest.value = readGuest();
-    loaded.value = true;
-  }
-
-  /** The API empties the account cart when the order is placed. */
-  function clearAfterOrder(): void {
-    server.value = { items: [], itemCount: 0, totalCents: 0, ready: false };
-    saveGuest([]);
-  }
-
-  return {
-    guest,
-    server,
-    loaded,
-    busy,
-    items,
-    count,
-    totalCents,
-    ready,
-    quantityOf,
-    add,
-    setQuantity,
-    remove,
-    load,
-    syncAfterSignIn,
-    switchToGuest,
-    clearAfterOrder,
-  };
+  const state = createCartState();
+  const isRemote = computed(() => auth.signedIn);
+  const getters = cartGetters(state, isRemote);
+  const keeper = createCartKeeper(state, getters, isRemote);
+  return { ...state, ...getters, ...cartActions(keeper) };
 });

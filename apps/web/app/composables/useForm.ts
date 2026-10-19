@@ -49,60 +49,135 @@ async function focusFirstInvalid(): Promise<void> {
   document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
 }
 
-/** Form state with validation and API error handling shared by every form of the site. */
-export function useForm<T extends Values>(initial: T, options: FormOptions<T> = {}): Form<T> {
-  const values = reactive(clone(initial)) as T;
-  const errors = ref<FieldErrors>({});
-  const pending = ref(false);
-  const message = ref('');
-  const toast = useToast();
+interface FormState<T extends Values> {
+  values: T;
+  errors: Ref<FieldErrors>;
+  pending: Ref<boolean>;
+  message: Ref<string>;
+}
 
-  // Typing in a field clears its message.
+/** Shows the general error of a failed attempt, with the messages of fields the form does not have. */
+type GeneralErrorReporter = (error: ApiError, details: string) => void;
+
+type FormAction<T> = (values: T) => Promise<void>;
+
+function createFormState<T extends Values>(initial: T): FormState<T> {
+  return {
+    values: reactive(clone(initial)) as T,
+    errors: ref<FieldErrors>({}),
+    pending: ref(false),
+    message: ref(''),
+  };
+}
+
+function clearChangedFieldErrors(errors: Ref<FieldErrors>, now: Values, before: Values): void {
+  const changed = Object.keys(now).filter((path) => now[path] !== before[path]);
+  if (changed.length === 0) return;
+  const next = { ...errors.value };
+  for (const path of changed) delete next[path];
+  errors.value = next;
+}
+
+/** Typing in a field clears its message. */
+function watchFieldEdits(values: Values, errors: Ref<FieldErrors>): void {
   watch(
     () => flattenPaths(values),
-    (now, before) => {
-      const changed = Object.keys(now).filter((path) => now[path] !== before[path]);
-      if (changed.length === 0) return;
-      const next = { ...errors.value };
-      for (const path of changed) delete next[path];
-      errors.value = next;
-    },
+    (now, before) => clearChangedFieldErrors(errors, now, before),
   );
+}
 
-  async function submit(action: (values: T) => Promise<void>): Promise<boolean> {
-    const local = options.validate?.(values) ?? {};
-    errors.value = local;
-    message.value = '';
-    if (Object.keys(local).length > 0) {
+function inlineReporter(message: Ref<string>): GeneralErrorReporter {
+  return (error, details) => {
+    message.value = [error.message, details].filter(Boolean).join(' ');
+  };
+}
+
+function toastReporter(toast: Pick<ReturnType<typeof useToast>, 'error'>): GeneralErrorReporter {
+  return (error, details) => toast.error({ title: error.message, description: details || undefined });
+}
+
+/** Splits the field errors of the API into the ones the form shows next to an input and the leftover texts. */
+function splitFieldErrors(error: ApiError, values: Values): { fields: FieldErrors; leftover: string[] } {
+  const known = new Set(Object.keys(flattenPaths(values)));
+  const entries = Object.entries(error.fields);
+  return {
+    fields: Object.fromEntries(entries.filter(([path]) => known.has(path))),
+    leftover: entries.filter(([path]) => !known.has(path)).map(([, text]) => text),
+  };
+}
+
+async function showFailure<T extends Values>(
+  state: FormState<T>,
+  caught: unknown,
+  reportGeneral: GeneralErrorReporter,
+): Promise<void> {
+  const error = toApiError(caught);
+  const { fields, leftover } = splitFieldErrors(error, state.values);
+  state.errors.value = fields;
+  if (leftover.length > 0 || !error.hasFieldErrors) reportGeneral(error, leftover.join(' '));
+  await focusFirstInvalid();
+}
+
+async function runAction<T extends Values>(
+  state: FormState<T>,
+  action: FormAction<T>,
+  reportGeneral: GeneralErrorReporter,
+): Promise<boolean> {
+  state.pending.value = true;
+  try {
+    await action(state.values);
+    return true;
+  } catch (caught) {
+    await showFailure(state, caught, reportGeneral);
+    return false;
+  } finally {
+    state.pending.value = false;
+  }
+}
+
+/** Runs the browser checks; true when some field failed. Also clears the messages of the last attempt. */
+function failsLocalValidation<T extends Values>(
+  state: FormState<T>,
+  validate: FormOptions<T>['validate'],
+): boolean {
+  const local = validate?.(state.values) ?? {};
+  state.errors.value = local;
+  state.message.value = '';
+  return Object.keys(local).length > 0;
+}
+
+function formSubmitter<T extends Values>(
+  state: FormState<T>,
+  validate: FormOptions<T>['validate'],
+  reportGeneral: GeneralErrorReporter,
+): Form<T>['submit'] {
+  return async (action) => {
+    if (failsLocalValidation(state, validate)) {
       await focusFirstInvalid();
       return false;
     }
-    pending.value = true;
-    try {
-      await action(values);
-      return true;
-    } catch (caught) {
-      const error = toApiError(caught);
-      const known = new Set(Object.keys(flattenPaths(values)));
-      const unknown = Object.entries(error.fields).filter(([path]) => !known.has(path));
-      errors.value = Object.fromEntries(Object.entries(error.fields).filter(([path]) => known.has(path)));
-      if (unknown.length > 0 || !error.hasFieldErrors) {
-        const details = unknown.map(([, text]) => text).join(' ');
-        if (options.inline) message.value = [error.message, details].filter(Boolean).join(' ');
-        else toast.error({ title: error.message, description: details || undefined });
-      }
-      await focusFirstInvalid();
-      return false;
-    } finally {
-      pending.value = false;
-    }
-  }
+    return runAction(state, action, reportGeneral);
+  };
+}
 
-  function reset(next: T): void {
-    Object.assign(values, clone(next));
-    errors.value = {};
-    message.value = '';
-  }
+function formResetter<T extends Values>(state: FormState<T>): Form<T>['reset'] {
+  return (next) => {
+    Object.assign(state.values, clone(next));
+    state.errors.value = {};
+    state.message.value = '';
+  };
+}
 
-  return { values, errors, pending, message, error: (path) => errors.value[path], submit, reset };
+/** Form state with validation and API error handling shared by every form of the site. */
+export function useForm<T extends Values>(initial: T, options: FormOptions<T> = {}): Form<T> {
+  const state = createFormState(initial);
+  const toast = useToast();
+  const reportGeneral = options.inline ? inlineReporter(state.message) : toastReporter(toast);
+  watchFieldEdits(state.values, state.errors);
+  return {
+    ...state,
+    error: (path) => state.errors.value[path],
+    submit: formSubmitter(state, options.validate, reportGeneral),
+    reset: formResetter(state),
+  };
 }

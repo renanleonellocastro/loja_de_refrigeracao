@@ -25,21 +25,36 @@ export function serviceTypeFormFrom(type?: ServiceType): ServiceTypeForm {
   };
 }
 
+function serviceNameError(name: string): string | undefined {
+  const { nameMin, nameMax } = SERVICE_TYPE_LIMITS;
+  const length = name.trim().length;
+  if (length < nameMin) return `Informe o nome do serviço, com pelo menos ${nameMin} letras.`;
+  return length > nameMax ? `Use até ${nameMax} letras no nome.` : undefined;
+}
+
+function serviceDescriptionError(description: string): string | undefined {
+  const { descriptionMax } = SERVICE_TYPE_LIMITS;
+  return description.trim().length > descriptionMax
+    ? `Use até ${descriptionMax} caracteres na descrição.`
+    : undefined;
+}
+
+function estimatedMinutesError(value: string): string | undefined {
+  const { minutesMin, minutesMax } = SERVICE_TYPE_LIMITS;
+  const minutes = String(value).trim();
+  const isInRange = Number(minutes) >= minutesMin && Number(minutes) <= minutesMax;
+  return isWholeNumberText(minutes) && isInRange
+    ? undefined
+    : `Use um número inteiro de ${minutesMin} a ${minutesMax} minutos.`;
+}
+
 /** Same rules as the API, so most mistakes show up before the request. */
 export function validateServiceTypeForm(values: ServiceTypeForm): FieldErrors {
-  const { nameMin, nameMax, descriptionMax, minutesMin, minutesMax } = SERVICE_TYPE_LIMITS;
-  const errors: FieldErrors = {};
-  const name = values.name.trim();
-  if (name.length < nameMin) errors.name = `Informe o nome do serviço, com pelo menos ${nameMin} letras.`;
-  else if (name.length > nameMax) errors.name = `Use até ${nameMax} letras no nome.`;
-  if (values.description.trim().length > descriptionMax) {
-    errors.description = `Use até ${descriptionMax} caracteres na descrição.`;
-  }
-  const minutes = String(values.estimatedMinutes).trim();
-  if (!/^\d+$/.test(minutes) || Number(minutes) < minutesMin || Number(minutes) > minutesMax) {
-    errors.estimatedMinutes = `Use um número inteiro de ${minutesMin} a ${minutesMax} minutos.`;
-  }
-  return errors;
+  return collectFieldErrors({
+    name: () => serviceNameError(values.name),
+    description: () => serviceDescriptionError(values.description),
+    estimatedMinutes: () => estimatedMinutesError(values.estimatedMinutes),
+  });
 }
 
 export function serviceTypeFormToApi(values: ServiceTypeForm) {
