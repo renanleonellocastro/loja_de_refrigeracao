@@ -9,21 +9,30 @@ export type ReportRow = typeof serviceReports.$inferSelect;
 const employee = alias(users, 'employee');
 const customer = alias(users, 'customer');
 
+const APPOINTMENT_COLUMNS = {
+  appointment: appointments,
+  employee: { id: employee.id, name: employee.name },
+  request: serviceRequests,
+  serviceType: serviceTypes.name,
+  customer: {
+    id: customer.id,
+    name: customer.name,
+    phone: customer.phone,
+    deletedAt: customer.deletedAt,
+  },
+  report: serviceReports,
+};
+
+const BUSY_INTERVAL_COLUMNS = {
+  id: appointments.id,
+  employeeId: appointments.employeeId,
+  startsAt: appointments.startsAt,
+  endsAt: appointments.endsAt,
+};
+
 function selectAppointments(db: Executor) {
   return db
-    .select({
-      appointment: appointments,
-      employee: { id: employee.id, name: employee.name },
-      request: serviceRequests,
-      serviceType: serviceTypes.name,
-      customer: {
-        id: customer.id,
-        name: customer.name,
-        phone: customer.phone,
-        deletedAt: customer.deletedAt,
-      },
-      report: serviceReports,
-    })
+    .select(APPOINTMENT_COLUMNS)
     .from(appointments)
     .innerJoin(employee, eq(employee.id, appointments.employeeId))
     .innerJoin(serviceRequests, eq(serviceRequests.id, appointments.serviceRequestId))
@@ -100,21 +109,15 @@ export async function activeEmployees(db: Executor) {
 
 export async function busyIntervals(db: Executor, employeeIds: number[], from: Date, to: Date) {
   if (employeeIds.length === 0) return [];
+  const inRange = and(
+    inArray(appointments.employeeId, employeeIds),
+    lt(appointments.startsAt, to),
+    gt(appointments.endsAt, from),
+  );
   return db
-    .select({
-      id: appointments.id,
-      employeeId: appointments.employeeId,
-      startsAt: appointments.startsAt,
-      endsAt: appointments.endsAt,
-    })
+    .select(BUSY_INTERVAL_COLUMNS)
     .from(appointments)
-    .where(
-      and(
-        inArray(appointments.employeeId, employeeIds),
-        lt(appointments.startsAt, to),
-        gt(appointments.endsAt, from),
-      ),
-    )
+    .where(inRange)
     .orderBy(asc(appointments.startsAt));
 }
 

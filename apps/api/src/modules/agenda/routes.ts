@@ -7,6 +7,8 @@ import { etagFor } from '../../shared/concurrency.js';
 import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
 import { readMultipart } from '../media/service.js';
 import * as agenda from './agenda.js';
+import * as reports from './reports.js';
+import * as scheduling from './scheduling.js';
 import {
   appointmentCreationSchema,
   appointmentSchema,
@@ -74,7 +76,7 @@ const scheduleAppointmentRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    const created = await agenda.scheduleAppointment(ctx, auth, request.body, request.ip);
+    const created = await scheduling.scheduleAppointment(ctx, auth, request.body, request.ip);
     const { view, etag } = await appointmentWithEtag(ctx, auth, created.id);
     return reply
       .code(201)
@@ -98,7 +100,7 @@ const rescheduleAppointmentRoute = defineRoute({
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
-    await agenda.rescheduleAppointment(
+    await scheduling.rescheduleAppointment(
       ctx,
       auth,
       request.params.id,
@@ -123,7 +125,7 @@ const removeAppointmentRoute = defineRoute({
     response: { 204: noContentSchema, ...errorResponses },
   },
   handle: async ({ ctx, request, reply }) => {
-    await agenda.removeAppointment(ctx, requireAuth(request), request.params.id, request.ip);
+    await scheduling.removeAppointment(ctx, requireAuth(request), request.params.id, request.ip);
     return reply.code(204).send();
   },
 });
@@ -156,7 +158,7 @@ const submitReportRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await agenda.submitReport(ctx, auth, request.params.id, request.body);
+    await reports.submitReport(ctx, auth, request.params.id, request.body);
     return agenda.getAppointment(ctx, auth, request.params.id);
   },
 });
@@ -175,8 +177,8 @@ const addReportPhotosRoute = defineRoute({
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
     await agenda.getAppointment(ctx, auth, request.params.id);
-    const form = await readMultipart(request, agenda.MAX_REPORT_PHOTOS);
-    return reply.code(201).send(await agenda.addReportPhotos(ctx, auth, request.params.id, form.files));
+    const form = await readMultipart(request, reports.MAX_REPORT_PHOTOS);
+    return reply.code(201).send(await reports.addReportPhotos(ctx, auth, request.params.id, form.files));
   },
 });
 
@@ -194,7 +196,7 @@ const approveReportRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await agenda.approveReport(ctx, auth, request.params.id, request.body.amountCents, request.ip);
+    await reports.approveReport(ctx, auth, request.params.id, request.body.amountCents, request.ip);
     return agenda.getAppointment(ctx, auth, request.params.id);
   },
 });
@@ -213,7 +215,7 @@ const requestReworkRoute = defineRoute({
   },
   handle: async ({ ctx, request }) => {
     const auth = requireAuth(request);
-    await agenda.requestRework(ctx, auth, request.params.id, request.body.comment, request.ip);
+    await reports.requestRework(ctx, auth, request.params.id, request.body.comment, request.ip);
     return agenda.getAppointment(ctx, auth, request.params.id);
   },
 });
