@@ -166,6 +166,41 @@ export const imageOrderSchema = z.object({
   coverId: z.number().int().positive().optional(),
 });
 
+interface MovementRule {
+  isValidQuantity(quantity: number): boolean;
+  readonly quantityMessage: string;
+  readonly requiresReason: boolean;
+}
+
+const POSITIVE_QUANTITY: Omit<MovementRule, 'requiresReason'> = {
+  isValidQuantity: (quantity) => quantity > 0,
+  quantityMessage: 'Informe uma quantidade maior que zero.',
+};
+
+/** IN and LOSS take a positive quantity; ADJUSTMENT takes a signed one. Only IN may skip the reason. */
+const MOVEMENT_RULES: Record<ManualMovementType, MovementRule> = {
+  IN: { ...POSITIVE_QUANTITY, requiresReason: false },
+  LOSS: { ...POSITIVE_QUANTITY, requiresReason: true },
+  ADJUSTMENT: {
+    isValidQuantity: (quantity) => quantity !== 0,
+    quantityMessage: 'Informe uma quantidade diferente de zero (negativa para retirar).',
+    requiresReason: true,
+  },
+};
+
+function checkMovementRules(
+  value: { type: ManualMovementType; quantity: number; reason: string | null },
+  ctx: z.RefinementCtx,
+): void {
+  const rule = MOVEMENT_RULES[value.type];
+  if (!rule.isValidQuantity(value.quantity)) {
+    ctx.addIssue({ code: 'custom', path: ['quantity'], message: rule.quantityMessage });
+  }
+  if (rule.requiresReason && value.reason === null) {
+    ctx.addIssue({ code: 'custom', path: ['reason'], message: 'Informe o motivo.' });
+  }
+}
+
 export const stockMovementInputSchema = z
   .object({
     type: z.enum(MANUAL_MOVEMENT_TYPES, { error: 'Escolha entrada, ajuste ou perda.' }),
@@ -181,21 +216,7 @@ export const stockMovementInputSchema = z
       .optional()
       .transform((value) => (value ? value : null)),
   })
-  .superRefine((value, ctx) => {
-    if (value.type === 'ADJUSTMENT' ? value.quantity === 0 : value.quantity <= 0) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['quantity'],
-        message:
-          value.type === 'ADJUSTMENT'
-            ? 'Informe uma quantidade diferente de zero (negativa para retirar).'
-            : 'Informe uma quantidade maior que zero.',
-      });
-    }
-    if (value.type !== 'IN' && value.reason === null) {
-      ctx.addIssue({ code: 'custom', path: ['reason'], message: 'Informe o motivo.' });
-    }
-  });
+  .superRefine(checkMovementRules);
 
 export type StockMovementInput = z.infer<typeof stockMovementInputSchema>;
 
