@@ -12,7 +12,12 @@ const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   'base64',
 );
-const DEVICE_SLOT = { celular: 0, tablet: 1, desktop: 2 } as const;
+// A visit takes 2h and the test moves it by 30 min, so 3h apart keeps the slots of a day disjoint.
+const SLOTS_PER_DAY = 3;
+const SLOT_HOURS = 3;
+const FIRST_HOUR = 8;
+// Two days ahead, so the visit window is still accepted when the test runs across midnight.
+const LEAD_DAYS = 2;
 
 /** Waits for toasts and dialogs to finish fading in, so contrast is checked on the final colors. */
 async function checkA11y(page: Page): Promise<void> {
@@ -52,8 +57,19 @@ function dayFromToday(days: number): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(date);
 }
 
+/**
+ * Day and hour of the visit for a request. Request ids never repeat in the E2E database, so devices, retries
+ * and repeated runs each get their own slot and never find the technician busy.
+ */
+function visitSlot(requestId: number): { day: string; hour: string } {
+  return {
+    day: dayFromToday(LEAD_DAYS + Math.floor(requestId / SLOTS_PER_DAY)),
+    hour: String(FIRST_HOUR + (requestId % SLOTS_PER_DAY) * SLOT_HOURS).padStart(2, '0'),
+  };
+}
+
 /** A customer request approved by the store, created through the API to keep the test on the agenda. */
-async function approvedRequest(request: APIRequestContext, day: string, problem: string): Promise<number> {
+async function approvedRequest(request: APIRequestContext, problem: string): Promise<number> {
   const customer = await token(request, CUSTOMER);
   const types = (await (await request.get(`${API}/api/v1/service-types`)).json()) as Array<{
     id: number;
@@ -65,7 +81,7 @@ async function approvedRequest(request: APIRequestContext, day: string, problem:
       serviceTypeId: types.find((type) => type.name === 'Conserto de geladeira')!.id,
       productKind: 'Geladeira duplex',
       problem,
-      windows: [{ day, period: 'AFTERNOON' }],
+      windows: [{ day: dayFromToday(LEAD_DAYS), period: 'AFTERNOON' }],
       address: {
         cep: '13800061',
         street: 'Rua Doutor Ulhoa Cintra',
@@ -93,13 +109,15 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     browser,
     request,
   }, testInfo) => {
-    // Each device gets its own days and the run its own hour, so parallel projects never collide.
-    const slot = DEVICE_SLOT[deviceOf(testInfo)];
-    const day = dayFromToday(3 + slot * 18 + (Math.floor(Date.now() / 60_000) % 18));
-    const hour = String(8 + (Math.floor(Date.now() / 1000) % 9)).padStart(2, '0');
-    const problem = `Geladeira desarmando (${testInfo.project.name} ${Date.now()}).`;
-    const repair = `Troca do relé de partida (${testInfo.project.name} ${Date.now()}).`;
-    const requestId = await approvedRequest(request, day, problem);
+    // Two people, two browsers and nine axe scans take about 25 s on CI, and the first device also waits for the
+    // dev server to compile the agenda pages, so the default 30 s budget is too tight.
+    test.slow();
+    // Parallel runs can start in the same millisecond, so the texts that find this visit use a random id.
+    const stamp = `${testInfo.project.name} ${crypto.randomUUID()}`;
+    const problem = `Geladeira desarmando (${stamp}).`;
+    const repair = `Troca do relé de partida (${stamp}).`;
+    const requestId = await approvedRequest(request, problem);
+    const { day, hour } = visitSlot(requestId);
 
     // The manager schedules the approved request from the agenda.
     await signIn(page, MANAGER);
