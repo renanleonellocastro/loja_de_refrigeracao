@@ -1,5 +1,5 @@
 import { devices, expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { expectAccessible } from '../support/a11y.js';
+import { expectAccessibleSettled } from '../support/a11y.js';
 import { deviceOf, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -18,19 +18,6 @@ const SLOT_HOURS = 3;
 const FIRST_HOUR = 8;
 // Two days ahead, so the visit window is still accepted when the test runs across midnight.
 const LEAD_DAYS = 2;
-
-/** Waits for toasts and dialogs to finish fading in, so contrast is checked on the final colors. */
-async function checkA11y(page: Page): Promise<void> {
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  );
-  await expectAccessible(page);
-}
 
 async function signIn(page: Page, email: string): Promise<void> {
   await open(page, '/entrar');
@@ -129,14 +116,14 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     await dialog.getByRole('textbox', { name: 'Dia' }).fill(day);
     await dialog.getByLabel('Início').fill(`${hour}:00`);
     await expect(dialog.getByLabel('Duração')).toHaveValue('120');
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
     await dialog.getByRole('button', { name: 'Agendar visita' }).click();
     await expect(page).toHaveURL(/\/agenda\/\d+$/);
     const appointmentId = page.url().split('/').pop()!;
     await expect(page.getByTestId('appointment-problem')).toHaveText(problem);
     await expect(page.locator('[data-status="SCHEDULED"]')).toBeVisible();
     await expect(page.getByText(`${hour}:00 às`)).toBeVisible();
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
 
     // Rescheduling sends If-Match with the ETag of the visit on screen.
     await page.getByRole('button', { name: 'Remarcar' }).click();
@@ -153,7 +140,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     } else {
       await expect(page.locator('.fc-timegrid')).toBeVisible();
     }
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
 
     // The technician finalizes on a phone, with a photo taken in the visit.
     const phone = await browser.newContext({
@@ -166,7 +153,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     await signIn(technician, TECHNICIAN);
     await open(technician, '/hoje');
     await expect(technician.getByTestId('today-summary')).toBeVisible();
-    await checkA11y(technician);
+    await expectAccessibleSettled(technician);
     await open(technician, `/agenda/${appointmentId}`);
     await expect(technician.getByRole('link', { name: '(19) 99999-0004' })).toHaveAttribute(
       'href',
@@ -185,7 +172,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
       buffer: PIXEL,
     });
     await expect(technician.getByText('1 de 8 fotos')).toBeVisible();
-    await checkA11y(technician);
+    await expectAccessibleSettled(technician);
     const photos = technician.waitForResponse((response) =>
       /\/appointments\/\d+\/report\/photos$/.test(response.url()),
     );
@@ -193,7 +180,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     expect((await photos).status()).toBe(201);
     await expect(technician.locator('[data-status="AWAITING_COMPLETION_APPROVAL"]')).toBeVisible();
     await expect(technician.getByRole('img', { name: /Foto 1 do serviço/ })).toBeVisible();
-    await checkA11y(technician);
+    await expectAccessibleSettled(technician);
     await phone.close();
 
     // The manager approves the report with the value of the service.
@@ -202,16 +189,16 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     await open(page, '/aprovacoes');
     const card = page.getByTestId('approval-card').filter({ hasText: repair });
     await expect(card).toBeVisible();
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
     await card.getByLabel('Valor do serviço').fill('18000');
     await card.getByRole('button', { name: 'Aprovar' }).click();
     await expect(page.getByText('Serviço aprovado e concluído.')).toBeVisible();
     await expect(card).toHaveCount(0);
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
 
     await open(page, `/agenda/${appointmentId}`);
     await expect(page.locator('[data-status="COMPLETED"]')).toBeVisible();
     await expect(page.getByTestId('report-amount')).toHaveText('R$ 180,00');
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
   });
 });

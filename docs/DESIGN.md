@@ -111,6 +111,7 @@ A página não é indexada (`robots: noindex`).
 | Área da equipe | Barra inferior com as 4 ações do papel e menu "Mais"; formulários em tela cheia | Trilho lateral; listas e detalhe lado a lado | Barra lateral, painel em grade, listas com detalhe lateral |
 | Agenda | Lista do dia com deslizar entre dias | Semana | Mês, semana e dia |
 | Tabelas | Cards empilhados | Tabela com colunas prioritárias | Tabela completa |
+| Toasts | No topo, sobre o cabeçalho, para nunca cobrir a barra inferior nem os botões do formulário | Canto inferior direito | Canto inferior direito |
 
 Regras gerais: mobile first; contêiner máximo de 1280 px; espaçamento em múltiplos de 4 px; alvos de toque de 44 px; respeito a `prefers-reduced-motion` e às áreas seguras do iPhone.
 
