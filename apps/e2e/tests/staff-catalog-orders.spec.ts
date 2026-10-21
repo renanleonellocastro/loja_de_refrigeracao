@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
+import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -35,6 +36,7 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).toHaveURL(landing);
+  await closeWelcomeToast(page);
 }
 
 async function createCustomer(page: Page, name: string, email: string): Promise<void> {
@@ -79,6 +81,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await checkA11y(page);
     await page.getByRole('button', { name: 'Cadastrar produto' }).click();
     await expect(page).toHaveURL(/\/produtos\/gerenciar\/\d+\?aba=fotos$/);
+    await closeToast(page, 'Produto cadastrado.');
     await expect(page.getByRole('heading', { level: 2, name: productName })).toBeVisible();
 
     // Photos: upload with progress, then it becomes the cover.
@@ -89,7 +92,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     });
     await expect(page.getByText('1 de 10 fotos')).toBeVisible();
     await page.getByRole('button', { name: 'Enviar fotos' }).click();
-    await expect(page.getByText('Foto enviada.')).toBeVisible();
+    await closeToast(page, 'Foto enviada.');
     await expect(page.getByRole('list', { name: 'Fotos do produto' }).getByText('Capa')).toBeVisible();
     await checkA11y(page);
 
@@ -101,7 +104,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await stockDialog.getByLabel('Quantidade').fill('3');
     await stockDialog.getByLabel('Motivo').fill('Nota fiscal 123');
     await stockDialog.getByRole('button', { name: 'Salvar movimentação' }).click();
-    await expect(page.getByText('Estoque atualizado: 8 disponíveis.')).toBeVisible();
+    await closeToast(page, 'Estoque atualizado: 8 disponíveis.');
     await checkA11y(page);
     // Editing sends If-Match with the version on screen.
     await page.getByRole('tab', { name: 'Dados' }).click();

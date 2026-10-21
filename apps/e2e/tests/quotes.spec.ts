@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
+import { closeWelcomeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -35,6 +36,7 @@ async function signIn(page: Page, email: string): Promise<void> {
   await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).not.toHaveURL(/\/entrar/);
+  await closeWelcomeToast(page);
 }
 
 test.describe('orçamentos', () => {
@@ -50,6 +52,7 @@ test.describe('orçamentos', () => {
     await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page).toHaveURL(/\/orcamento$/);
+    await closeWelcomeToast(page);
 
     await page.locator('label', { hasText: 'Conserto de geladeira' }).click();
     await expect(page.getByRole('radio', { name: /Conserto de geladeira/ })).toBeChecked();
