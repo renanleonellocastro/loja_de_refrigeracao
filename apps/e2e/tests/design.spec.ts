@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible } from '../support/a11y.js';
+import { expectAccessible, expectAccessibleSettled } from '../support/a11y.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 test.describe('RNF-05 e RNF-06 guia vivo de componentes', () => {
@@ -29,7 +29,7 @@ test.describe('RNF-05 e RNF-06 guia vivo de componentes', () => {
     await page.getByRole('button', { name: 'Excluir produto' }).click();
     const confirm = page.getByRole('dialog', { name: 'Excluir este produto?' });
     await expect(confirm).toBeVisible();
-    await expectAccessible(page);
+    await expectAccessibleSettled(page);
     await confirm.getByRole('button', { name: 'Excluir produto' }).click();
     await expect(page.getByText('Produto excluído.')).toBeVisible();
   });
