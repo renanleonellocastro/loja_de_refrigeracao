@@ -4,6 +4,7 @@ import type { Executor } from '../../infra/db/client.js';
 import { conflict } from '../../shared/errors.js';
 import { pageOf, toLimitOffset, type PageQuery } from '../../shared/pagination.js';
 import { auditProductChange, type AuditMeta } from './audit.js';
+import { announceLowStock } from './low-stock.js';
 import { findForStaff } from './products.js';
 import * as repo from './repository.js';
 import type { StockMovementInput } from './schemas.js';
@@ -34,7 +35,7 @@ export const insufficientStock = (
 /** Direction of each manual movement: IN adds, LOSS subtracts, ADJUSTMENT keeps the sign sent. */
 const MOVEMENT_SIGN: Record<StockMovementInput['type'], number> = { IN: 1, LOSS: -1, ADJUSTMENT: 1 };
 
-type ManualMovement = repo.NewStockMovement & { reason: string | null };
+type ManualMovement = repo.NewStockMovement & { reason: string | null; authorId: number };
 
 /** Signed change of the available quantity for a manual movement. */
 export function deltaOf(input: { type: StockMovementInput['type']; quantity: number }): number {
@@ -88,7 +89,12 @@ function auditMovement(tx: Executor, meta: AuditMeta, movement: ManualMovement, 
   });
 }
 
+/** The author already sees the low stock flag in the response, so only the rest of the management is told. */
+const announceMovement = (ctx: AppContext, tx: Executor, { productId, quantity, authorId }: ManualMovement) =>
+  announceLowStock(ctx, tx, [{ productId, delta: quantity }], authorId);
+
 async function applyAuditedMovement(
+  ctx: AppContext,
   tx: Executor,
   movement: ManualMovement,
   stockMin: number | null,
@@ -97,6 +103,7 @@ async function applyAuditedMovement(
   const stockAvailable = await applyDeltaOrReject(tx, movement.productId, movement.quantity);
   const [row] = await repo.insertMovements(tx, [movement]);
   await auditMovement(tx, meta, movement, stockAvailable);
+  await announceMovement(ctx, tx, movement);
   return {
     movement: movementView(row!, await repo.findAuthorName(tx, meta.actor.userId)),
     stockAvailable,
@@ -124,7 +131,7 @@ export async function recordMovement(
     authorId: meta.actor.userId,
     createdAt: ctx.clock.now(),
   };
-  return ctx.db.transaction((tx) => applyAuditedMovement(tx, movement, product.stockMin, meta));
+  return ctx.db.transaction((tx) => applyAuditedMovement(ctx, tx, movement, product.stockMin, meta));
 }
 
 /** Sums quantities of repeated products and sorts by id, so concurrent orders lock rows in the same order. */
@@ -158,6 +165,17 @@ async function tryReserve(tx: Executor, item: StockRequest): Promise<Unavailable
   return { productId: item.productId, requested: item.quantity, available };
 }
 
+/** Records the reservations and alerts the management of products they took below the minimum. */
+async function recordReservations(ctx: AppContext, tx: Executor, reserved: repo.NewStockMovement[]) {
+  await repo.insertMovements(tx, reserved);
+  await announceLowStock(
+    ctx,
+    tx,
+    reserved.map(({ productId, quantity }) => ({ productId, delta: quantity })),
+    null,
+  );
+}
+
 /**
  * Reserves stock for an order inside the caller's transaction (RESERVATION movements).
  * Archived or missing products count as unavailable. Returns the items that could not be
@@ -165,6 +183,7 @@ async function tryReserve(tx: Executor, item: StockRequest): Promise<Unavailable
  * (for example by throwing `insufficientStock(items)`).
  */
 export async function reserveStock(
+  ctx: AppContext,
   tx: Executor,
   items: StockRequest[],
   link: StockLink,
@@ -177,7 +196,7 @@ export async function reserveStock(
     if (shortage) unavailable.push(shortage);
     else reserved.push(linkedMovement(link, now, { ...item, type: 'RESERVATION', quantity: -item.quantity }));
   }
-  if (unavailable.length === 0) await repo.insertMovements(tx, reserved);
+  if (unavailable.length === 0) await recordReservations(ctx, tx, reserved);
   return unavailable;
 }
 
