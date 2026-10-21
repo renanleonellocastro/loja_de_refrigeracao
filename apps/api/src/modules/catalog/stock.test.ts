@@ -182,6 +182,7 @@ describe('stock for orders (catalog service)', () => {
     const [a, b] = await products3();
     const unavailable = await t.db.transaction((tx) =>
       reserveStock(
+        t.ctx,
         tx,
         [
           { productId: a.id, quantity: 1 },
@@ -193,7 +194,7 @@ describe('stock for orders (catalog service)', () => {
       ),
     );
     expect(unavailable).toEqual([]);
-    expect(await reserveStock(t.db, [], {}, t.clock.now())).toEqual([]);
+    expect(await reserveStock(t.ctx, t.db, [], {}, t.clock.now())).toEqual([]);
     const movements = await t.db
       .select()
       .from(stockMovements)
@@ -213,6 +214,7 @@ describe('stock for orders (catalog service)', () => {
     const failure = await t.db
       .transaction(async (tx) => {
         const unavailable = await reserveStock(
+          t.ctx,
           tx,
           [
             { productId: a.id, quantity: 1 },
@@ -249,7 +251,13 @@ describe('stock for orders (catalog service)', () => {
       Array.from({ length: 8 }, () =>
         t.db
           .transaction(async (tx) => {
-            const unavailable = await reserveStock(tx, [{ productId: b.id, quantity: 1 }], {}, t.clock.now());
+            const unavailable = await reserveStock(
+              t.ctx,
+              tx,
+              [{ productId: b.id, quantity: 1 }],
+              {},
+              t.clock.now(),
+            );
             if (unavailable.length > 0) throw insufficientStock(unavailable);
             return 'reserved';
           })
@@ -264,7 +272,7 @@ describe('stock for orders (catalog service)', () => {
   it('releases reserved stock with RELEASE movements', async () => {
     const [a] = await products3();
     await t.db.transaction(async (tx) => {
-      await reserveStock(tx, [{ productId: a.id, quantity: 2 }], {}, t.clock.now());
+      await reserveStock(t.ctx, tx, [{ productId: a.id, quantity: 2 }], {}, t.clock.now());
       await releaseStock(tx, [{ productId: a.id, quantity: 2 }], { authorId: null }, t.clock.now());
     });
     const [row] = await t.db.select().from(products).where(eq(products.id, a.id));
