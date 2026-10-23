@@ -1,5 +1,5 @@
 import type { Executor } from '../../infra/db/client.js';
-import { conflict } from '../../shared/errors.js';
+import { type AppError, conflict } from '../../shared/errors.js';
 import * as users from './service.js';
 
 const emailTaken = () =>
@@ -38,4 +38,42 @@ export async function assertAvailable(
 ): Promise<void> {
   await assertEmailAvailable(db, email, exceptId);
   await assertCpfAvailable(db, cpf, exceptId);
+}
+
+const UNIQUE_VIOLATION = '23505';
+
+const TAKEN_BY_INDEX: ReadonlyMap<string, () => AppError> = new Map([
+  ['users_email_active_unique', emailTaken],
+  ['users_cpf_active_unique', cpfTaken],
+]);
+
+interface DatabaseFailure {
+  readonly code?: string;
+  readonly constraint?: string;
+  readonly cause?: DatabaseFailure;
+}
+
+function databaseFailure(error: unknown): DatabaseFailure {
+  const failure = error as DatabaseFailure;
+  return failure.cause ?? failure;
+}
+
+/**
+ * The checks above give the clear message; the unique indexes still guard two writes racing for the
+ * same email or CPF, and their violation answers the same conflict.
+ */
+export function mapTakenViolation(error: unknown): never {
+  const { code, constraint } = databaseFailure(error);
+  const taken = code === UNIQUE_VIOLATION ? TAKEN_BY_INDEX.get(String(constraint)) : undefined;
+  if (taken) throw taken();
+  throw error;
+}
+
+/** Runs a write that may race another account taking the same email or CPF. */
+export async function withAvailabilityGuard<Result>(write: () => Promise<Result>): Promise<Result> {
+  try {
+    return await write();
+  } catch (error) {
+    return mapTakenViolation(error);
+  }
 }
