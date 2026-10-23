@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { CircleAlert, CircleCheck, Info, X } from 'lucide-vue-next';
 
-/** Live region for useToast(). Mounted once in app.vue, above the phone bottom bar. */
+/**
+ * Live region for useToast(). Mounted once in app.vue. On phones it sits at the top of the screen, away from the form
+ * buttons and the bottom bar (issue #138); from md up it sits in the bottom right corner.
+ */
 const { toasts, dismiss, undo } = useToast();
 
 const TONES = {
@@ -14,14 +17,14 @@ const TONES = {
 <template>
   <section
     aria-label="Notificações"
-    class="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] flex flex-col items-center gap-2 px-4 md:right-6 md:bottom-6 md:left-auto md:items-end md:px-0"
+    class="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[60] flex flex-col items-center gap-2 px-4 md:top-auto md:right-6 md:bottom-6 md:left-auto md:items-end md:px-0"
   >
     <div aria-live="polite" aria-atomic="false" class="flex w-full flex-col items-center gap-2 md:items-end">
       <div
         v-for="toast in toasts"
         :key="toast.id"
         :role="toast.tone === 'error' ? 'alert' : 'status'"
-        class="pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface-raised py-3 pr-2 pl-4 shadow-lg animate-rc-rise"
+        class="pointer-events-auto relative flex w-full max-w-sm items-start gap-3 overflow-hidden rounded-lg border border-border bg-surface-raised py-3 pr-2 pl-4 shadow-lg animate-rc-drop md:animate-rc-rise"
       >
         <span class="absolute inset-y-0 left-0 w-1" :class="TONES[toast.tone].accent" aria-hidden="true" />
         <component

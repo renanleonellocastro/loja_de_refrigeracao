@@ -124,6 +124,17 @@
   }
 }
 
+@keyframes rc-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes rc-fade {
   from {
     opacity: 0;
@@ -162,6 +173,7 @@
 
 @theme {
   --animate-rc-rise: rc-rise var(--duration-base) var(--ease-brand) both;
+  --animate-rc-drop: rc-drop var(--duration-base) var(--ease-brand) both;
   --animate-rc-fade: rc-fade var(--duration-base) var(--ease-brand) both;
   --animate-rc-slide-left: rc-slide-left var(--duration-slow) var(--ease-brand) both;
   --animate-rc-slide-up: rc-slide-up var(--duration-slow) var(--ease-brand) both;
