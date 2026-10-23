@@ -24,12 +24,18 @@ async function createAccount(page: Page, email: string): Promise<void> {
   await expect(page.getByText('Pronto, Teste! Sua conta está criada.')).toBeVisible();
 }
 
+/** Drops the session without the account menu, which only some pages show. */
+async function forgetSession(page: Page): Promise<void> {
+  await page.context().clearCookies();
+  await page.evaluate(() => localStorage.clear());
+}
+
 test.describe('RF-01 e RF-04 conta', () => {
   // A fresh account per run: wrong passwords on a shared seed account add up to the login lockout (#141).
   test('entra, volta para a página pedida e sai', async ({ page }, testInfo) => {
     const email = uniqueEmail('entrar', testInfo);
     await createAccount(page, email);
-    await signOut(page);
+    await forgetSession(page);
     await open(page, '/perfil');
     await expect(page).toHaveURL(/\/entrar\?redirect=(%2F|\/)perfil/);
     await page.getByLabel('Email').fill(email);
