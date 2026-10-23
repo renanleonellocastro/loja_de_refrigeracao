@@ -2,8 +2,8 @@
 import { CircleAlert, CircleCheck, Info, X } from 'lucide-vue-next';
 
 /**
- * Live region for useToast(). Mounted once in app.vue. On phones it sits at the top of the screen, away from the form
- * buttons and the bottom bar (issue #138); from md up it sits in the bottom right corner.
+ * Live region for useToast(). Mounted once in app.vue. On phones it drops in from the top, over the header, so it never
+ * covers the bottom bar or the form buttons at the end of a page; from tablet up it sits in the bottom right corner.
  */
 const { toasts, dismiss, undo } = useToast();
 
@@ -17,7 +17,7 @@ const TONES = {
 <template>
   <section
     aria-label="Notificações"
-    class="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.75rem)] z-[60] flex flex-col items-center gap-2 px-4 md:top-auto md:right-6 md:bottom-6 md:left-auto md:items-end md:px-0"
+    class="pointer-events-none fixed inset-x-0 top-[calc(0.5rem+env(safe-area-inset-top))] z-[60] flex flex-col items-center gap-2 px-4 md:top-auto md:right-6 md:bottom-6 md:left-auto md:items-end md:px-0"
   >
     <div aria-live="polite" aria-atomic="false" class="flex w-full flex-col items-center gap-2 md:items-end">
       <div

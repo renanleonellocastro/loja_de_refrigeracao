@@ -105,7 +105,7 @@ Em **Orçamentos**, abra os pedidos novos e responda com o valor, a validade em 
 
 ### Produtos e estoque
 
-Em **Produtos**, cadastre e edite produtos com preço, condição e categoria, adicione fotos do produto (a primeira vira capa e dá para reordenar) e registre entradas, ajustes e perdas de estoque. Produtos abaixo do mínimo aparecem no painel.
+Em **Produtos**, cadastre e edite produtos com preço, condição e categoria, adicione fotos do produto (a primeira vira capa e dá para reordenar) e registre entradas, ajustes e perdas de estoque. Produtos abaixo do mínimo aparecem no painel. Quando uma movimentação ou um pedido deixa um produto abaixo do mínimo, gerentes e super usuários recebem um aviso na central de notificações e por email, uma vez só; o aviso volta a ser enviado se o estoque for reposto e cair de novo.
 
 ![Gerenciar produtos](assets/manual/gerente-produtos.webp)
 

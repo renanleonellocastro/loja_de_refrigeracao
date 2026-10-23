@@ -98,7 +98,7 @@ A página não é indexada (`robots: noindex`).
 | Ações | Botão (primário, secundário, fantasma, perigo; tamanhos; carregando), botão de ícone, menu de ações |
 | Formulários | Campo de texto, área de texto, senha com mostrar e força, select com busca, data e período, upload de fotos com prévia e câmera no celular, máscaras de CPF, CNPJ, telefone, CEP e dinheiro, mensagens de erro em linha |
 | Exibição | Card, card de produto, badge de estado, avatar, linha do tempo, galeria com zoom e gesto de deslizar, tabela responsiva (vira lista de cards no celular), descrição em pares |
-| Feedback | Toast com desfazer (no topo da tela no celular, para não cobrir os botões; no canto inferior direito a partir do tablet), alerta, diálogo de confirmação, esqueleto, estado vazio, barra de progresso |
+| Feedback | Toast com desfazer, alerta, diálogo de confirmação, esqueleto, estado vazio, barra de progresso |
 | Navegação | Cabeçalho público, barra lateral, trilho, barra inferior, abas, migalhas, paginação, busca global da equipe |
 | Agenda | Visões de mês, semana, dia e lista; cartão de serviço colorido por técnico; arrastar e soltar no desktop |
 
@@ -111,6 +111,7 @@ A página não é indexada (`robots: noindex`).
 | Área da equipe | Barra inferior com as 4 ações do papel e menu "Mais"; formulários em tela cheia | Trilho lateral; listas e detalhe lado a lado | Barra lateral, painel em grade, listas com detalhe lateral |
 | Agenda | Lista do dia com deslizar entre dias | Semana | Mês, semana e dia |
 | Tabelas | Cards empilhados | Tabela com colunas prioritárias | Tabela completa |
+| Toasts | No topo, sobre o cabeçalho, para nunca cobrir a barra inferior nem os botões do formulário | Canto inferior direito | Canto inferior direito |
 
 Regras gerais: mobile first; contêiner máximo de 1280 px; espaçamento em múltiplos de 4 px; alvos de toque de 44 px; respeito a `prefers-reduced-motion` e às áreas seguras do iPhone.
 

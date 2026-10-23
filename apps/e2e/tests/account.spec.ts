@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { uniqueEmail } from '../support/identity.js';
+import { closeWelcomeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -46,6 +47,7 @@ test.describe('RF-01 e RF-04 conta', () => {
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page).toHaveURL(/\/perfil$/);
     await expect(page.getByRole('heading', { name: 'Seus dados' })).toBeVisible();
+    await closeWelcomeToast(page);
     await signOut(page);
     await open(page, '/perfil');
     await expect(page).toHaveURL(/\/entrar/);

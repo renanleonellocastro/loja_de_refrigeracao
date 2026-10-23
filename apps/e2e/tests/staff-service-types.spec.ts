@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectAccessible } from '../support/a11y.js';
+import { expectAccessibleSettled } from '../support/a11y.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
@@ -15,19 +15,6 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await closeWelcomeToast(page);
 }
 
-/** Waits for toasts and sheets to finish fading in, so contrast is checked on the final colors. */
-async function checkA11y(page: Page): Promise<void> {
-  await page.evaluate(() =>
-    Promise.all(
-      document
-        .getAnimations()
-        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  );
-  await expectAccessible(page);
-}
-
 test.describe('RF-24 tipos de reparo e manutenção', () => {
   test('o super usuário cadastra, altera, desativa e exclui um tipo de serviço', async ({
     page,
@@ -41,7 +28,7 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
     await expect(page.getByRole('heading', { name: 'Tipos de serviço' })).toBeVisible();
     await expect(page.getByText('Conserto de geladeira').first()).toBeVisible();
     expect(await hasHorizontalScroll(page)).toBe(false);
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
 
     await page.getByRole('button', { name: 'Novo serviço' }).click();
     const dialog = page.getByRole('dialog');
@@ -50,7 +37,7 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
     await dialog.getByLabel('Duração estimada').fill('10');
     await dialog.getByRole('button', { name: 'Cadastrar serviço' }).click();
     await expect(dialog.getByText('Use um número inteiro de 15 a 1440 minutos.')).toBeVisible();
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
     await dialog.getByLabel('Duração estimada').fill('90');
     await dialog.getByRole('button', { name: 'Cadastrar serviço' }).click();
     await closeToast(page, `Serviço ${name} cadastrado.`);
@@ -68,7 +55,7 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
     await page.getByRole('button', { name: `Desativar ${edited}` }).click();
     await expect(page.getByText(`Serviço ${edited} desativado.`)).toBeVisible();
     await expect(editedRow.getByText('Inativo')).toBeVisible();
-    await checkA11y(page);
+    await expectAccessibleSettled(page);
 
     // Inactive types leave the public catalog of services.
     await open(page, '/servicos');
