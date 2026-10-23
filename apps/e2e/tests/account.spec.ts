@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { uniqueEmail } from '../support/identity.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -30,7 +31,7 @@ test.describe('RF-01 e RF-04 conta', () => {
   test('cria a conta, entra e exclui a conta', async ({ page }, testInfo) => {
     await open(page, '/criar-conta');
     await page.getByLabel('Nome completo').fill('Teste Automatizado');
-    await page.getByLabel('Email').fill(`e2e.${testInfo.project.name}.${Date.now()}@exemplo.com`);
+    await page.getByLabel('Email').fill(uniqueEmail('e2e', testInfo));
     await page.getByLabel('Telefone').fill('19999998888');
     await page.locator('input[autocomplete="new-password"]').nth(0).fill('Senha-Forte-2026');
     await page.locator('input[autocomplete="new-password"]').nth(1).fill('Senha-Forte-2026');

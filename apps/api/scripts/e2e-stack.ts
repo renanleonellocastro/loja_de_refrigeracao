@@ -33,6 +33,8 @@ const env = {
   APP_ORIGIN: process.env.E2E_APP_ORIGIN ?? 'http://localhost:3000',
   LOG_LEVEL: process.env.E2E_API_LOG_LEVEL ?? 'warn',
   STORAGE_PATH: process.env.E2E_STORAGE_PATH ?? './storage/e2e',
+  // Every run creates accounts on the same address; the production limit of 10 per hour would fail the suite (#140).
+  SIGN_UP_LIMIT_PER_HOUR: process.env.E2E_SIGN_UP_LIMIT_PER_HOUR ?? '1000',
 };
 const children = ['src/server.ts', 'src/worker.ts'].map((entry) =>
   spawn(process.execPath, ['--import', 'tsx', '--conditions=@rc/source', entry], { env, stdio: 'inherit' }),

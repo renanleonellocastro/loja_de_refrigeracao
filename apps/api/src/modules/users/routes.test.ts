@@ -571,3 +571,14 @@ describe('user routes', () => {
     });
   });
 });
+
+describe('sign up limit', () => {
+  const t = useTestApp({ SIGN_UP_LIMIT_PER_HOUR: '1' });
+
+  it('refuses sign ups past the configured number per address', async () => {
+    const signUp = (email: string) =>
+      t.app.inject({ method: 'POST', url: '/api/v1/customers', payload: { ...registration, email } });
+    expect((await signUp('primeira@exemplo.com.br')).statusCode).toBe(201);
+    expect((await signUp('segunda@exemplo.com.br')).statusCode).toBe(429);
+  });
+});

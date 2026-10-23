@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
+import { uniqueEmail } from '../support/identity.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
@@ -60,7 +61,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     const stamp = `${testInfo.project.name} ${Date.now()}`;
     const productName = `Filtro secador ${stamp}`;
     const customerName = `Cliente Balcão ${Date.now()}`;
-    const customerEmail = `balcao.${testInfo.project.name}.${Date.now()}@exemplo.com`;
+    const customerEmail = uniqueEmail('balcao', testInfo);
     await createCustomer(page, customerName, customerEmail);
 
     // The manager registers the product with its initial stock.

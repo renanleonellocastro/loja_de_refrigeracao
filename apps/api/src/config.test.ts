@@ -10,12 +10,23 @@ describe('loadConfig', () => {
       APP_ORIGIN: 'http://localhost:3000',
       COOKIE_SECURE: false,
       TRUST_PROXY: false,
+      SIGN_UP_LIMIT_PER_HOUR: 10,
     });
   });
 
   it('coerces numbers and booleans', () => {
-    const config = loadConfig({ PORT: '8080', COOKIE_SECURE: 'true', TRUST_PROXY: 'false' });
-    expect(config).toMatchObject({ PORT: 8080, COOKIE_SECURE: true, TRUST_PROXY: false });
+    const config = loadConfig({
+      PORT: '8080',
+      COOKIE_SECURE: 'true',
+      TRUST_PROXY: 'false',
+      SIGN_UP_LIMIT_PER_HOUR: '1000',
+    });
+    expect(config).toMatchObject({
+      PORT: 8080,
+      COOKIE_SECURE: true,
+      TRUST_PROXY: false,
+      SIGN_UP_LIMIT_PER_HOUR: 1000,
+    });
   });
 
   it('turns secure defaults on in production', () => {
