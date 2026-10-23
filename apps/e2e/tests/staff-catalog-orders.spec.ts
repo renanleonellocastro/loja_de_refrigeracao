@@ -1,6 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
-import { open } from '../support/viewport.js';
+import { uniqueEmail } from '../support/identity.js';
+import { closeToast, closeWelcomeToast } from '../support/toast.js';
+import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
 const PASSWORD = 'Castro-Dev-2026';
@@ -22,6 +24,7 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).toHaveURL(landing);
+  await closeWelcomeToast(page);
 }
 
 async function createCustomer(page: Page, name: string, email: string): Promise<void> {
@@ -45,7 +48,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     const stamp = `${testInfo.project.name} ${Date.now()}`;
     const productName = `Filtro secador ${stamp}`;
     const customerName = `Cliente Balcão ${Date.now()}`;
-    const customerEmail = `balcao.${testInfo.project.name}.${Date.now()}@exemplo.com`;
+    const customerEmail = uniqueEmail('balcao', testInfo);
     await createCustomer(page, customerName, customerEmail);
 
     // The manager registers the product with its initial stock.
@@ -66,6 +69,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await expectAccessibleSettled(page);
     await page.getByRole('button', { name: 'Cadastrar produto' }).click();
     await expect(page).toHaveURL(/\/produtos\/gerenciar\/\d+\?aba=fotos$/);
+    await closeToast(page, 'Produto cadastrado.');
     await expect(page.getByRole('heading', { level: 2, name: productName })).toBeVisible();
 
     // Photos: upload with progress, then it becomes the cover.
@@ -76,7 +80,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     });
     await expect(page.getByText('1 de 10 fotos')).toBeVisible();
     await page.getByRole('button', { name: 'Enviar fotos' }).click();
-    await expect(page.getByText('Foto enviada.')).toBeVisible();
+    await closeToast(page, 'Foto enviada.');
     await expect(page.getByRole('list', { name: 'Fotos do produto' }).getByText('Capa')).toBeVisible();
     await expectAccessibleSettled(page);
 
@@ -88,7 +92,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await stockDialog.getByLabel('Quantidade').fill('3');
     await stockDialog.getByLabel('Motivo').fill('Nota fiscal 123');
     await stockDialog.getByRole('button', { name: 'Salvar movimentação' }).click();
-    await expect(page.getByText('Estoque atualizado: 8 disponíveis.')).toBeVisible();
+    await closeToast(page, 'Estoque atualizado: 8 disponíveis.');
     await expectAccessibleSettled(page);
     // Editing sends If-Match with the version on screen.
     await page.getByRole('tab', { name: 'Dados' }).click();
@@ -141,6 +145,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await page.getByLabel('Cliente', { exact: true }).fill(customerEmail);
     await page.getByRole('button', { name: new RegExp(customerName) }).click();
     await expect(page.getByTestId('picked-customer')).toHaveText(customerName);
+    expect(await hasHorizontalScroll(page)).toBe(false);
     await expectAccessibleSettled(page);
     const sold = page.waitForRequest(
       (request) => request.method() === 'POST' && request.url().endsWith('/api/v1/counter-sales'),

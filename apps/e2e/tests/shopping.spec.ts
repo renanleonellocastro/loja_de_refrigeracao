@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
+import { uniqueEmail } from '../support/identity.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -24,7 +25,7 @@ test.describe('RF-20 a RF-24 compras', () => {
   test('visitante busca, adiciona ao carrinho, entra, fecha o pedido e cancela', async ({
     page,
   }, testInfo) => {
-    const email = `compras.${testInfo.project.name}.${Date.now()}@exemplo.com`;
+    const email = uniqueEmail('compras', testInfo);
     await createCustomer(page, email);
 
     // Search tolerates the typo and the catalog is public (D1).

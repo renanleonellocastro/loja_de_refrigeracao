@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
+import { closeWelcomeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -22,6 +23,7 @@ async function signIn(page: Page, email: string): Promise<void> {
   await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).not.toHaveURL(/\/entrar/);
+  await closeWelcomeToast(page);
 }
 
 async function next(page: Page): Promise<void> {
@@ -44,6 +46,7 @@ test.describe('RF-30 a RF-34 solicitações de visita', () => {
     await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page).toHaveURL(/\/agendar\?servico=\d+$/);
+    await closeWelcomeToast(page);
 
     const title = page.getByTestId('step-title');
     await expect(title).toHaveText('Qual serviço você precisa?');

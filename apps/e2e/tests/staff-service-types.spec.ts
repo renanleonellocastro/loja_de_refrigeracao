@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
+import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -11,6 +12,7 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).toHaveURL(landing);
+  await closeWelcomeToast(page);
 }
 
 test.describe('RF-24 tipos de reparo e manutenção', () => {
@@ -38,7 +40,7 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
     await expectAccessibleSettled(page);
     await dialog.getByLabel('Duração estimada').fill('90');
     await dialog.getByRole('button', { name: 'Cadastrar serviço' }).click();
-    await expect(page.getByText(`Serviço ${name} cadastrado.`)).toBeVisible();
+    await closeToast(page, `Serviço ${name} cadastrado.`);
     const row = page.getByRole('listitem').filter({ hasText: name });
     await expect(row.getByText('Duração estimada: 1h30')).toBeVisible();
 
