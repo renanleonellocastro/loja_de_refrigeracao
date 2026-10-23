@@ -144,7 +144,11 @@ function startOver(): void {
       </div>
     </div>
 
-    <div v-else class="grid items-start gap-5 md:grid-cols-[1fr_19rem] lg:grid-cols-[1fr_26rem]">
+    <!-- minmax(0, 1fr): a long customer name must not widen the page past the phone screen (#139). -->
+    <div
+      v-else
+      class="grid grid-cols-1 items-start gap-5 md:grid-cols-[minmax(0,1fr)_19rem] lg:grid-cols-[minmax(0,1fr)_26rem]"
+    >
       <section class="flex flex-col gap-4" aria-labelledby="counter-products">
         <h2 id="counter-products" class="text-lg font-bold text-text">Produtos</h2>
         <BaseTextField

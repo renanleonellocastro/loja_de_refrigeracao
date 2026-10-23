@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
-import { open } from '../support/viewport.js';
+import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
 const PASSWORD = 'Castro-Dev-2026';
@@ -157,6 +157,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await page.getByLabel('Cliente', { exact: true }).fill(customerEmail);
     await page.getByRole('button', { name: new RegExp(customerName) }).click();
     await expect(page.getByTestId('picked-customer')).toHaveText(customerName);
+    expect(await hasHorizontalScroll(page)).toBe(false);
     await checkA11y(page);
     const sold = page.waitForRequest(
       (request) => request.method() === 'POST' && request.url().endsWith('/api/v1/counter-sales'),
