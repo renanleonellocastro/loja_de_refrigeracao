@@ -14,16 +14,19 @@ import {
   toRequestListItem,
   type RequestRelations,
 } from './request-views.js';
-import { isFinal, type RequestStatus } from './status.js';
+import { isFinal, REQUEST_STATUSES, type RequestStatus } from './status.js';
 
 export const MAX_REQUEST_PHOTOS = 6;
 
 const REQUEST_OWNER_TYPE = 'SERVICE_REQUEST';
 const CUSTOMER_EDITABLE_STATUSES: readonly RequestStatus[] = ['REQUESTED', 'AWAITING_CUSTOMER'];
 
-export interface RequestListQuery {
-  readonly status?: RequestStatus[] | undefined;
+export interface RequestFacetsQuery {
   readonly q?: string | undefined;
+}
+
+export interface RequestListQuery extends RequestFacetsQuery {
+  readonly status?: RequestStatus[] | undefined;
   readonly page: number;
   readonly pageSize: number;
 }
@@ -47,21 +50,32 @@ export async function requestDetail(ctx: AppContext, viewer: AccessClaims, id: n
 }
 
 /** Customers see their own requests, technicians the assigned ones; only the staff searches. */
-function visibleRequestFilters(viewer: AccessClaims, query: RequestListQuery): repo.RequestFilters {
+function visibleRequestScope(viewer: AccessClaims, query: RequestFacetsQuery): repo.RequestScope {
   const isCustomer = viewer.role === 'CLIENT';
   return {
     customerId: isCustomer ? viewer.userId : undefined,
     employeeId: viewer.role === 'EMPLOYEE' ? viewer.userId : undefined,
-    statuses: query.status,
     q: isCustomer ? undefined : query.q,
-    limit: query.pageSize,
-    offset: (query.page - 1) * query.pageSize,
   };
 }
 
 export async function listVisibleRequests(ctx: AppContext, viewer: AccessClaims, query: RequestListQuery) {
-  const { rows, total } = await repo.listRequests(ctx.db, visibleRequestFilters(viewer, query));
+  const filters: repo.RequestFilters = {
+    ...visibleRequestScope(viewer, query),
+    statuses: query.status,
+    limit: query.pageSize,
+    offset: (query.page - 1) * query.pageSize,
+  };
+  const { rows, total } = await repo.listRequests(ctx.db, filters);
   return pageOf(rows.map(toRequestListItem), query, total);
+}
+
+/** Counts per status of the requests the viewer sees, with every status present and the search applied. */
+export async function requestFacets(ctx: AppContext, viewer: AccessClaims, query: RequestFacetsQuery) {
+  const rows = await repo.countRequestsByStatus(ctx.db, visibleRequestScope(viewer, query));
+  const counted = new Map(rows.map((row) => [row.status, row.count]));
+  const statuses = REQUEST_STATUSES.map((status) => ({ status, count: counted.get(status) ?? 0 }));
+  return { statuses, total: statuses.reduce((sum, item) => sum + item.count, 0) };
 }
 
 /** Customers add photos while the request is open; management until it ends. */

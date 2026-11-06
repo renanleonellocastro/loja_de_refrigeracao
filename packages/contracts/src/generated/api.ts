@@ -2802,6 +2802,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/service-requests/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Contagens por estado das solicitações visíveis
+         * @description Mesma visibilidade da listagem; aplica a busca e ignora o filtro de estado. Todos os estados aparecem, mesmo com zero.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceRequestFacets"];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/service-requests/{id}": {
         parameters: {
             query?: never;
@@ -9712,6 +9816,14 @@ export interface components {
             active: boolean;
             position: number;
         };
+        ServiceRequestFacetsInput: {
+            statuses: {
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                count: number;
+            }[];
+            total: number;
+        };
         ServiceRequestListItemInput: {
             id: number;
             /** @enum {string} */
@@ -10337,6 +10449,14 @@ export interface components {
             estimatedMinutes: number;
             active: boolean;
             position: number;
+        };
+        ServiceRequestFacets: {
+            statuses: {
+                /** @enum {string} */
+                status: "REQUESTED" | "AWAITING_CUSTOMER" | "APPROVED" | "SCHEDULED" | "AWAITING_COMPLETION_APPROVAL" | "COMPLETED" | "REJECTED" | "CANCELED";
+                count: number;
+            }[];
+            total: number;
         };
         ServiceRequestListItem: {
             id: number;

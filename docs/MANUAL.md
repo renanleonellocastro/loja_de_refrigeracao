@@ -87,7 +87,7 @@ Em **Pedidos**, filtre por situação, abra o pedido, imprima a etiqueta de sepa
 
 ### Solicitações de visita e agenda
 
-1. Em **Solicitações**, abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
+1. Em **Solicitações**, as abas mostram quantas solicitações há em cada estado (e em **Todas**), já contando a busca por número ou cliente. Abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
 2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita.
 3. Em **Aprovações**, revise as finalizações dos técnicos e aprove com o valor cobrado ou devolva para ajuste.
 

@@ -4,15 +4,26 @@ import { useToast } from '~/composables/useToast';
 import RequestPage from '~/pages/solicitacoes/[id].vue';
 import QueuePage from '~/pages/solicitacoes/index.vue';
 import { useAuthStore } from '~/stores/auth';
+import { SERVICE_REQUEST_STATUSES } from '~/utils/status';
 import { MANAGER_USER, click, fill, mockApi, problem, session } from '../support/api';
 import { APPOINTMENT, message, requestListItem, serviceRequest } from '../support/services';
-import { paged, press, settle, text, wait } from '../support/staff';
+import { openTab, paged, press, settle, text, wait } from '../support/staff';
 
 const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
 mockNuxtImport('navigateTo', () => navigateMock);
 
 const toastTitles = () => useToast().toasts.value.map((toast) => toast.title);
 const DETAIL = 'GET /api/v1/service-requests/41';
+const FACETS = 'GET /api/v1/service-requests/facets';
+const COUNTED = { REQUESTED: 2, AWAITING_CUSTOMER: 1, SCHEDULED: 4 } as Record<string, number>;
+const facets = {
+  body: {
+    statuses: SERVICE_REQUEST_STATUSES.map((status) => ({ status, count: COUNTED[status] ?? 0 })),
+    total: 7,
+  },
+};
+const tabLabels = () =>
+  [...document.querySelectorAll('[role="tab"]')].map((tab) => tab.textContent?.replace(/\s+/g, ' ').trim());
 
 afterEach(async () => {
   useAuthStore().clear();
@@ -24,18 +35,20 @@ afterEach(async () => {
 });
 
 describe('request queue', () => {
-  it('filters by status, searches and pages', async () => {
+  it('shows counts per status, switches tabs, searches and pages', async () => {
     useAuthStore().apply(session(MANAGER_USER));
-    const api = mockApi().on(
-      'GET /api/v1/service-requests',
-      paged([requestListItem(), requestListItem({ id: 42, status: 'AWAITING_CUSTOMER' })], 30),
-      paged([requestListItem({ id: 50 })], 30),
-      paged([]),
-      paged([]),
-      paged([]),
-      problem(500, 'Erro.'),
-      paged([requestListItem()]),
-    );
+    const api = mockApi()
+      .on(
+        'GET /api/v1/service-requests',
+        paged([requestListItem(), requestListItem({ id: 42, status: 'AWAITING_CUSTOMER' })], 30),
+        paged([requestListItem({ id: 50 })], 30),
+        paged([]),
+        paged([]),
+        paged([]),
+        problem(500, 'Erro.'),
+        paged([requestListItem()]),
+      )
+      .on(FACETS, facets, problem(500, 'Erro.'), facets);
     const page = await mountSuspended(QueuePage, {
       route: '/solicitacoes?estado=AWAITING_CUSTOMER',
       attachTo: document.body,
@@ -46,18 +59,30 @@ describe('request queue', () => {
     expect(page.find('a[href="/solicitacoes/42"]').exists()).toBe(true);
     expect(text()).toContain('Em conversa');
     expect(text()).toContain('Carla Cliente');
+    expect(tabLabels()).toEqual([
+      'Solicitado 2',
+      'Em conversa 1',
+      'Aprovado 0',
+      'Agendado 4',
+      'Aguardando aprovação 0',
+      'Concluído 0',
+      'Recusado 0',
+      'Cancelado 0',
+      'Todas 7',
+    ]);
 
     press('Próxima página');
     await settle();
     expect(calls()[1]!.url.searchParams.get('page')).toBe('2');
+    expect(tabLabels()[0]).toBe('Solicitado');
 
-    await fill('Estado', 'TODOS');
+    openTab('Todas');
     await settle();
     expect(calls()[2]!.url.searchParams.has('status')).toBe(false);
     await vi.waitFor(() => expect(useRouter().currentRoute.value.query.estado).toBe('TODOS'));
     expect(text()).toContain('Nenhuma solicitação');
 
-    await fill('Estado', 'CANCELED');
+    openTab('Cancelado');
     await settle();
     expect(text()).toContain('Nenhuma solicitação: cancelado');
 
@@ -65,6 +90,7 @@ describe('request queue', () => {
     await wait(350);
     await settle();
     expect(calls()[4]!.url.searchParams.get('q')).toBe('Carla');
+    expect(api.called(FACETS).at(-1)!.url.searchParams.get('q')).toBe('Carla');
     expect(text()).toContain('Nada encontrado para “Carla”');
 
     await fill('Buscar solicitações', 'Bia');
