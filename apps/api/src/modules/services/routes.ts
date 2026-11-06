@@ -20,6 +20,8 @@ import {
   rejectionSchema,
   requestCreationSchema,
   requestDetailSchema,
+  requestFacetsQuerySchema,
+  requestFacetsSchema,
   requestListItemSchema,
   requestListQuerySchema,
   serviceTypeInputSchema,
@@ -150,6 +152,22 @@ const listVisibleRequestsRoute = defineRoute({
     response: { 200: paginated(requestListItemSchema), ...errorResponses },
   },
   handle: async ({ ctx, request }) => requests.listVisibleRequests(ctx, requireAuth(request), request.query),
+});
+
+const requestFacetsRoute = defineRoute({
+  method: 'GET',
+  url: '/service-requests/facets',
+  config: { permission: 'serviceRequests.read' },
+  schema: {
+    tags,
+    summary: 'Contagens por estado das solicitações visíveis',
+    description:
+      'Mesma visibilidade da listagem; aplica a busca e ignora o filtro de estado. Todos os estados aparecem, mesmo com zero.',
+    security,
+    querystring: requestFacetsQuerySchema,
+    response: { 200: requestFacetsSchema, ...errorResponses },
+  },
+  handle: async ({ ctx, request }) => requests.requestFacets(ctx, requireAuth(request), request.query),
 });
 
 const requestDetailRoute = defineRoute({
@@ -286,6 +304,7 @@ const SERVICE_ROUTES = [
   removeServiceTypeRoute,
   createRequestRoute,
   listVisibleRequestsRoute,
+  requestFacetsRoute,
   requestDetailRoute,
   addRequestPhotosRoute,
   listRequestMessagesRoute,

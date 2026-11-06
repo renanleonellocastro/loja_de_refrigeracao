@@ -131,11 +131,15 @@ export async function listWindows(db: Executor, requestId: number) {
     .orderBy(asc(availabilityWindows.day), asc(availabilityWindows.period));
 }
 
-export interface RequestFilters {
+/** Which requests a query covers, before paging. */
+export interface RequestScope {
   customerId?: number | undefined;
   employeeId?: number | undefined;
   statuses?: RequestStatus[] | undefined;
   q?: string | undefined;
+}
+
+export interface RequestFilters extends RequestScope {
   limit: number;
   offset: number;
 }
@@ -165,7 +169,7 @@ function searchCondition(q: string): SQL {
   return ilike(customer.searchText, `%${normalizeText(q).replace(LIKE_WILDCARDS, '')}%`);
 }
 
-function requestConditions(filters: RequestFilters): SQL | undefined {
+function requestConditions(filters: RequestScope): SQL | undefined {
   const conditions: SQL[] = [];
   if (filters.customerId !== undefined) conditions.push(eq(serviceRequests.customerId, filters.customerId));
   if (filters.employeeId !== undefined) conditions.push(eq(appointments.employeeId, filters.employeeId));
@@ -203,6 +207,17 @@ export async function listRequests(db: Executor, filters: RequestFilters) {
   const rows = await selectRequestPage(db, where, filters);
   const total = await countRequests(db, where);
   return { rows, total };
+}
+
+/** How many requests of the scope sit in each status; statuses without requests are left out. */
+export async function countRequestsByStatus(db: Executor, scope: RequestScope) {
+  return db
+    .select({ status: serviceRequests.status, count: count() })
+    .from(serviceRequests)
+    .innerJoin(customer, eq(customer.id, serviceRequests.customerId))
+    .leftJoin(appointments, eq(appointments.serviceRequestId, serviceRequests.id))
+    .where(requestConditions(scope))
+    .groupBy(serviceRequests.status);
 }
 
 // Messages and media (shared by service requests and quotes)
