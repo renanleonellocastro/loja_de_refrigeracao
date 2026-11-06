@@ -43,7 +43,7 @@ Em **Orçamento**, escolha o tipo de serviço e descreva o que precisa (fotos aj
 
 ### Minha conta e privacidade
 
-Em **Perfil** você muda seus dados, endereço e senha. Um email novo só passa a valer depois de confirmado pelo link enviado a ele. Na aba de privacidade dá para baixar todos os seus dados e excluir a conta; os pedidos e serviços ficam anônimos no histórico da loja.
+Em **Perfil** você vê seus 3 últimos pedidos, serviços e orçamentos, cada um com link para a sua tela, e muda seus dados, endereço e senha. Um email novo só passa a valer depois de confirmado pelo link enviado a ele. Na aba de privacidade dá para baixar todos os seus dados e excluir a conta; os pedidos e serviços ficam anônimos no histórico da loja.
 
 ![Meus pedidos](assets/manual/cliente-pedidos.webp)
 

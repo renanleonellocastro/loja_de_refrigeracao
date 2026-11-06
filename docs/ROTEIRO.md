@@ -68,7 +68,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 
 * [x] #38 UC Cadastrar Cliente (autocadastro e pela equipe com convite)
 * [x] #39 UC Consultar Clientes com busca instantânea
-* [ ] #40 UC Consultar e Editar Perfil do Usuário (pendente: o perfil mostra só os últimos pedidos, sem serviços e orçamentos)
+* [x] #40 UC Consultar e Editar Perfil do Usuário
 * [x] #41 UC Excluir Cliente com anonimização
 * [ ] #42 UC Cadastrar, Consultar e Excluir Colaborador (pendente: excluir um colaborador ainda não sinaliza os serviços futuros dele)
 * [x] #43 UC Cadastrar, Consultar e Excluir Gerente

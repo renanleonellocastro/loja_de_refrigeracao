@@ -1,7 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { expectAccessibleSettled } from '../support/a11y.js';
 import { uniqueEmail } from '../support/identity.js';
 import { closeWelcomeToast } from '../support/toast.js';
-import { open } from '../support/viewport.js';
+import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
 const PASSWORD = 'Castro-Dev-2026';
@@ -51,6 +52,17 @@ test.describe('RF-01 e RF-04 conta', () => {
     await signOut(page);
     await open(page, '/perfil');
     await expect(page).toHaveURL(/\/entrar/);
+  });
+
+  test('mostra os últimos pedidos, serviços e orçamentos no perfil', async ({ page }, testInfo) => {
+    await createAccount(page, uniqueEmail('recentes', testInfo));
+    await open(page, '/perfil');
+    await expect(page.getByRole('heading', { name: 'Últimos pedidos' })).toBeVisible();
+    await expect(page.getByText('Nenhum pedido ainda.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Agendar visita' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Pedir orçamento' })).toBeVisible();
+    expect(await hasHorizontalScroll(page)).toBe(false);
+    await expectAccessibleSettled(page);
   });
 
   test('cria a conta, entra e exclui a conta', async ({ page }, testInfo) => {
