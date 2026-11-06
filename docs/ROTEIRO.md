@@ -90,7 +90,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 
 Carrinho, compra online com reserva de estoque, gestão da fila de pedidos, venda no balcão, histórico e remoção do protótipo. Dependência: depende do M4.
 
-* [ ] #54 UC Comprar Produto: fechar pedido com reserva de estoque (pendente: falta a tela para a equipe fechar pedido online em nome do cliente)
+* [x] #54 UC Comprar Produto: fechar pedido com reserva de estoque
 * [x] #55 Gerenciar Pedidos: fila, estados e etiqueta
 * [x] #56 UC Vender Produto no balcão
 * [x] #57 Emails e notificações do ciclo do pedido
