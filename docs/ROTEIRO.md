@@ -111,7 +111,7 @@ Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, 
 
 Agenda dos técnicos (mês, semana, dia), atribuição sem conflitos, finalização pelo celular e aprovação com valor. Dependência: depende do M6.
 
-* [ ] #65 UC Cadastrar Serviço na Agenda do Colaborador (pendente: falta o salvamento automático do formulário)
+* [x] #65 UC Cadastrar Serviço na Agenda do Colaborador
 * [x] #66 UC Consultar Agenda (mês, semana, dia e lista)
 * [x] #67 UC Alterar e Excluir Serviço da Agenda
 * [x] #68 UC Finalizar Serviço pelo celular

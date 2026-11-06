@@ -131,9 +131,15 @@ describe('visit detail for the management', () => {
     expect(text()).not.toContain('Remarcar atendimento');
     click('Remarcar');
     await settle();
+    await fill('Início', '10:30');
+    await settle();
     press('Fechar');
     await settle();
     expect(text()).not.toContain('Remarcar atendimento');
+    click('Remarcar');
+    await settle();
+    expect(text()).toContain('Recuperamos o rascunho guardado neste aparelho.');
+    expect((document.querySelector('input[type="time"]') as HTMLInputElement).value).toBe('10:30');
     page.unmount();
   });
 
