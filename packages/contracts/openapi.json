@@ -14022,6 +14022,7 @@
         "tags": [
           "Agenda"
         ],
+        "description": "Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.",
         "requestBody": {
           "required": true,
           "content": {
