@@ -41,7 +41,7 @@ export const appointment = (
       problem: 'Não gela embaixo desde ontem.',
       customer: { id: 4, name: 'Carla Cliente', phone: '19999998888' },
       address: {
-        street: 'Rua Doutor Ulhoa Cintra',
+        street: 'Rua Doutor Ulhôa Cintra',
         number: '91',
         complement: null,
         district: 'Centro',
