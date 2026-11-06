@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { MemoryMailer } from '../../infra/mail/mailer.js';
-import { testConfig } from '../../../test/harness.js';
+import { storeSettings } from '../../infra/db/schema.js';
+import { useTestApp } from '../../../test/harness.js';
+import { FALLBACK_FOOTER, formatAddress, formatPhone, storeFooter } from './footer.js';
 import { emailHandler } from './service.js';
-import { DEFAULT_FOOTER, escapeHtml, templates } from './templates.js';
+import { escapeHtml, templates } from './templates.js';
 
-const footer = { ...DEFAULT_FOOTER, appOrigin: 'https://refrigeracaocastro.com.br' };
+const footer = { ...FALLBACK_FOOTER, appOrigin: 'https://refrigeracaocastro.com.br' };
 
 describe('email templates', () => {
   it('escapes user provided values', () => {
@@ -65,18 +66,77 @@ describe('email templates', () => {
   });
 });
 
+const ADDRESS = {
+  cep: '13800061',
+  street: 'Avenida Brasil',
+  number: '1563',
+  complement: 'Loja 2',
+  district: 'Jardim Santa Helena',
+  city: 'Mogi Mirim',
+  state: 'SP',
+};
+const ORIGIN = 'https://refrigeracaocastro.com.br';
+
+describe('store footer', () => {
+  it('formats the configured store data for display', () => {
+    const contact = { name: 'Castro Peças', phone: '19998765432', whatsapp: '19998761111', address: ADDRESS };
+    expect(storeFooter(contact, ORIGIN)).toEqual({
+      appOrigin: ORIGIN,
+      name: 'Castro Peças',
+      phone: '(19) 99876-5432',
+      whatsapp: '(19) 99876-1111',
+      address: 'Avenida Brasil, 1563, Loja 2, Jardim Santa Helena, Mogi Mirim/SP',
+    });
+    expect(formatPhone('1938041658')).toBe('(19) 3804-1658');
+    expect(formatPhone(' 0800 ')).toBe('0800');
+    expect(formatAddress({ ...ADDRESS, complement: null, state: ' ' })).toBe(
+      'Avenida Brasil, 1563, Jardim Santa Helena, Mogi Mirim',
+    );
+  });
+
+  it('falls back only for the fields left empty', () => {
+    const blank = { ...ADDRESS, street: ' ' };
+    expect(storeFooter({ name: ' ', phone: '', whatsapp: null, address: blank }, ORIGIN)).toEqual({
+      ...FALLBACK_FOOTER,
+      appOrigin: ORIGIN,
+    });
+    expect(
+      storeFooter({ name: 'Castro', phone: '', whatsapp: null, address: ADDRESS }, ORIGIN),
+    ).toMatchObject({
+      name: 'Castro',
+      phone: FALLBACK_FOOTER.phone,
+    });
+  });
+});
+
 describe('emailHandler', () => {
-  it('renders the template and sends it', async () => {
-    const mailer = new MemoryMailer();
-    const handler = emailHandler({ mailer, config: testConfig() });
-    await handler({ to: 'ana@x.com', template: 'passwordChanged', data: { name: 'Ana' } });
-    expect(mailer.sent[0]).toMatchObject({ to: 'ana@x.com', subject: 'Sua senha foi alterada' });
+  const t = useTestApp();
+
+  const send = (template: string, data: unknown) => emailHandler(t.ctx)({ to: 'ana@x.com', template, data });
+
+  it('renders the template with the stored store data in the footer', async () => {
+    await send('passwordChanged', { name: 'Ana' });
+    const first = t.mailer.sent[0]!;
+    expect(first).toMatchObject({ to: 'ana@x.com', subject: 'Sua senha foi alterada' });
+    expect(
+      first.text.endsWith(
+        'Refrigeração Castro · Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP · (19) 3804-1658',
+      ),
+    ).toBe(true);
+    await t.db
+      .update(storeSettings)
+      .set({ name: 'Castro & Filhos', phone: '19998765432', whatsapp: '19998761111', address: ADDRESS });
+    await send('passwordChanged', { name: 'Ana' });
+    const second = t.mailer.sent[1]!;
+    expect(second.text).toContain(
+      'Castro & Filhos · Avenida Brasil, 1563, Loja 2, Jardim Santa Helena, Mogi Mirim/SP · (19) 99876-5432 · WhatsApp (19) 99876-1111',
+    );
+    expect(second.text).toContain('Ligue para a loja no (19) 99876-5432.');
+    expect(second.html).toContain('Castro &amp; Filhos · Avenida Brasil, 1563');
+    expect(second.html).not.toContain('3804-1658');
   });
 
   it('fails loudly for unknown templates', async () => {
-    const handler = emailHandler({ mailer: new MemoryMailer(), config: testConfig() });
-    await expect(handler({ to: 'a', template: 'nope', data: {} })).rejects.toThrowError(
-      'Unknown email template nope',
-    );
+    await expect(send('nope', {})).rejects.toThrowError('Unknown email template nope');
   });
 });
