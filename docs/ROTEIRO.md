@@ -79,7 +79,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO, movimentações de estoque. Dependência: depende do M3.
 
 * [x] #46 Gerenciar Categorias
-* [ ] #47 UC Cadastrar e Editar Produto (pendente: faltam as diferenças no aviso de conflito e o formulário em etapas no celular)
+* [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
 * [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
 * [x] #50 Página de detalhes do produto
