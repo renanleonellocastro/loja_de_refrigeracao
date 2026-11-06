@@ -90,7 +90,7 @@ Quando um cliente pedir por telefone ou WhatsApp, toque em **Novo pedido**: esco
 ### Solicitações de visita e agenda
 
 1. Em **Solicitações**, as abas mostram quantas solicitações há em cada estado (e em **Todas**), já contando a busca por número ou cliente. Abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
-2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita.
+2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita. O formulário de agendamento e o de remarcação salvam sozinhos neste aparelho enquanto você preenche: se a janela fechar ou a página recarregar, o que foi digitado volta ao abrir de novo. **Cancelar** descarta o rascunho.
 3. Em **Aprovações**, revise as finalizações dos técnicos e aprove com o valor cobrado ou devolva para ajuste.
 
 ![Solicitações de visita](assets/manual/gerente-solicitacoes.webp)
