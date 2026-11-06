@@ -30,7 +30,7 @@ export const FALLBACK_STORE: StorePublic = {
   legalName: STORE_INFO.legalName,
   cnpj: '63060560000151',
   phone: '1938041658',
-  whatsapp: null,
+  whatsapp: '19997641658',
   email: STORE_INFO.email,
   address: {
     cep: '13800061',
