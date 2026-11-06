@@ -1,6 +1,18 @@
 import tailwindcss from '@tailwindcss/vite';
 import { THEME_BOOT_SCRIPT } from './app/utils/theme';
 import { PRIVATE_ROUTES } from './app/utils/routes';
+import type { Nuxt } from 'nuxt/schema';
+
+/**
+ * The browser build rewrites definePageMeta to `false && definePageMeta(...)` (Nuxt 4.6), a branch that
+ * never runs and breaks the 100% branch coverage. Tests keep the call; production builds still drop it.
+ */
+function keepPageMetaInTests(_options: unknown, nuxt: Nuxt) {
+  if (!nuxt.options.test) return;
+  for (const build of Object.values(nuxt.options.optimization.treeShake.composables)) {
+    build['#app'] = (build['#app'] ?? []).filter((name) => name !== 'definePageMeta');
+  }
+}
 
 /** Modules shared by the public pages (home, catalog, product, services), bundled together. */
 const PUBLIC_SHARED_MODULES = new RegExp(
@@ -18,7 +30,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
   devtools: { enabled: false },
   features: { inlineStyles: true },
-  modules: ['@nuxt/fonts', '@nuxt/image', '@pinia/nuxt'],
+  modules: ['@nuxt/fonts', '@nuxt/image', '@pinia/nuxt', keepPageMetaInTests],
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [tailwindcss()],

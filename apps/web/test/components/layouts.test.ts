@@ -17,7 +17,6 @@ import { navigationFor } from '~/utils/navigation';
 import { mockApi } from '../support/api';
 import { storeData } from '../support/home';
 import { guestCart } from '../support/shop';
-import { settle } from '../support/staff';
 
 afterEach(() => {
   useActorPreview().value = null;
@@ -43,8 +42,10 @@ describe('default layout', () => {
 
     mockApi().on('GET /api/v1/store', { body: storeData({ whatsapp: '19999998888' }) });
     const withWhatsApp = await mountSuspended(DefaultLayout, { slots: { default: () => h('h1', 'Oi') } });
-    await settle();
-    expect(withWhatsApp.find('a[href^="https://wa.me/5519999998888"]').exists()).toBe(true);
+    // The button hydrates when the browser is idle, which on a cold worker takes more than one tick.
+    await vi.waitFor(() =>
+      expect(withWhatsApp.find('a[href^="https://wa.me/5519999998888"]').exists()).toBe(true),
+    );
     vi.unstubAllGlobals();
   });
 });
@@ -130,7 +131,7 @@ describe('area layout', () => {
     useActorPreview().value = 'CLIENT';
     const known = await mountSuspended(AreaLayout, { route: '/produtos' });
     expect(known.get('h1').text()).toBe('Produtos');
-    const unknown = await mountSuspended(AreaLayout, { route: '/sem-titulo' });
+    const unknown = await mountSuspended(AreaLayout, { route: '/sobre' });
     expect(unknown.get('h1').text()).toBe('Refrigeração Castro');
   });
 });

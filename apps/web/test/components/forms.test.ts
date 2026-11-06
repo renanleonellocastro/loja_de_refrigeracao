@@ -317,7 +317,8 @@ describe('BasePhotoUpload', () => {
 
   function stubBrowser() {
     let n = 0;
-    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => `blob:${++n}`), revokeObjectURL: vi.fn() });
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => `blob:${++n}`);
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     vi.stubGlobal(
       'createImageBitmap',
       vi.fn(async () => {
