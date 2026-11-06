@@ -1,0 +1,9 @@
+# Accepted findings of the ZAP baseline (make zap, docs/TESTES.md). Tab separated: rule id, action, reason.
+# IGNORE hides the alert; INFO lists it without failing. Any other warning or failure fails the scan.
+10027	IGNORE	Words like "select" and "query" in minified Nuxt chunks, not developer comments.
+10049	IGNORE	Hashed /_nuxt assets are cached for a year on purpose; pages carry no private data in the HTML.
+10055	IGNORE	style-src keeps unsafe-inline for Vue style bindings and the fonts (docs/SEGURANCA.md); removal tracked in #170.
+10096	IGNORE	Numbers in the Nuxt payload that look like Unix times, not server timestamps.
+10109	IGNORE	Informational: the site is a Nuxt application.
+10116	INFO	The ZAP image is pinned in infra/zap/compose.zap.yaml; bump it by hand when this shows up.
+90004	IGNORE	Cross-Origin-Resource-Policy is sent; Cross-Origin-Embedder-Policy require-corp would block the Google Maps frame.
