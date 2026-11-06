@@ -29,6 +29,7 @@ Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras
 * **Componentes**: cada componente base em todos os estados (padrão, foco, desabilitado, carregando, erro) e com teclado.
 * **Páginas**: fluxos da tela com a API simulada, incluindo erros de rede e respostas lentas.
 * **E2E**: um arquivo por caso de uso (`e2e/uc-solicitar-agendamento.spec.ts`), nomeado com o RF correspondente, rodando contra a stack completa com banco semeado e Mailpit para verificar os emails enviados.
+* **Teclado**: `apps/e2e/tests/keyboard.spec.ts` percorre os fluxos principais (atalho para o conteúdo, criar conta e entrar, comprar e cancelar, pedir visita técnica) só com Tab, Enter, Espaço, setas e digitação, sem cliques. O auxiliar `tabTo` de `apps/e2e/support/keyboard.ts` aperta Tab até o controle receber foco, então o teste prova que ele está na ordem de tabulação.
 
 ## 3. Contrato com Schemathesis
 
