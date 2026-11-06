@@ -40,6 +40,22 @@ export default tseslint.config(
     rules: { 'vue/no-v-html': 'off' },
   },
   {
+    // A limit checked after .trim() lets a padded value longer than the declared maxLength through.
+    files: ['apps/api/src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: [
+            "CallExpression[callee.property.name='max'][callee.object.callee.property.name='trim']",
+            "CallExpression[callee.property.name='max'][callee.object.callee.object.callee.property.name='trim']",
+          ].join(', '),
+          message: 'Use trimmedText() from shared/schemas.ts so the limit applies to the text as sent.',
+        },
+      ],
+    },
+  },
+  {
     // Tests declare small probe components next to each other.
     files: ['apps/web/test/**/*.ts'],
     rules: { 'vue/one-component-per-file': 'off' },
