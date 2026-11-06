@@ -69,6 +69,7 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 | Item | Requisito | Status | Como atendemos |
 |---|---|---|---|
 | 7.1.1, 7.1.2 | Logs sem credenciais nem dados pessoais | OK | `authorization` e `cookie` mascarados; erros de consulta registram só o erro do driver, sem os parâmetros (que podem ter dados pessoais). |
+| 7.3.3 | Logs de segurança protegidos contra alteração | OK | Trilha de auditoria somente de inserção: gatilho no banco recusa `UPDATE` e `DELETE` em `audit_logs` (migração `0005_audit_logs_append_only.sql`, teste em `audit/audit.test.ts`); a exclusão de conta anonimiza o usuário e mantém as entradas. |
 | 7.4.1 | Mensagem genérica em erro inesperado | OK | RFC 9457 com `requestId`; nenhum detalhe interno. Erros de dados do PostgreSQL causados pela entrada (texto com NUL, número fora da faixa) viram 422. |
 
 ## V8 Proteção de dados

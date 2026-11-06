@@ -36,6 +36,13 @@
       "when": 1791067467197,
       "tag": "0004_store_settings_default",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793995568393,
+      "tag": "0005_audit_logs_append_only",
+      "breakpoints": true
     }
   ]
 }
