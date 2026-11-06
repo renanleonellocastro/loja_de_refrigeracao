@@ -59,13 +59,22 @@ export const requestCreationSchema = z.object({
 
 export type RequestCreation = z.infer<typeof requestCreationSchema>;
 
+export const requestFacetsQuerySchema = z.object({ q: z.string().trim().max(100).optional() });
+
+export const requestFacetsSchema = z
+  .object({
+    statuses: z.array(z.object({ status: z.enum(REQUEST_STATUSES), count: z.number().int() })),
+    total: z.number().int(),
+  })
+  .meta({ id: 'ServiceRequestFacets' });
+
 export const requestListQuerySchema = z.object({
   status: z
     .string()
     .optional()
     .transform((value) => (value ? value.split(',') : undefined))
     .pipe(z.array(z.enum(REQUEST_STATUSES)).optional()),
-  q: z.string().trim().max(100).optional(),
+  ...requestFacetsQuerySchema.shape,
   ...pageQuerySchema.shape,
 });
 
