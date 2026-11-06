@@ -155,4 +155,42 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await expect(page.getByRole('heading', { name: 'Venda registrada!' })).toBeVisible();
     await expectAccessibleSettled(page);
   });
+
+  test('o gerente fecha um pedido online em nome de um cliente e ele entra na fila', async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(120_000);
+    const productName = 'Ar Condicionado Split Inverter Springer Midea 12000 BTUs';
+    const customerName = `Cliente Telefone ${Date.now()}`;
+    const customerEmail = uniqueEmail('telefone', testInfo);
+    await createCustomer(page, customerName, customerEmail);
+    await signIn(page, 'gerente@castro.dev', /\/painel/);
+    await open(page, '/pedidos');
+    await page.getByRole('link', { name: 'Novo pedido' }).click();
+    await expect(page).toHaveURL(/\/pedidos\/novo$/);
+    await page.getByLabel('Buscar produto').fill('Midea');
+    await page.getByRole('button', { name: `Adicionar ${productName}` }).click();
+    await page.getByLabel('Cliente', { exact: true }).fill(customerEmail);
+    await page.getByRole('button', { name: new RegExp(customerName) }).click();
+    await expect(page.getByTestId('picked-customer')).toHaveText(customerName);
+    await expect(page.getByText('Retirada na loja.')).toBeVisible();
+    expect(await hasHorizontalScroll(page)).toBe(false);
+    await expectAccessibleSettled(page);
+    const placed = page.waitForRequest(
+      (request) => request.method() === 'POST' && request.url().endsWith('/api/v1/orders'),
+    );
+    await page.getByRole('button', { name: 'Fechar pedido' }).click();
+    expect((await placed).headers()['idempotency-key']).toMatch(/^[0-9a-f-]{36}$/);
+    await expect(page.getByRole('heading', { name: 'Pedido fechado!' })).toBeVisible();
+    const number = (await page.getByTestId('sale-number').textContent())!;
+    await expectAccessibleSettled(page);
+
+    // The order waits for review like any online order; canceling gives the reserved unit back to the stock.
+    await page.getByRole('link', { name: 'Ver pedido' }).click();
+    await expect(page.getByRole('heading', { name: `Pedido ${number}` })).toBeVisible();
+    await expect(page.locator('[data-status="PENDING_REVIEW"]').first()).toBeVisible();
+    await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancelar pedido' }).click();
+    await closeToast(page, 'Pedido cancelado. Os itens voltaram para o estoque.');
+  });
 });

@@ -83,6 +83,8 @@ O gerente faz tudo o que o colaborador faz e cuida da operação da loja. O **Pa
 
 Em **Pedidos**, filtre por situação, abra o pedido, imprima a etiqueta de separação e marque **Pronto para retirada** e depois **Retirado**. Cancelamentos pedem um motivo, que vai para o cliente.
 
+Quando um cliente pedir por telefone ou WhatsApp, toque em **Novo pedido**: escolha o cliente (ou cadastre na hora), adicione os produtos e toque em **Fechar pedido**. Os itens ficam reservados, o cliente recebe o email do pedido e o pedido entra na fila **Em análise** como qualquer pedido do site; ele paga na retirada.
+
 ![Fila de pedidos](assets/manual/gerente-pedidos.webp)
 
 ### Solicitações de visita e agenda
