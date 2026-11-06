@@ -79,6 +79,7 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 | 8.2.1 | Sem cache de dados sensíveis | OK | Respostas autenticadas sem `Cache-Control` público; token de acesso só em memória. |
 | 8.3.1 | Dados sensíveis fora da URL | OK | Senhas e tokens no corpo; os tokens de links de email são de uso único. |
 | 8.3.2 | Exportação e exclusão dos dados do usuário | OK | `GET /me/data-export` e `DELETE /me` com anonimização (LGPD). |
+| 8.3.8 | Retenção de dados pessoais | OK | Tarefa diária do worker (`modules/retention`) apaga sessões expiradas ou encerradas há mais de 30 dias e fotos de serviços finalizados há mais de 5 anos; a trilha de auditoria não é apagada (`docs/OPERACAO.md` seção 4.5). |
 
 ## V9 Comunicação
 
