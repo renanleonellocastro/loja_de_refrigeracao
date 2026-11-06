@@ -294,7 +294,9 @@ describe('finalizing a service', () => {
     expect(keys).toHaveBeenCalledTimes(1);
     await online();
     await online();
-    expect(api.called(REPORT)[3]!.body).toMatchObject({ repairDescription: 'Limpeza do condensador e do filtro.' });
+    expect(api.called(REPORT)[3]!.body).toMatchObject({
+      repairDescription: 'Limpeza do condensador e do filtro.',
+    });
     expect(sent).toHaveLength(1);
     expect(toastTitles()).toContain('Serviço finalizado. A gerência vai conferir o relatório.');
     expect(loadDraft(9)).toBeNull();

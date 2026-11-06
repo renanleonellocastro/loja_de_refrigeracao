@@ -125,8 +125,8 @@ async function send(): Promise<void> {
   <form class="flex flex-col gap-5" novalidate @submit.prevent="send">
     <BaseAlert v-if="resend.pending.value" tone="warning" title="Sem conexão" data-testid="report-offline">
       Guardamos o que você escreveu neste aparelho. Quando a internet voltar, enviamos a finalização sozinhos;
-      deixe esta página aberta. Se ela for fechada, toque em Finalizar serviço de novo e escolha as fotos outra
-      vez.
+      deixe esta página aberta. Se ela for fechada, toque em Finalizar serviço de novo e escolha as fotos
+      outra vez.
     </BaseAlert>
     <BaseAlert v-else-if="form.message.value" tone="danger" title="Não deu para finalizar">
       {{ form.message.value }}
