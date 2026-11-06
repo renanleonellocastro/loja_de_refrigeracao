@@ -4,16 +4,15 @@ export interface Email {
   text: string;
 }
 
+/** Store identity shown at the bottom of every email, already formatted for display. */
 export interface StoreFooter {
   appOrigin: string;
+  name: string;
   phone: string;
+  /** Empty when the store has no WhatsApp. */
+  whatsapp: string;
   address: string;
 }
-
-export const DEFAULT_FOOTER: Omit<StoreFooter, 'appOrigin'> = {
-  phone: '(19) 3804-1658',
-  address: 'Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP',
-};
 
 export function escapeHtml(value: string): string {
   return value
@@ -42,6 +41,11 @@ interface Block {
   note?: string;
 }
 
+/** Phone, plus the WhatsApp when the store has one. */
+function contactLine(footer: StoreFooter): string {
+  return footer.whatsapp ? `${footer.phone} · WhatsApp ${footer.whatsapp}` : footer.phone;
+}
+
 /** Branded, table based layout that renders in the common email clients. */
 function layout(block: Block, footer: StoreFooter): string {
   const paragraphs = block.paragraphs
@@ -53,7 +57,7 @@ function layout(block: Block, footer: StoreFooter): string {
   const note = block.note
     ? `<p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:#5B6470">${block.note}</p>`
     : '';
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(block.heading)}</title></head><body style="margin:0;background:#F6F7F9;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7F9"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;border-radius:16px;overflow:hidden"><tr><td style="background:#184E86;padding:24px;text-align:center"><img src="${footer.appOrigin}/brand/logo-email.png" width="220" alt="Refrigeração Castro" style="display:inline-block;border:0"></td></tr><tr><td style="padding:32px 28px"><h1 style="margin:0 0 20px;font-size:22px;line-height:1.3;color:#0E2E52">${escapeHtml(block.heading)}</h1>${paragraphs}${action}${note}</td></tr><tr><td style="background:#0E2E52;padding:20px 28px;color:#DCE8F6;font-size:13px;line-height:1.6;text-align:center">Refrigeração Castro · ${escapeHtml(footer.address)}<br>${escapeHtml(footer.phone)} · <a href="${footer.appOrigin}" style="color:#FFFFFF">${footer.appOrigin.replace(/^https?:\/\//, '')}</a></td></tr></table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(block.heading)}</title></head><body style="margin:0;background:#F6F7F9;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F7F9"><tr><td align="center" style="padding:24px 12px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;border-radius:16px;overflow:hidden"><tr><td style="background:#184E86;padding:24px;text-align:center"><img src="${footer.appOrigin}/brand/logo-email.png" width="220" alt="Refrigeração Castro" style="display:inline-block;border:0"></td></tr><tr><td style="padding:32px 28px"><h1 style="margin:0 0 20px;font-size:22px;line-height:1.3;color:#0E2E52">${escapeHtml(block.heading)}</h1>${paragraphs}${action}${note}</td></tr><tr><td style="background:#0E2E52;padding:20px 28px;color:#DCE8F6;font-size:13px;line-height:1.6;text-align:center">${escapeHtml(footer.name)} · ${escapeHtml(footer.address)}<br>${escapeHtml(contactLine(footer))} · <a href="${footer.appOrigin}" style="color:#FFFFFF">${footer.appOrigin.replace(/^https?:\/\//, '')}</a></td></tr></table></td></tr></table></body></html>`;
 }
 
 function plain(block: Block, footer: StoreFooter): string {
@@ -65,7 +69,7 @@ function plain(block: Block, footer: StoreFooter): string {
     ...(block.action ? ['', `${block.action.label}: ${block.action.url}`] : []),
     ...(block.note ? ['', strip(block.note)] : []),
     '',
-    `Refrigeração Castro · ${footer.address} · ${footer.phone}`,
+    `${footer.name} · ${footer.address} · ${contactLine(footer)}`,
   ].join('\n');
 }
 
