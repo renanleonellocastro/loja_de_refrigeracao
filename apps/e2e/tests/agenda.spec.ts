@@ -173,10 +173,18 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     });
     await expect(technician.getByText('1 de 8 fotos')).toBeVisible();
     await expectAccessibleSettled(technician);
+    // The signal drops while sending: the phone sends again by itself, with the same key, when it returns.
+    await phone.setOffline(true);
+    await technician.getByRole('button', { name: 'Finalizar serviço' }).click();
+    await expect(technician.getByTestId('report-offline')).toBeVisible();
+    const resent = technician.waitForRequest(
+      (request) => request.method() === 'POST' && /\/appointments\/\d+\/report$/.test(request.url()),
+    );
     const photos = technician.waitForResponse((response) =>
       /\/appointments\/\d+\/report\/photos$/.test(response.url()),
     );
-    await technician.getByRole('button', { name: 'Finalizar serviço' }).click();
+    await phone.setOffline(false);
+    expect((await resent).headers()['idempotency-key']).toMatch(/^[0-9a-f-]{36}$/);
     expect((await photos).status()).toBe(201);
     await expect(technician.locator('[data-status="AWAITING_COMPLETION_APPROVAL"]')).toBeVisible();
     await expect(technician.getByRole('img', { name: /Foto 1 do serviço/ })).toBeVisible();

@@ -35,7 +35,7 @@ Registre as rotas em `src/app.ts` dentro do bloco com prefixo `/api/v1`.
 * Criação: `201` com cabeçalho `location`. Exclusão ou ação sem corpo: `204` com `noContentSchema`.
 * Listas: `pageQuerySchema` e `paginated(itemSchema)`; responda com `pageOf(rows, query, total)`.
 * Edição concorrente (produto, agendamento): devolva `etag` com `etagFor(version)` no GET e chame `assertIfMatch(request.headers['if-match'], row.version)` no PATCH, incrementando `version`.
-* Criações que o cliente pode repetir (pedido, venda no balcão, solicitação, orçamento): `config: { idempotent: true }`.
+* Criações que o cliente pode repetir (pedido, venda no balcão, solicitação, orçamento, finalização do serviço): `config: { idempotent: true }`.
 * Uploads: `readMultipart(request, maxFiles)` e `storeImage(ctx.storage, buffer)`; exponha imagens com `imageView()` e `imageSchema`.
 
 ### Erros
