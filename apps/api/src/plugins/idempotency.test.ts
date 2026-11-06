@@ -15,6 +15,10 @@ describe('Idempotency-Key', () => {
       calls += 1;
       return reply.code(201).send({ call: calls });
     });
+    app.post('/idem/:id', { config: { idempotent: true } }, async (_request, reply) => {
+      calls += 1;
+      return reply.send({ call: calls });
+    });
     app.post('/idem-fail', { config: { idempotent: true } }, async () => {
       throw new Error('boom');
     });
@@ -65,6 +69,13 @@ describe('Idempotency-Key', () => {
     expect(reused.json()).toMatchObject({ status: 422, title: 'Chave de idempotência já usada' });
     const bad = await post('/idem', { ...headers, 'idempotency-key': 'curta' });
     expect(bad.json()).toMatchObject({ title: 'Chave de idempotência inválida' });
+  });
+
+  it('refuses a key repeated on another address of the same route', async () => {
+    const { headers } = await t.as('CLIENT');
+    const h = { ...headers, 'idempotency-key': 'outro-endereco-1' };
+    expect((await post('/idem/1', h)).statusCode).toBe(200);
+    expect((await post('/idem/2', h)).json()).toMatchObject({ title: 'Chave de idempotência já usada' });
   });
 
   it('ignores the key for guests, server errors and non JSON bodies', async () => {
