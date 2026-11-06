@@ -25,10 +25,14 @@ describe('CatalogProductImage', () => {
     const img = wrapper.get('img');
     expect(img.attributes('src')).toBe('http://localhost:3001/api/v1/media/abc/960.webp');
     expect(img.attributes('srcset')).toContain('http://localhost:3001/api/v1/media/abc/320.webp 320w');
+    const avif = wrapper.get('picture source[type="image/avif"]');
+    expect(avif.attributes('srcset')).toContain('http://localhost:3001/api/v1/media/abc/320.avif 320w');
+    expect(avif.attributes('sizes')).toBe(img.attributes('sizes'));
     expect(img.attributes('width')).toBe('1200');
     expect(img.attributes('loading')).toBe('eager');
     expect(img.attributes('fetchpriority')).toBe('high');
     await img.trigger('error');
+    expect(wrapper.find('picture').exists()).toBe(false);
     expect(wrapper.get('img').attributes('src')).toBe('/illustrations/produto-sem-foto.svg');
     expect(wrapper.get('img').attributes('alt')).toBe('Compressor, sem foto');
     expect(wrapper.get('img').attributes('loading')).toBe('eager');
@@ -38,6 +42,17 @@ describe('CatalogProductImage', () => {
     expect(wrapper.get('img').attributes('fetchpriority')).toBeUndefined();
     await wrapper.setProps({ image: null, alt: '' });
     expect(wrapper.get('img').attributes('alt')).toBe('');
+  });
+});
+
+describe('CatalogProductImage without AVIF', () => {
+  it('keeps the WebP variants for covers saved before AVIF existed', async () => {
+    const { avifSrcset: _saved, ...legacy } = IMAGE;
+    const wrapper = await mountSuspended(CatalogProductImage, {
+      props: { image: legacy as typeof IMAGE, alt: 'Compressor' },
+    });
+    expect(wrapper.find('source').exists()).toBe(false);
+    expect(wrapper.get('img').attributes('srcset')).toContain('/api/v1/media/abc/320.webp 320w');
   });
 });
 

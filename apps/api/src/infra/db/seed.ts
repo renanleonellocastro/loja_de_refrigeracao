@@ -4,7 +4,7 @@ import sharp from 'sharp';
 import type { Role } from '@rc/contracts';
 import { hashPassword } from '../../modules/auth/passwords.js';
 import { productSearchText } from '../../modules/catalog/service.js';
-import { storeImage, type StoredImage } from '../../modules/media/service.js';
+import { storeImageNow, type StoredImage } from '../../modules/media/service.js';
 import { slugify } from '../../shared/text.js';
 import type { Storage } from '../storage/storage.js';
 import type { Database, Transaction } from './client.js';
@@ -276,7 +276,7 @@ async function illustrationPhoto(storage: Storage, name: Illustration): Promise<
     .flatten({ background: '#ffffff' })
     .jpeg({ quality: 90 })
     .toBuffer();
-  return storeImage(storage, photo);
+  return storeImageNow(storage, photo);
 }
 
 type CategoryIds = ReadonlyMap<string, number>;
