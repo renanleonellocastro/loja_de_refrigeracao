@@ -34,7 +34,7 @@ Aprovação do replanejamento, monorepo, CI com cobertura de 100%, ambiente loca
 * [ ] #15 Informações pendentes da Refrigeração Castro (pendente: aguarda as informações do dono da loja)
 * [x] #16 Monorepo pnpm com TypeScript estrito, ESLint e Prettier
 * [x] #17 CI no GitHub Actions com portões de qualidade e cobertura de 100%
-* [ ] #18 Ambiente local em um comando com Docker Compose (pendente: falta o seed com pedidos e serviços em vários estados e o passo a passo para Mac, Linux e Windows)
+* [x] #18 Ambiente local em um comando com Docker Compose, seed com pedidos, orçamentos e serviços em todos os estados e passo a passo para Mac, Linux e Windows (WSL)
 * [x] #19 Higiene do repositório: tokens, scripts de teste, licença e README
 * [x] #20 Convenções de contribuição: branches, commits, templates de PR e issue
 
