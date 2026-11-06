@@ -59,7 +59,7 @@ A tela **Hoje** mostra as visitas do dia em ordem, com cliente, endereço e hor�
 
 ### Atender e finalizar um serviço
 
-Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo.
+Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo. Se o sinal cair na hora de enviar, o que você escreveu fica guardado no celular e a finalização é enviada sozinha quando a internet voltar, sem duplicar; deixe a página aberta até aparecer a confirmação.
 
 <img src="assets/manual/colaborador-atendimento.webp" alt="Atendimento com o formulário de finalização" width="300">
 

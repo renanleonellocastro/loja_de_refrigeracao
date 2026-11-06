@@ -135,7 +135,7 @@ Página inicial com a marca, páginas institucionais, SEO local, painel da equip
 * [x] #78 Painel da equipe com indicadores
 * [x] #79 Central de notificações
 * [x] #80 Configurar a Loja
-* [ ] #81 PWA instalável com suporte básico offline (pendente: falta a sincronização automática ao reconectar)
+* [x] #81 PWA instalável com suporte básico offline
 
 ## M10 Qualidade final e lançamento (épico #82)
 

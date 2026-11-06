@@ -2,11 +2,13 @@
 import { CheckCheck } from 'lucide-vue-next';
 import { MAX_REPORT_PHOTOS, clearDraft, loadDraft, saveDraft, type ReportDraft } from '~/utils/agenda';
 import { usePhotoUpload } from '~/composables/usePhotoUpload';
+import { useResendOnReconnect } from '~/composables/useResendOnReconnect';
 
 /**
  * UC Finalizar Serviço: defect found or not, what was repaired and photos of the work. The text is kept on
- * the device while typing, so a dropped connection loses nothing; sending again after a rework request
- * replaces the report.
+ * the device while typing, so a dropped connection loses nothing, and a send that found no connection goes
+ * again by itself when it comes back (issue #81). The Idempotency-Key only changes with the text, so that
+ * resend never finalizes twice; sending again after a rework request replaces the report.
  */
 const props = defineProps<{ appointment: Appointment }>();
 const emit = defineEmits<{ done: [appointment: Appointment] }>();
@@ -42,13 +44,17 @@ const form = useForm(initial(), {
 });
 
 const photos = ref<File[]>([]);
-const offline = ref(false);
+const resend = useResendOnReconnect(send);
+let idempotencyKey = crypto.randomUUID();
 const existingPhotos = computed(() => props.appointment.report?.photos.length ?? 0);
 const photoLimit = computed(() => Math.max(0, MAX_REPORT_PHOTOS - existingPhotos.value));
 
 watch(
   () => ({ ...form.values }),
-  (values) => saveDraft(props.appointment.id, values),
+  (values) => {
+    saveDraft(props.appointment.id, values);
+    idempotencyKey = crypto.randomUUID();
+  },
   { deep: true },
 );
 
@@ -81,13 +87,16 @@ function reportBody(values: ReportDraft) {
   };
 }
 
-/** Posts the report; a dropped connection shows the warning that the draft stays on the device. */
+/** Posts the report; a dropped connection keeps the draft on the device and waits to send it again. */
 async function postReport(values: ReportDraft): Promise<Appointment> {
   try {
     const params = { path: { id: props.appointment.id } };
-    return await unwrap(api.POST('/api/v1/appointments/{id}/report', { params, body: reportBody(values) }));
+    const headers = { 'Idempotency-Key': idempotencyKey };
+    return await unwrap(
+      api.POST('/api/v1/appointments/{id}/report', { params, headers, body: reportBody(values) }),
+    );
   } catch (error) {
-    offline.value = toApiError(error).status === 0;
+    if (toApiError(error).status === 0) resend.wait();
     throw error;
   }
 }
@@ -101,10 +110,11 @@ async function submitReport(): Promise<Appointment | undefined> {
 }
 
 async function send(): Promise<void> {
-  offline.value = false;
+  resend.cancel();
   const report = await submitReport();
   if (!report) return;
   clearDraft(props.appointment.id);
+  idempotencyKey = crypto.randomUUID();
   const withPhotos = photos.value.length > 0 ? await uploadPhotos() : null;
   toast.success({ title: 'Serviço finalizado. A gerência vai conferir o relatório.' });
   emit('done', withPhotos ?? report);
@@ -113,9 +123,10 @@ async function send(): Promise<void> {
 
 <template>
   <form class="flex flex-col gap-5" novalidate @submit.prevent="send">
-    <BaseAlert v-if="offline" tone="warning" title="Sem conexão" data-testid="report-offline">
-      Guardamos o que você escreveu neste aparelho. Quando a internet voltar, toque em Finalizar serviço de
-      novo. As fotos precisam ser escolhidas outra vez se a página for fechada.
+    <BaseAlert v-if="resend.pending.value" tone="warning" title="Sem conexão" data-testid="report-offline">
+      Guardamos o que você escreveu neste aparelho. Quando a internet voltar, enviamos a finalização sozinhos;
+      deixe esta página aberta. Se ela for fechada, toque em Finalizar serviço de novo e escolha as fotos
+      outra vez.
     </BaseAlert>
     <BaseAlert v-else-if="form.message.value" tone="danger" title="Não deu para finalizar">
       {{ form.message.value }}

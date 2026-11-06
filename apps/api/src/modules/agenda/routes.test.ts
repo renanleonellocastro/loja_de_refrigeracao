@@ -451,6 +451,23 @@ describe('agenda routes', () => {
       expect(t.lastEmailTo(customer.email)?.text).toContain('Nenhum defeito encontrado.');
     });
 
+    it('replays a report resent with the same Idempotency-Key instead of refusing it', async () => {
+      const tech = await t.as('EMPLOYEE');
+      const { id } = await scheduledFor(tech.user);
+      const resend = () =>
+        t.app.inject({
+          method: 'POST',
+          url: `/api/v1/appointments/${id}/report`,
+          headers: { ...tech.headers, 'idempotency-key': 'finalizacao-reenviada-1' },
+          payload: { defectFound: false, repairDescription: 'Limpeza do condensador.' },
+        });
+      const first = await resend();
+      const second = await resend();
+      expect(second.statusCode).toBe(200);
+      expect(second.headers['idempotent-replayed']).toBe('true');
+      expect(second.json()).toEqual(first.json());
+    });
+
     it('allows only the assigned technician and only in the right state', async () => {
       const tech = await t.as('EMPLOYEE');
       const other = await t.as('EMPLOYEE');

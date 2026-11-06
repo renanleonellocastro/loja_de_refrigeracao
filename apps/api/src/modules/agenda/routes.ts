@@ -147,10 +147,12 @@ const availabilityRoute = defineRoute({
 const submitReportRoute = defineRoute({
   method: 'POST',
   url: '/appointments/:id/report',
-  config: { permission: 'appointments.complete' },
+  config: { permission: 'appointments.complete', idempotent: true },
   schema: {
     tags,
     summary: 'Finalizar o serviço (técnico do atendimento)',
+    description:
+      'Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.',
     security,
     params: idParamSchema,
     body: reportInputSchema,
