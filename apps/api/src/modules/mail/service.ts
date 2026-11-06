@@ -1,7 +1,9 @@
 import type { AppContext } from '../../context.js';
 import type { Executor } from '../../infra/db/client.js';
 import { enqueue, type OutboxHandler } from '../outbox/service.js';
-import { DEFAULT_FOOTER, templates, type Email, type StoreFooter, type TemplateName } from './templates.js';
+import { storeContact } from '../store/service.js';
+import { storeFooter } from './footer.js';
+import { templates, type Email, type StoreFooter, type TemplateName } from './templates.js';
 
 export const EMAIL_TOPIC = 'email.send';
 
@@ -28,10 +30,12 @@ function rendererFor(template: unknown): Renderer {
   return render;
 }
 
-export function emailHandler(ctx: Pick<AppContext, 'mailer' | 'config'>): OutboxHandler {
-  const footer: StoreFooter = { ...DEFAULT_FOOTER, appOrigin: ctx.config.APP_ORIGIN };
+/** Sends queued emails; the footer is read per email so store settings changes apply at once. */
+export function emailHandler(ctx: Pick<AppContext, 'mailer' | 'config' | 'db'>): OutboxHandler {
   return async (payload) => {
-    const email = rendererFor(payload.template)(payload.data, footer);
+    const render = rendererFor(payload.template);
+    const footer = storeFooter(await storeContact(ctx.db), ctx.config.APP_ORIGIN);
+    const email = render(payload.data, footer);
     await ctx.mailer.send({ to: String(payload.to), ...email });
   };
 }
