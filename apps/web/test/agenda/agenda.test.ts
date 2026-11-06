@@ -64,6 +64,7 @@ afterEach(async () => {
   vi.useRealTimers();
   resizeTo(1024);
   calendar.options = null;
+  localStorage.clear();
   document.body.innerHTML = '';
 });
 
@@ -334,6 +335,42 @@ describe('scheduling an approved request', () => {
     expect(navigateMock).toHaveBeenCalledWith('/agenda/12');
     expect(toastTitles()).toContain('Visita agendada. O cliente e o técnico foram avisados.');
     page.unmount();
+  });
+
+  it('saves what was typed on the device and restores it until the form is cancelled', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    mockApi()
+      .on(REQUEST, { body: approved })
+      .on('GET /api/v1/service-types/1', { body: serviceType() })
+      .on('GET /api/v1/employees/availability', availability());
+    const mountPage = () =>
+      mountSuspended(AgendaPage, { route: '/agenda?solicitacao=41', attachTo: document.body });
+    const first = await mountPage();
+    await settle();
+    expect(document.querySelector('[data-testid="schedule-draft"]')).toBeNull();
+    await pickTechnician('5');
+    await fill('Dia', '2026-10-10');
+    await fill('Início', '09:30');
+    await settle();
+    first.unmount();
+
+    const second = await mountPage();
+    await settle();
+    expect(document.querySelector('[data-testid="schedule-draft"]')!.textContent).toContain(
+      'Recuperamos o rascunho guardado neste aparelho.',
+    );
+    expect(document.querySelector<HTMLSelectElement>('[role="dialog"] select')!.value).toBe('5');
+    expect(input('Dia').value).toBe('2026-10-10');
+    expect(input('Início').value).toBe('09:30');
+    click('Cancelar');
+    await settle();
+    second.unmount();
+
+    const third = await mountPage();
+    await settle();
+    expect(document.querySelector('[data-testid="schedule-draft"]')).toBeNull();
+    expect(input('Dia').value).toBe('2026-10-07');
+    third.unmount();
   });
 
   it('closes the form, warns about requests that cannot be scheduled and missing ones', async () => {

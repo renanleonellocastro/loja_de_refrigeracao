@@ -59,7 +59,7 @@ A tela **Hoje** mostra as visitas do dia em ordem, com cliente, endereço e hor�
 
 ### Atender e finalizar um serviço
 
-Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo.
+Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo. Se o sinal cair na hora de enviar, o que você escreveu fica guardado no celular e a finalização é enviada sozinha quando a internet voltar, sem duplicar; deixe a página aberta até aparecer a confirmação.
 
 <img src="assets/manual/colaborador-atendimento.webp" alt="Atendimento com o formulário de finalização" width="300">
 
@@ -90,7 +90,7 @@ Quando um cliente pedir por telefone ou WhatsApp, toque em **Novo pedido**: esco
 ### Solicitações de visita e agenda
 
 1. Em **Solicitações**, as abas mostram quantas solicitações há em cada estado (e em **Todas**), já contando a busca por número ou cliente. Abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
-2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita.
+2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita. O formulário de agendamento e o de remarcação salvam sozinhos neste aparelho enquanto você preenche: se a janela fechar ou a página recarregar, o que foi digitado volta ao abrir de novo. **Cancelar** descarta o rascunho.
 3. Em **Aprovações**, revise as finalizações dos técnicos e aprove com o valor cobrado ou devolva para ajuste.
 
 ![Solicitações de visita](assets/manual/gerente-solicitacoes.webp)
@@ -108,6 +108,10 @@ Em **Orçamentos**, abra os pedidos novos e responda com o valor, a validade em 
 ### Produtos e estoque
 
 Em **Produtos**, cadastre e edite produtos com preço, condição e categoria, adicione fotos do produto (a primeira vira capa e dá para reordenar) e registre entradas, ajustes e perdas de estoque. Produtos abaixo do mínimo aparecem no painel. Quando uma movimentação ou um pedido deixa um produto abaixo do mínimo, gerentes e super usuários recebem um aviso na central de notificações e por email, uma vez só; o aviso volta a ser enviado se o estoque for reposto e cair de novo.
+
+No celular, o formulário do produto aparece em três etapas: **Identificação**, **Preço e estoque** e **Descrição**. No cadastro, toque em **Continuar** para avançar e em **Cadastrar produto** na última etapa. Na edição, toque no nome da etapa para abrir qualquer uma e salve de onde estiver. Se algum campo precisar de correção, o formulário volta para a etapa dele.
+
+Se outra pessoa salvar o mesmo produto enquanto você edita, o sistema não sobrescreve nada: ele mostra cada campo diferente entre a versão salva agora e a sua edição, dizendo quem mudou. Toque em **Manter minhas alterações** para juntar as duas (os campos que você mudou ficam com o seu valor, o resto vem da versão salva) e depois salve, ou em **Usar a versão salva** para descartar a sua edição.
 
 ![Gerenciar produtos](assets/manual/gerente-produtos.webp)
 

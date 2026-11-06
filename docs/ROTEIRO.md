@@ -79,7 +79,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO, movimentações de estoque. Dependência: depende do M3.
 
 * [x] #46 Gerenciar Categorias
-* [ ] #47 UC Cadastrar e Editar Produto (pendente: faltam as diferenças no aviso de conflito e o formulário em etapas no celular)
+* [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
 * [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
 * [x] #50 Página de detalhes do produto
@@ -111,7 +111,7 @@ Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, 
 
 Agenda dos técnicos (mês, semana, dia), atribuição sem conflitos, finalização pelo celular e aprovação com valor. Dependência: depende do M6.
 
-* [ ] #65 UC Cadastrar Serviço na Agenda do Colaborador (pendente: falta o salvamento automático do formulário)
+* [x] #65 UC Cadastrar Serviço na Agenda do Colaborador
 * [x] #66 UC Consultar Agenda (mês, semana, dia e lista)
 * [x] #67 UC Alterar e Excluir Serviço da Agenda
 * [x] #68 UC Finalizar Serviço pelo celular
@@ -135,7 +135,7 @@ Página inicial com a marca, páginas institucionais, SEO local, painel da equip
 * [x] #78 Painel da equipe com indicadores
 * [x] #79 Central de notificações
 * [x] #80 Configurar a Loja
-* [ ] #81 PWA instalável com suporte básico offline (pendente: falta a sincronização automática ao reconectar)
+* [x] #81 PWA instalável com suporte básico offline
 
 ## M10 Qualidade final e lançamento (épico #82)
 

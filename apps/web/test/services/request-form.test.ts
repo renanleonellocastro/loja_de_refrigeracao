@@ -88,7 +88,7 @@ describe('visit request form for customers', () => {
     await next();
 
     expect(stepTitle()).toBe('Onde vai ser a visita?');
-    expect(text()).toContain('Rua Doutor Ulhoa Cintra, 91');
+    expect(text()).toContain('Rua Doutor Ulhôa Cintra, 91');
     await next();
 
     expect(stepTitle()).toBe('Confira e envie');

@@ -97,7 +97,7 @@ describe('about and contact pages', () => {
     const page = await mountSuspended(ContactPage, { route: '/contato' });
     await settle();
     expect(page.get('h1').text()).toBe('Contato');
-    expect(page.text()).toContain('Rua Doutor Ulhoa Cintra, 91, Loja 2');
+    expect(page.text()).toContain('Rua Doutor Ulhôa Cintra, 91, Loja 2');
     expect(page.text()).toContain('Centro, Mogi Mirim/SP, CEP 13800-061');
     expect(page.get('[data-testid="contact-phone"]').attributes('href')).toBe('tel:+551938041658');
     expect(page.find('a[href="mailto:refrigeracaocastro@yahoo.com.br"]').exists()).toBe(true);
@@ -124,7 +124,7 @@ describe('store components', () => {
       .find((button) => button.text() === 'Mostrar mapa')!
       .trigger('click');
     expect(map.get('iframe').attributes('src')).toContain('output=embed');
-    expect(map.get('iframe').attributes('title')).toBe('Mapa: Rua Doutor Ulhoa Cintra, 91');
+    expect(map.get('iframe').attributes('title')).toBe('Mapa: Rua Doutor Ulhôa Cintra, 91');
   });
 
   it('shows open or closed and the grouped hours', async () => {

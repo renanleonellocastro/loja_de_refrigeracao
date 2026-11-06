@@ -1,8 +1,8 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
 import { uniqueEmail } from '../support/identity.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
-import { hasHorizontalScroll, open } from '../support/viewport.js';
+import { deviceOf, hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
 const PASSWORD = 'Castro-Dev-2026';
@@ -40,6 +40,36 @@ async function createCustomer(page: Page, name: string, email: string): Promise<
   await signOut(page);
 }
 
+/** On the phone the product form shows one step at a time; wider screens show every field at once. */
+async function nextStepOnPhone(page: Page, testInfo: TestInfo): Promise<void> {
+  if (deviceOf(testInfo) !== 'celular') return;
+  await page.getByRole('button', { name: 'Continuar' }).click();
+}
+
+async function openStepOnPhone(page: Page, testInfo: TestInfo, step: string): Promise<void> {
+  if (deviceOf(testInfo) !== 'celular') return;
+  await page
+    .getByRole('navigation', { name: 'Etapas do formulário' })
+    .getByRole('button', { name: step })
+    .click();
+}
+
+/** Fills the open new product form, step by step on the phone, saves it and lands on its photos. */
+async function createProduct(page: Page, testInfo: TestInfo, name: string): Promise<void> {
+  await page.getByLabel('Nome do produto').fill(name);
+  await page.getByLabel('Categoria').selectOption({ label: 'Peças e acessórios' });
+  await page.getByLabel('Marca').fill('Danfoss');
+  await nextStepOnPhone(page, testInfo);
+  await page.getByLabel('Preço').fill('89,90');
+  await page.getByLabel('Estoque inicial').fill('5');
+  await nextStepOnPhone(page, testInfo);
+  await page.getByLabel('Descrição').fill('Filtro secador para linha de refrigeração.');
+  await expectAccessibleSettled(page);
+  await page.getByRole('button', { name: 'Cadastrar produto' }).click();
+  await expect(page).toHaveURL(/\/produtos\/gerenciar\/\d+\?aba=fotos$/);
+  await closeToast(page, 'Produto cadastrado.');
+}
+
 test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => {
   test('o gerente cadastra um produto, o cliente compra, a loja entrega e o técnico vende no balcão', async ({
     page,
@@ -60,16 +90,7 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await page.getByRole('link', { name: 'Cadastrar produto' }).first().click();
     await expect(page).toHaveURL(/\/produtos\/gerenciar\/novo$/);
     await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
-    await page.getByLabel('Nome do produto').fill(productName);
-    await page.getByLabel('Categoria').selectOption({ label: 'Peças e acessórios' });
-    await page.getByLabel('Marca').fill('Danfoss');
-    await page.getByLabel('Preço').fill('89,90');
-    await page.getByLabel('Estoque inicial').fill('5');
-    await page.getByLabel('Descrição').fill('Filtro secador para linha de refrigeração.');
-    await expectAccessibleSettled(page);
-    await page.getByRole('button', { name: 'Cadastrar produto' }).click();
-    await expect(page).toHaveURL(/\/produtos\/gerenciar\/\d+\?aba=fotos$/);
-    await closeToast(page, 'Produto cadastrado.');
+    await createProduct(page, testInfo, productName);
     await expect(page.getByRole('heading', { level: 2, name: productName })).toBeVisible();
 
     // Photos: upload with progress, then it becomes the cover.
@@ -192,5 +213,44 @@ test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => 
     await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Cancelar pedido' }).click();
     await closeToast(page, 'Pedido cancelado. Os itens voltaram para o estoque.');
+  });
+
+  test('o gerente vê as diferenças quando outra pessoa salvou o produto antes e mantém as duas edições', async ({
+    page,
+  }, testInfo) => {
+    test.setTimeout(90_000);
+    const productName = `Filtro conflito ${testInfo.project.name} ${Date.now()}`;
+    await signIn(page, 'gerente@castro.dev', /\/painel/);
+    await open(page, '/produtos/gerenciar/novo');
+    await createProduct(page, testInfo, productName);
+    const editPath = new URL(page.url()).pathname;
+
+    // Someone else, in another tab, changes the price while this tab still shows the old version.
+    await page.getByRole('tab', { name: 'Dados' }).click();
+    const other = await page.context().newPage();
+    await open(other, editPath);
+    await openStepOnPhone(other, testInfo, 'Preço e estoque');
+    await other.getByLabel('Preço').fill('99,90');
+    await other.getByRole('button', { name: 'Salvar alterações' }).click();
+    await closeToast(other, 'Alterações salvas.');
+    await other.close();
+
+    await page.getByLabel('Modelo').fill('DML 032');
+    await page.getByRole('button', { name: 'Salvar alterações' }).click();
+    await expect(page.getByText('Outra pessoa alterou este produto')).toBeVisible();
+    const differences = page.getByRole('list', { name: 'Diferenças entre as versões' });
+    await expect(differences.getByRole('listitem')).toHaveCount(2);
+    await expect(differences.getByText('R$ 99,90')).toBeVisible();
+    await expect(differences.getByText('DML 032')).toBeVisible();
+    expect(await hasHorizontalScroll(page)).toBe(false);
+    await expectAccessibleSettled(page);
+
+    await page.getByRole('button', { name: 'Manter minhas alterações' }).click();
+    await expect(page.getByText('Outra pessoa alterou este produto')).toBeHidden();
+    await page.getByRole('button', { name: 'Salvar alterações' }).click();
+    await closeToast(page, 'Alterações salvas.');
+    await expect(page.getByLabel('Modelo')).toHaveValue('DML 032');
+    await openStepOnPhone(page, testInfo, 'Preço e estoque');
+    await expect(page.getByLabel('Preço')).toHaveValue('R$ 99,90');
   });
 });
