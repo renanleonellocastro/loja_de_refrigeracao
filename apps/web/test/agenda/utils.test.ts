@@ -50,7 +50,9 @@ describe('agenda time helpers', () => {
   it('describes visits for the calendar and the map', () => {
     expect(technicianColor(3)).toBe(technicianColor(11));
     expect(appliance(appointment().request)).toBe('Geladeira duplex · Brastemp');
-    expect(mapsUrl(appointment().request.address)).toContain('destination=Rua%20Doutor%20Ulhoa%20Cintra');
+    expect(mapsUrl(appointment().request.address)).toContain(
+      'destination=Rua%20Doutor%20Ulh%C3%B4a%20Cintra',
+    );
     expect(etagOf(4)).toBe('W/"4"');
     const event = toCalendarEvent(appointment(), true);
     expect(event).toMatchObject({

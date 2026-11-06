@@ -119,7 +119,7 @@ describe('my quote', () => {
 
     click('Aceitar');
     await settle();
-    expect(text()).toContain('Rua Doutor Ulhoa Cintra, 91');
+    expect(text()).toContain('Rua Doutor Ulhôa Cintra, 91');
     click('Voltar');
     await settle();
     expect(text()).not.toContain('Aceitar e pedir visita');
