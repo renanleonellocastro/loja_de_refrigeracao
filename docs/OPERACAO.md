@@ -19,7 +19,7 @@ flowchart LR
 |---|---|---|
 | `caddy` | `caddy:2-alpine` | HTTPS automático com Let's Encrypt, compressão zstd e gzip, encaminha `/api/*`, `/health` e `/ready` para a API e o resto para o site |
 | `api` | `infra/docker/api.Dockerfile` | API REST em `:3001`; aplica as migrações pendentes ao iniciar |
-| `worker` | mesma imagem da API, comando `node dist/worker.js` | envia os emails do outbox e vence orçamentos a cada hora |
+| `worker` | mesma imagem da API, comando `node dist/worker.js` | envia os emails do outbox, vence orçamentos a cada hora e roda as tarefas de retenção de dados uma vez por dia (seção 4.5) |
 | `web` | `infra/docker/web.Dockerfile` | site Nuxt renderizado no servidor em `:3000` |
 | `postgres` | `postgres:17-alpine` | banco de dados, volume `postgres-data` |
 
@@ -117,6 +117,17 @@ Troque nome, email e CPF pelos reais. Depois acesse `/esqueci-minha-senha` com e
 ### 4.4 Trilha de auditoria somente de inserção
 
 A tabela `audit_logs` aceita só `INSERT` e `SELECT`: um gatilho no banco (migração `0005_audit_logs_append_only.sql`) recusa qualquer `UPDATE` ou `DELETE`, inclusive feito à mão pelo `psql`. A exclusão de conta pela LGPD anonimiza o usuário e mantém as entradas da auditoria, que passam a apontar para a conta anonimizada. A API e as migrações usam o mesmo usuário do banco (`POSTGRES_USER`), dono das tabelas; por isso não há `REVOKE` separado, e o `TRUNCATE` continua possível para esse dono (os testes o usam para limpar o banco). Nunca rode `TRUNCATE` ou `DROP` em `audit_logs` na produção.
+
+### 4.5 Retenção de dados (LGPD)
+
+O worker roda as tarefas de retenção ao iniciar e depois uma vez por dia, com os prazos de `docs/SEGURANCA.md` seção 6:
+
+| O que | Quando sai | Como |
+| --- | --- | --- |
+| Sessões de login | 30 dias depois de expirarem ou de serem encerradas | linhas apagadas de `sessions` |
+| Fotos de serviços | 5 anos depois de o serviço chegar a um estado final (concluído, recusado ou cancelado) | linhas de `media` do serviço e do relatório da visita apagadas; o arquivo sai do `storage` quando nenhuma outra foto usa a mesma chave |
+
+O código fica em `apps/api/src/modules/retention`. Os dados do serviço (pedido, relatório, valores) continuam no banco para o histórico e as obrigações fiscais. A trilha de auditoria (seção 4.4) nunca é apagada por essas tarefas. Uma falha aparece no log do worker como `data retention failed` e a tarefa tenta de novo no dia seguinte.
 
 ## 5. Backups e restauração do PostgreSQL
 

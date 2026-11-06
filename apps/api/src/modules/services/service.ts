@@ -1,4 +1,4 @@
-// Public surface of the services module for other modules (agenda, quotes).
+// Public surface of the services module for other modules (agenda, quotes, retention).
 export {
   findAppointmentForRequest,
   findRequest,
@@ -14,6 +14,7 @@ export { loadVisible } from './request-access.js';
 export { createRequest } from './request-creation.js';
 export { toPhotoView } from './request-views.js';
 export {
+  FINAL_STATUSES,
   REQUEST_STATUS_LABELS,
   customerCancellationDeadline,
   nextRequestStatus,

@@ -48,7 +48,7 @@ Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CH
 | Minimização | CPF só quando necessário; logs sem nome, email, telefone ou CPF. |
 | Acesso e portabilidade | `GET /me/data-export` em JSON. |
 | Eliminação | Exclusão da conta com anonimização; pedidos e serviços mantidos sem identificação para obrigações fiscais. |
-| Retenção | Sessões expiradas apagadas em 30 dias; fotos de serviços concluídos há mais de 5 anos removidas por tarefa agendada. |
+| Retenção | Sessões expiradas ou encerradas apagadas em 30 dias; fotos de serviços finalizados (concluídos, recusados ou cancelados) há mais de 5 anos removidas; as duas tarefas rodam uma vez por dia no worker (`docs/OPERACAO.md` seção 4.5). |
 | Encarregado | Contato do responsável pelos dados exibido na política (dono da loja). |
 
 ## 7. Operação
