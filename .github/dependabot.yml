@@ -1,0 +1,43 @@
+# Weekly grouped updates so fixes for new advisories arrive as one pull request that runs the full CI.
+# The cooldown keeps the one week wait before a new release is proposed (supply chain, docs/SEGURANCA.md);
+# security updates skip it. Major versions come in their own pull requests because they may break code.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    labels: [infra]
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ['*']
+      minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ['*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: America/Sao_Paulo
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+    labels: [infra]
+    groups:
+      actions:
+        patterns: ['*']
