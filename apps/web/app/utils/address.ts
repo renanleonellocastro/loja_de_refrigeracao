@@ -54,7 +54,7 @@ export function validateAddress(address: AddressForm, required: boolean, prefix 
   return errors;
 }
 
-/** One line address: "Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061". */
+/** One line address: "Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061". */
 export function formatAddress(address: ApiAddress | null | undefined): string {
   if (!address) return 'Não informado';
   const street = [address.street, address.number, address.complement].filter(Boolean).join(', ');

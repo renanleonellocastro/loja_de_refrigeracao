@@ -31,11 +31,13 @@ describe('default layout', () => {
     expect(wrapper.get('a[href="#conteudo"]').text()).toBe('Pular para o conteúdo');
     expect(wrapper.get('main#conteudo').text()).toBe('Oi');
     expect(wrapper.get('nav[aria-label="Principal"]').findAll('a')).toHaveLength(5);
-    expect(wrapper.get('footer').text()).toContain('Rua Doutor Ulhoa Cintra, 91');
+    expect(wrapper.get('footer').text()).toContain('Rua Doutor Ulhôa Cintra, 91');
     expect(wrapper.get('footer').text()).toContain('(19) 3804-1658');
     expect(wrapper.get('footer').text()).toContain('Segunda a sexta, das 9h às 18h');
     expect(wrapper.get('footer').text()).toContain('Há mais de 40 anos');
-    expect(wrapper.get('footer').text()).toContain('CNPJ 63.060.560/0001-51');
+    expect(wrapper.get('footer').text()).toContain(
+      'Refrigeração Castro Ltda. · CNPJ 63.060.560/0001-51 · Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061',
+    );
     expect(wrapper.find('a[href^="https://wa.me/"]').exists()).toBe(false);
     wrapper.unmount();
     clearNuxtData();
