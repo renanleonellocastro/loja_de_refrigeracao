@@ -344,6 +344,63 @@ describe('service routes', () => {
     });
   });
 
+  describe('GET /service-requests/facets', () => {
+    const facets = (headers: Record<string, string>, query = '') =>
+      t.app.inject({ method: 'GET', url: `/api/v1/service-requests/facets${query}`, headers });
+    const countOf = (body: { statuses: Array<{ status: string; count: number }> }, status: string) =>
+      body.statuses.find((item) => item.status === status)?.count;
+
+    it('counts every status for the staff, applying the search and ignoring the status filter', async () => {
+      const ana = await customerWithAddress();
+      const bia = await customerWithAddress();
+      const first = await createRequest(ana.headers);
+      await createRequest(ana.headers);
+      await createRequest(bia.headers);
+      await t.db
+        .update(serviceRequests)
+        .set({ status: 'APPROVED' })
+        .where(eq(serviceRequests.id, first.json().id));
+
+      const { headers } = await t.as('MANAGER');
+      const all = await facets(headers, '?status=CANCELED');
+      expect(all.statusCode).toBe(200);
+      expect(all.json().total).toBe(3);
+      expect(all.json().statuses).toHaveLength(8);
+      expect(countOf(all.json(), 'REQUESTED')).toBe(2);
+      expect(countOf(all.json(), 'APPROVED')).toBe(1);
+      expect(countOf(all.json(), 'CANCELED')).toBe(0);
+
+      const searched = await facets(headers, `?q=${encodeURIComponent(bia.user.name)}`);
+      expect(searched.json()).toMatchObject({ total: 1 });
+      expect(countOf(searched.json(), 'REQUESTED')).toBe(1);
+    });
+
+    it('counts only what customers and employees may see', async () => {
+      const ana = await customerWithAddress();
+      const bia = await customerWithAddress();
+      await createRequest(ana.headers);
+      const assigned = await createRequest(bia.headers);
+      const tech = await t.as('EMPLOYEE');
+      const id = assigned.json().id;
+      await t.db.update(serviceRequests).set({ status: 'SCHEDULED' }).where(eq(serviceRequests.id, id));
+      await t.db.insert(appointments).values({
+        serviceRequestId: id,
+        employeeId: tech.user.id,
+        startsAt: new Date('2026-10-07T12:00:00Z'),
+        endsAt: new Date('2026-10-07T14:00:00Z'),
+        createdById: tech.user.id,
+      });
+
+      const own = await facets(ana.headers, `?q=${encodeURIComponent(bia.user.name)}`);
+      expect(own.json().total).toBe(1);
+      expect(countOf(own.json(), 'REQUESTED')).toBe(1);
+      const mine = await facets(tech.headers);
+      expect(mine.json().total).toBe(1);
+      expect(countOf(mine.json(), 'SCHEDULED')).toBe(1);
+      expect((await facets({})).statusCode).toBe(401);
+    });
+  });
+
   describe('photos', () => {
     it('accepts up to 6 photos while the request is open', async () => {
       const { headers } = await customerWithAddress();
