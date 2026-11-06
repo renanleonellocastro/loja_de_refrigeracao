@@ -63,7 +63,7 @@ export async function addImages(ctx: AppContext, productId: number, files: Buffe
   assertRoomFor((await repo.listImages(ctx.db, productId)).length, files.length);
   const stored: StoredImage[] = [];
   try {
-    for (const file of files) stored.push(await storeImage(ctx.storage, file));
+    for (const file of files) stored.push(await storeImage(ctx, file));
     return await ctx.db.transaction((tx) => appendAuditedImages(tx, productId, stored, meta));
   } catch (error) {
     // Nothing was saved: drop the files stored for this request (unless another row uses them).

@@ -128,7 +128,7 @@ describe('product photos', () => {
       url: `/api/v1/products/${product.id}/images/${stored.json()[0].id}`,
       headers,
     });
-    expect(await t.ctx.storage.get(`${key}/320.webp`)).toBeNull();
+    expect(await t.ctx.storage.get(`${key}/original.webp`)).toBeNull();
   });
 
   it('never goes over the limit with concurrent uploads, cleaning the losing files', async () => {
@@ -147,8 +147,9 @@ describe('product photos', () => {
     expect(loser.json().detail).toContain('no máximo mais 5');
     const [winnerFiles, loserFiles] = results[0]!.statusCode === 201 ? [a!, b!] : [b!, a!];
     for (const file of winnerFiles)
-      expect(await t.ctx.storage.get(`${contentKey(file)}/320.webp`)).not.toBeNull();
-    for (const file of loserFiles) expect(await t.ctx.storage.get(`${contentKey(file)}/320.webp`)).toBeNull();
+      expect(await t.ctx.storage.get(`${contentKey(file)}/original.webp`)).not.toBeNull();
+    for (const file of loserFiles)
+      expect(await t.ctx.storage.get(`${contentKey(file)}/original.webp`)).toBeNull();
   });
 
   it('reorders the gallery and picks the cover', async () => {
@@ -192,13 +193,13 @@ describe('product photos', () => {
       t.app.inject({ method: 'DELETE', url: `/api/v1/products/${id}/images/${imageId}`, headers });
 
     expect((await remove(images[1]!.id)).statusCode).toBe(204);
-    expect(await t.ctx.storage.get(`${keyOf(images[1]!)}/320.webp`)).toBeNull();
+    expect(await t.ctx.storage.get(`${keyOf(images[1]!)}/original.webp`)).toBeNull();
     let rows = await t.db.select().from(productImages).where(eq(productImages.productId, product.id));
     expect(rows.find((row) => row.isCover)!.id).toBe(images[0]!.id);
 
     expect((await remove(images[0]!.id)).statusCode).toBe(204);
     // The other product still shows the same photo, so the file stays.
-    expect(await t.ctx.storage.get(`${keyOf(images[0]!)}/320.webp`)).not.toBeNull();
+    expect(await t.ctx.storage.get(`${keyOf(images[0]!)}/original.webp`)).not.toBeNull();
     rows = await t.db.select().from(productImages).where(eq(productImages.productId, product.id));
     expect(rows).toMatchObject([{ id: images[2]!.id, isCover: true }]);
 

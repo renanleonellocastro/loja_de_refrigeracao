@@ -2,8 +2,9 @@
 import type { ApiSchemas } from '@rc/contracts';
 
 /**
- * Product photo with the API variants in srcset and its real size, so the browser picks the lightest file
- * and the layout does not jump. Without a photo, or when it fails to load, shows the store placeholder.
+ * Product photo with the API variants in srcset (AVIF first, WebP as the fallback) and its real size, so the
+ * browser picks the lightest file and the layout does not jump. Without a photo, or when it fails to load,
+ * shows the store placeholder.
  */
 const props = withDefaults(
   defineProps<{
@@ -35,6 +36,10 @@ const source = computed(() =>
     ? {
         src: mediaUrl(config.public.apiBase, props.image.url),
         srcset: mediaSrcset(config.public.apiBase, props.image.srcset),
+        // Carts saved in the browser before AVIF existed have no avifSrcset.
+        avifSrcset: props.image.avifSrcset
+          ? mediaSrcset(config.public.apiBase, props.image.avifSrcset)
+          : null,
         width: props.image.width,
         height: props.image.height,
       }
@@ -43,21 +48,23 @@ const source = computed(() =>
 </script>
 
 <template>
-  <img
-    v-if="source"
-    :src="source.src"
-    :srcset="source.srcset"
-    :sizes="sizes"
-    :width="source.width"
-    :height="source.height"
-    :alt="alt"
-    :loading="eager ? 'eager' : 'lazy'"
-    :fetchpriority="eager ? 'high' : undefined"
-    decoding="async"
-    class="size-full"
-    :class="FITS[fit]"
-    @error="failed = true"
-  />
+  <picture v-if="source" class="contents">
+    <source v-if="source.avifSrcset" type="image/avif" :srcset="source.avifSrcset" :sizes="sizes" />
+    <img
+      :src="source.src"
+      :srcset="source.srcset"
+      :sizes="sizes"
+      :width="source.width"
+      :height="source.height"
+      :alt="alt"
+      :loading="eager ? 'eager' : 'lazy'"
+      :fetchpriority="eager ? 'high' : undefined"
+      decoding="async"
+      class="size-full"
+      :class="FITS[fit]"
+      @error="failed = true"
+    />
+  </picture>
   <img
     v-else
     src="/illustrations/produto-sem-foto.svg"

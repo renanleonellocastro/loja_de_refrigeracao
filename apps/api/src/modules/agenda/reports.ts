@@ -93,7 +93,7 @@ export async function addReportPhotos(ctx: AppContext, actor: AccessClaims, id: 
   const report = await openReportOrFail(ctx, actor, id);
   await assertRoomForPhotos(ctx, report.id, files.length);
   for (const file of files) {
-    await services.insertMedia(ctx.db, REPORT_MEDIA, report.id, await storeImage(ctx.storage, file));
+    await services.insertMedia(ctx.db, REPORT_MEDIA, report.id, await storeImage(ctx, file));
   }
   return getAppointment(ctx, actor, id);
 }
