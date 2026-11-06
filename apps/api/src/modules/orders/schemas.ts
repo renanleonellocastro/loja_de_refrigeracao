@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { pageQuerySchema } from '../../shared/pagination.js';
-import { dateInput, positiveIntegerInput } from '../../shared/schemas.js';
+import { dateInput, positiveIntegerInput, trimmedText } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { ORDER_STATUSES } from './status.js';
 
@@ -52,16 +52,16 @@ export const cartSchema = z
 export const orderCreationSchema = z.object({
   customerId: z.number().int().positive().optional(),
   items: z.array(itemInput).min(1).max(50).optional(),
-  notes: z.string().trim().max(500).optional(),
+  notes: trimmedText(500).optional(),
 });
 
 export const counterSaleSchema = z.object({
   customerId: z.number().int().positive(),
   items: z.array(itemInput).min(1, { error: 'Adicione pelo menos um produto.' }).max(50),
-  notes: z.string().trim().max(500).optional(),
+  notes: trimmedText(500).optional(),
 });
 
-export const cancellationSchema = z.object({ reason: z.string().trim().max(500).optional() });
+export const cancellationSchema = z.object({ reason: trimmedText(500).optional() });
 
 export const orderListQuerySchema = z.object({
   status: z
@@ -69,7 +69,7 @@ export const orderListQuerySchema = z.object({
     .optional()
     .transform((value) => (value ? value.split(',') : undefined))
     .pipe(z.array(z.enum(ORDER_STATUSES)).optional()),
-  q: z.string().trim().max(100).optional(),
+  q: trimmedText(100).optional(),
   from: dateInput().optional(),
   to: dateInput().optional(),
   ...pageQuerySchema.shape,

@@ -2,7 +2,7 @@ import { BRAZILIAN_STATES, ROLES, digits, isValidCep, isValidCpf, isValidPhone }
 import { z } from 'zod';
 import { pageQuerySchema } from '../../shared/pagination.js';
 import { orderStatusEnum, serviceRequestStatusEnum } from '../../infra/db/schema.js';
-import { emailSchema } from '../../shared/schemas.js';
+import { emailSchema, trimmedText } from '../../shared/schemas.js';
 
 export const userSummarySchema = z
   .object({
@@ -24,11 +24,9 @@ export function toUserSummary(user: {
   return { id: user.id, name: user.name, email: user.email, role: user.role };
 }
 
-const nameSchema = z
-  .string({ error: 'Informe o nome.' })
-  .trim()
-  .min(3, { error: 'Informe o nome completo.' })
-  .max(120, { error: 'Nome longo demais.' });
+const nameSchema = trimmedText(120, 'Nome longo demais.', z.string({ error: 'Informe o nome.' })).min(3, {
+  error: 'Informe o nome completo.',
+});
 
 export const cpfSchema = z.string().transform(digits).refine(isValidCpf, { error: 'CPF inválido.' });
 
@@ -38,10 +36,7 @@ export const phoneSchema = z
   .refine(isValidPhone, { error: 'Telefone inválido. Use DDD e número.' });
 
 const optionalText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max)
+  trimmedText(max)
     .transform((value) => (value === '' ? null : value))
     .nullable()
     .optional()
@@ -50,11 +45,11 @@ const optionalText = (max: number) =>
 // Input only: schemas with transforms are not registered as named components (they differ as input and output).
 export const addressSchema = z.object({
   cep: z.string().transform(digits).refine(isValidCep, { error: 'CEP inválido.' }),
-  street: z.string().trim().min(2, { error: 'Informe a rua.' }).max(150),
-  number: z.string().trim().min(1, { error: 'Informe o número.' }).max(20),
+  street: trimmedText(150).min(2, { error: 'Informe a rua.' }),
+  number: trimmedText(20).min(1, { error: 'Informe o número.' }),
   complement: optionalText(80),
-  district: z.string().trim().min(2, { error: 'Informe o bairro.' }).max(80),
-  city: z.string().trim().min(2, { error: 'Informe a cidade.' }).max(80),
+  district: trimmedText(80).min(2, { error: 'Informe o bairro.' }),
+  city: trimmedText(80).min(2, { error: 'Informe a cidade.' }),
   state: z.enum(BRAZILIAN_STATES, { error: 'UF inválida.' }),
 });
 
@@ -183,7 +178,7 @@ export const userListItemSchema = z
 
 export const userListQuerySchema = z.object({
   role: z.enum(ROLES),
-  q: z.string().trim().max(100).optional(),
+  q: trimmedText(100).optional(),
   ...pageQuerySchema.shape,
 });
 
