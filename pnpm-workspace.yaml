@@ -32,3 +32,5 @@ overrides:
   # @esbuild-kit/core-utils (drizzle-kit) pins esbuild 0.18 and fontless (@nuxt/fonts) asks for 0.27.
   '@esbuild-kit/core-utils>esbuild': ^0.25.12
   fontless>esbuild: ^0.28.1
+  # vitest auto installs its optional happy-dom peer in every workspace; keep them all on the fixed release.
+  happy-dom: ^21.0.4
