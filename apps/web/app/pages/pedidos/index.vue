@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { Search } from 'lucide-vue-next';
+import { PackagePlus, Search } from 'lucide-vue-next';
 import { formatDateTime, formatMoney } from '~/utils/masks';
 
-/** UC Fila de Pedidos (RF-25): one tab per status with its count, search by number or customer. */
+/**
+ * UC Fila de Pedidos (RF-25): one tab per status with its count, search by number or customer, and a shortcut to
+ * place an order on behalf of a customer.
+ */
 definePageMeta({ layout: 'area', permission: 'orders.manage', title: 'Pedidos' });
 useHead({ title: 'Pedidos | Refrigeração Castro' });
 
@@ -68,16 +71,22 @@ const emptyText: Record<OrderStatus, string> = {
 
 <template>
   <div class="mx-auto flex max-w-6xl flex-col gap-5">
-    <BaseTextField
-      v-model="query"
-      label="Buscar pedidos"
-      type="search"
-      inputmode="search"
-      placeholder="Número do pedido ou nome do cliente"
-      autocomplete="off"
-    >
-      <template #prefix><Search class="size-5" aria-hidden="true" /></template>
-    </BaseTextField>
+    <div class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+      <BaseTextField
+        v-model="query"
+        label="Buscar pedidos"
+        type="search"
+        inputmode="search"
+        placeholder="Número do pedido ou nome do cliente"
+        autocomplete="off"
+      >
+        <template #prefix><Search class="size-5" aria-hidden="true" /></template>
+      </BaseTextField>
+      <BaseButton to="/pedidos/novo" variant="secondary">
+        <PackagePlus class="size-5" aria-hidden="true" />
+        Novo pedido
+      </BaseButton>
+    </div>
 
     <BaseTabs v-model="status" :tabs="tabs" label="Pedidos por estado">
       <template v-for="tab in tabs" :key="tab.value" #[tab.value]>

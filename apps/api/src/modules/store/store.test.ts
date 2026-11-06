@@ -30,6 +30,7 @@ describe('store', () => {
       name: 'Refrigeração Castro',
       cnpj: '63060560000151',
       phone: '1938041658',
+      whatsapp: '19997641658',
       address: { street: 'Rua Doutor Ulhôa Cintra', number: '91', city: 'Mogi Mirim' },
       openNow: true,
     });

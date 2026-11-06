@@ -48,8 +48,14 @@ test.describe('RF-37 páginas institucionais', () => {
     await open(page, '/contato');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Contato');
     await expect(page.getByTestId('contact-phone')).toHaveAttribute('href', 'tel:+551938041658');
-    await page.getByRole('button', { name: 'Mostrar mapa' }).click();
-    await expect(page.locator('iframe')).toHaveCount(1);
+    await expect(page.getByText('WhatsApp (19) 99764-1658')).toBeVisible();
+    // The map hydrates only once it scrolls into view, and a click that lands before that is lost.
+    const showMap = page.getByRole('button', { name: 'Mostrar mapa' });
+    await showMap.scrollIntoViewIfNeeded();
+    await expect(async () => {
+      await showMap.click({ timeout: 1000 });
+      await expect(page.locator('iframe')).toHaveCount(1, { timeout: 1000 });
+    }).toPass();
     expect(await hasHorizontalScroll(page)).toBe(false);
   });
 });
