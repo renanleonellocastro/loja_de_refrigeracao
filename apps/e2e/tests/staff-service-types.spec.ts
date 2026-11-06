@@ -1,10 +1,12 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
+const API = process.env.E2E_API_URL ?? 'http://localhost:3001';
 const PASSWORD = 'Castro-Dev-2026';
+const ADMIN = 'admin@castro.dev';
 
 async function signIn(page: Page, email: string, landing: RegExp): Promise<void> {
   await open(page, '/entrar');
@@ -15,15 +17,42 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await closeWelcomeToast(page);
 }
 
+async function adminHeaders(request: APIRequestContext): Promise<Record<string, string>> {
+  const session = await request.post(`${API}/api/v1/auth/sessions`, {
+    data: { email: ADMIN, password: PASSWORD },
+  });
+  return { authorization: `Bearer ${((await session.json()) as { accessToken: string }).accessToken}` };
+}
+
+/**
+ * Deletes, through the API, the types whose name starts with this prefix. A test that stops before deleting its type
+ * would otherwise leave it in the public catalog, where it lengthens the lists other specs click through.
+ */
+async function deleteServiceTypes(request: APIRequestContext, prefix: string): Promise<void> {
+  const headers = await adminHeaders(request);
+  const response = await request.get(`${API}/api/v1/service-types`, { headers });
+  const types = (await response.json()) as { id: number; name: string }[];
+  for (const type of types.filter(({ name }) => name.startsWith(prefix))) {
+    await request.delete(`${API}/api/v1/service-types/${type.id}`, { headers });
+  }
+}
+
 test.describe('RF-24 tipos de reparo e manutenção', () => {
+  let leftover: string | undefined;
+  test.afterEach(async ({ request }) => {
+    if (leftover) await deleteServiceTypes(request, leftover);
+    leftover = undefined;
+  });
+
   test('o super usuário cadastra, altera, desativa e exclui um tipo de serviço', async ({
     page,
   }, testInfo) => {
     // Every device project writes to the same database, so the name is unique per run.
     const name = `Revisão ${testInfo.project.name} ${Date.now()}`;
     const edited = `${name} completa`;
+    leftover = name;
 
-    await signIn(page, 'admin@castro.dev', /\/painel/);
+    await signIn(page, ADMIN, /\/painel/);
     await open(page, '/tipos-de-servico');
     await expect(page.getByRole('heading', { name: 'Tipos de serviço' })).toBeVisible();
     await expect(page.getByText('Conserto de geladeira').first()).toBeVisible();
@@ -74,6 +103,7 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Excluir serviço' }).click();
     await expect(page.getByText(`Serviço ${edited} excluído.`)).toBeVisible();
     await expect(page.getByRole('listitem').filter({ hasText: edited })).toHaveCount(0);
+    leftover = undefined;
   });
 
   test('o gerente não abre a página de tipos de serviço', async ({ page }) => {
