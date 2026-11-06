@@ -6,7 +6,8 @@ import { createLocalStorage } from './infra/storage/storage.js';
 import { EMAIL_TOPIC, emailHandler } from './modules/mail/service.js';
 import { processOutboxBatch } from './modules/outbox/service.js';
 import { expireQuotes } from './modules/quotes/service.js';
-import { HOUR, systemClock } from './shared/clock.js';
+import { runRetention } from './modules/retention/service.js';
+import { DAY, HOUR, systemClock } from './shared/clock.js';
 
 const config = loadConfig(process.env);
 const database = connect(config.DATABASE_URL, 2);
@@ -28,15 +29,24 @@ const stop = () => {
 process.on('SIGTERM', stop);
 process.on('SIGINT', stop);
 
-let lastExpiration = 0;
+/** Scheduled tasks: each runs at start up and then once per interval. */
+const scheduledTasks = [
+  { name: 'quote expiration', every: HOUR, run: () => expireQuotes(ctx), lastRun: 0 },
+  { name: 'data retention', every: DAY, run: () => runRetention(ctx), lastRun: 0 },
+];
 
-while (running) {
-  if (Date.now() - lastExpiration >= HOUR) {
-    lastExpiration = Date.now();
-    await expireQuotes(ctx).catch((error: unknown) => {
-      console.error('quote expiration failed', error);
+async function runDueTasks(): Promise<void> {
+  for (const task of scheduledTasks) {
+    if (Date.now() - task.lastRun < task.every) continue;
+    task.lastRun = Date.now();
+    await task.run().catch((error: unknown) => {
+      console.error(`${task.name} failed`, error);
     });
   }
+}
+
+while (running) {
+  await runDueTasks();
   const result = await processOutboxBatch(database.db, handlers, systemClock).catch((error: unknown) => {
     console.error('outbox batch failed', error);
     return { processed: 0, failed: 0 };
