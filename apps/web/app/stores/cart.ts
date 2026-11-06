@@ -60,6 +60,13 @@ export function guestLineView(line: GuestLine): CartLine {
   };
 }
 
+type CoverImage = NonNullable<CartProduct['cover']>;
+
+/** Only the image fields the cart shows, so a detail answer does not drag its extra fields along. */
+function coverOf({ width, height, url, srcset, avifSrcset }: CoverImage): CoverImage {
+  return { width, height, url, srcset, avifSrcset };
+}
+
 /** Product fields the cart keeps, from a catalog or detail answer. */
 export function cartProductOf(product: ProductSummary | ProductDetail): CartProduct {
   const cover = 'cover' in product ? product.cover : (product.images[0] ?? null);
@@ -69,7 +76,7 @@ export function cartProductOf(product: ProductSummary | ProductDetail): CartProd
     slug: product.slug,
     priceCents: product.priceCents,
     stockAvailable: product.stockAvailable,
-    cover: cover ? { width: cover.width, height: cover.height, url: cover.url, srcset: cover.srcset } : null,
+    cover: cover ? coverOf(cover) : null,
   };
 }
 
