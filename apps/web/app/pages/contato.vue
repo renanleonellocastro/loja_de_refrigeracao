@@ -7,7 +7,7 @@ import { cityLine, phoneHref, phoneLabel, streetLine, whatsappHref } from '~/uti
 usePageSeo({
   title: 'Contato e localização | Refrigeração Castro',
   description:
-    'Endereço, telefone, email e horário de funcionamento da Refrigeração Castro, na Rua Doutor Ulhoa Cintra, Centro de Mogi Mirim.',
+    'Endereço, telefone, email e horário de funcionamento da Refrigeração Castro, na Rua Doutor Ulhôa Cintra, Centro de Mogi Mirim.',
   path: '/contato',
 });
 

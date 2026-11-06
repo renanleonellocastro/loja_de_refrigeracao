@@ -81,7 +81,7 @@ export const PROFILE = {
   cpf: null,
   address: {
     cep: '13800061',
-    street: 'Rua Doutor Ulhoa Cintra',
+    street: 'Rua Doutor Ulhôa Cintra',
     number: '91',
     complement: null,
     district: 'Centro',
