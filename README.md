@@ -32,12 +32,37 @@ A arquitetura está em [docs/ARQUITETURA.md](docs/ARQUITETURA.md) e as decisões
 
 ## Como executar
 
-Requisitos: Node.js 24 ou mais recente, pnpm 12 e Docker.
+Requisitos: Node.js 24.11 ou mais recente, pnpm 12 (vem pelo Corepack do Node), Docker com Compose e Git.
+
+### macOS
+
+1. Instale o [Docker Desktop](https://www.docker.com/products/docker-desktop/) e abra o aplicativo uma vez.
+2. Instale o Node.js 24 pelo [site oficial](https://nodejs.org) ou com `brew install node@24`.
+3. No terminal:
 
 ```
+corepack enable
+git clone https://github.com/renanleonellocastro/loja_de_refrigeracao.git
+cd loja_de_refrigeracao
 pnpm install
 pnpm dev
 ```
+
+### Linux
+
+1. Instale o Docker Engine com o plugin Compose seguindo o [guia da sua distribuição](https://docs.docker.com/engine/install/) e coloque seu usuário no grupo `docker` (`sudo usermod -aG docker $USER`, depois saia e entre de novo).
+2. Instale o Node.js 24 pelo [nvm](https://github.com/nvm-sh/nvm) (`nvm install 24`) ou pelo pacote da [NodeSource](https://github.com/nodesource/distributions).
+3. Rode os mesmos comandos do macOS a partir de `corepack enable`.
+
+### Windows (WSL)
+
+1. No PowerShell como administrador, rode `wsl --install`, reinicie e crie o usuário do Ubuntu.
+2. Instale o [Docker Desktop](https://www.docker.com/products/docker-desktop/) e, em Settings, Resources, WSL integration, ligue a integração com o Ubuntu.
+3. Abra o terminal do Ubuntu e instale o Node.js 24 pelo [nvm](https://github.com/nvm-sh/nvm) (`nvm install 24`).
+4. Clone o projeto dentro do Linux (por exemplo em `~/loja_de_refrigeracao`), não em `/mnt/c`, porque lá a instalação e o recarregamento ficam muito lentos. Depois rode os mesmos comandos do macOS a partir de `corepack enable`.
+5. Abra os endereços abaixo no navegador do Windows normalmente; o WSL repassa as portas.
+
+### O que o `pnpm dev` faz
 
 O comando cria o `.env` a partir de `infra/env.sample`, sobe o PostgreSQL e o Mailpit no Docker, compila os pacotes, aplica as migrações, carrega os dados de exemplo e inicia a API, o worker e o site.
 
@@ -46,6 +71,8 @@ O comando cria o `.env` a partir de `infra/env.sample`, sobe o PostgreSQL e o Ma
 * Emails enviados em desenvolvimento: http://localhost:8025
 
 Contas de exemplo, todas com a senha `Castro-Dev-2026`: `admin@castro.dev` (super usuário), `gerente@castro.dev`, `tecnico@castro.dev` e `cliente@castro.dev`.
+
+Os dados de exemplo trazem produtos com fotos e clientes com pedidos, orçamentos e solicitações de serviço em todos os estados, com visitas na agenda de hoje e de amanhã, para que cada tela já abra com conteúdo. Os clientes extras (`joao.pereira`, `maria.souza`, `lucia.andrade` e `bar.do.ze`, todos `@castro.dev`) usam a mesma senha. As datas são relativas ao dia em que o seed rodou; para recomeçar do zero, rode `docker compose -f infra/compose.yaml down -v` (apaga o banco local) e depois `pnpm dev` de novo.
 
 Para produção, veja o [guia de operação](docs/OPERACAO.md).
 
