@@ -5872,7 +5872,25 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
                 422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                428: {
                     headers: {
                         [name: string]: unknown;
                     };
