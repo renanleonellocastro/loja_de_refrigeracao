@@ -46,6 +46,17 @@ export type ProductForm = {
   stockMin: string;
 };
 
+/** Steps of the product form on the phone (RF-12): who the product is, what it costs, how it is described. */
+export const PRODUCT_FORM_STEPS: FormStep[] = [
+  {
+    key: 'identificacao',
+    label: 'Identificação',
+    fields: ['name', 'categoryId', 'condition', 'brand', 'model'],
+  },
+  { key: 'preco', label: 'Preço e estoque', fields: ['priceCents', 'initialStock', 'stockMin'] },
+  { key: 'descricao', label: 'Descrição', fields: ['description'] },
+];
+
 export function productFormFrom(product: ProductDetail | null): ProductForm {
   return {
     name: product?.name ?? '',
