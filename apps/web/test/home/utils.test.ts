@@ -30,7 +30,7 @@ describe('opening hours', () => {
 
   it('builds the map embed address', () => {
     expect(mapsEmbedUrl(FALLBACK_STORE.address)).toBe(
-      'https://www.google.com/maps?q=Rua%20Doutor%20Ulhoa%20Cintra%2C%2091%2C%20Mogi%20Mirim%2C%20SP%2C%2013800061&output=embed',
+      'https://www.google.com/maps?q=Rua%20Doutor%20Ulh%C3%B4a%20Cintra%2C%2091%2C%20Mogi%20Mirim%2C%20SP%2C%2013800061&output=embed',
     );
   });
 });
@@ -42,7 +42,7 @@ describe('structured data', () => {
       '@type': 'HVACBusiness',
       url: 'https://castro.dev',
       telephone: '+55 (19) 3804-1658',
-      address: { streetAddress: 'Rua Doutor Ulhoa Cintra, 91', postalCode: '13800061', addressCountry: 'BR' },
+      address: { streetAddress: 'Rua Doutor Ulhôa Cintra, 91', postalCode: '13800061', addressCountry: 'BR' },
       openingHoursSpecification: [
         {
           dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],

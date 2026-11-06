@@ -71,7 +71,7 @@ async function approvedRequest(request: APIRequestContext, problem: string): Pro
       windows: [{ day: dayFromToday(LEAD_DAYS), period: 'AFTERNOON' }],
       address: {
         cep: '13800061',
-        street: 'Rua Doutor Ulhoa Cintra',
+        street: 'Rua Doutor Ulhôa Cintra',
         number: '91',
         district: 'Centro',
         city: 'Mogi Mirim',

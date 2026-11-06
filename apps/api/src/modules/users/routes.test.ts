@@ -16,7 +16,7 @@ import { lookupCep } from './cep.js';
 
 const ADDRESS = {
   cep: '13800-061',
-  street: 'Rua Doutor Ulhoa Cintra',
+  street: 'Rua Doutor Ulhôa Cintra',
   number: '91',
   complement: '',
   district: 'Centro',
@@ -544,7 +544,7 @@ describe('user routes', () => {
       const response = await t.app.inject({ method: 'GET', url: '/api/v1/addresses/lookup?cep=13800-061' });
       expect(response.json()).toEqual({
         cep: '13800061',
-        street: 'Rua Doutor Ulhoa Cintra',
+        street: 'Rua Doutor Ulhôa Cintra',
         district: 'Centro',
         city: 'Mogi Mirim',
         state: 'SP',
