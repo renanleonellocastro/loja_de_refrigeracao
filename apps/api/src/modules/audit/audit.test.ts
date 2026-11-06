@@ -1,6 +1,11 @@
+import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { useTestApp } from '../../../test/harness.js';
+import { auditLogs } from '../../infra/db/schema.js';
+import { anonymizeUser } from '../users/service.js';
 import { recordAudit } from './service.js';
+
+const APPEND_ONLY = { cause: { code: '42501', message: expect.stringContaining('append only') } };
 
 describe('audit trail', () => {
   const t = useTestApp();
@@ -38,6 +43,32 @@ describe('audit trail', () => {
       resourceId: '1',
       after: { name: 'Geladeira' },
       ip: '1.1.1.1',
+    });
+  });
+
+  describe('append only in the database', () => {
+    it('rejects updating an entry', async () => {
+      await recordAudit(t.db, { actorId: null, action: 'order.cancel', resourceType: 'order' });
+
+      await expect(t.db.update(auditLogs).set({ action: 'order.edit' })).rejects.toMatchObject(APPEND_ONLY);
+      expect((await t.db.select().from(auditLogs))[0]).toMatchObject({ action: 'order.cancel' });
+    });
+
+    it('rejects deleting an entry', async () => {
+      await recordAudit(t.db, { actorId: null, action: 'order.cancel', resourceType: 'order' });
+
+      await expect(t.db.delete(auditLogs)).rejects.toMatchObject(APPEND_ONLY);
+      expect(await t.db.select().from(auditLogs)).toHaveLength(1);
+    });
+
+    it('keeps the entries of an actor whose account is deleted (LGPD anonymization)', async () => {
+      const { user } = await t.as('MANAGER');
+      await recordAudit(t.db, { actorId: user.id, action: 'product.create', resourceType: 'product' });
+
+      await anonymizeUser(t.db, user.id, t.clock.now());
+
+      const kept = await t.db.select().from(auditLogs).where(eq(auditLogs.actorId, user.id));
+      expect(kept).toHaveLength(1);
     });
   });
 });

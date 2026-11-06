@@ -114,6 +114,10 @@ docker compose -f infra/compose.production.yaml --env-file infra/.env.production
 
 Troque nome, email e CPF pelos reais. Depois acesse `/esqueci-minha-senha` com esse email; o restante da equipe é cadastrado pela tela de Colaboradores e Gerentes, com convite por email.
 
+### 4.4 Trilha de auditoria somente de inserção
+
+A tabela `audit_logs` aceita só `INSERT` e `SELECT`: um gatilho no banco (migração `0005_audit_logs_append_only.sql`) recusa qualquer `UPDATE` ou `DELETE`, inclusive feito à mão pelo `psql`. A exclusão de conta pela LGPD anonimiza o usuário e mantém as entradas da auditoria, que passam a apontar para a conta anonimizada. A API e as migrações usam o mesmo usuário do banco (`POSTGRES_USER`), dono das tabelas; por isso não há `REVOKE` separado, e o `TRUNCATE` continua possível para esse dono (os testes o usam para limpar o banco). Nunca rode `TRUNCATE` ou `DROP` em `audit_logs` na produção.
+
 ## 5. Backups e restauração do PostgreSQL
 
 ### Backup diário
