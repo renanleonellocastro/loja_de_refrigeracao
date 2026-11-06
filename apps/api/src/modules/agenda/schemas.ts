@@ -13,7 +13,9 @@ export const appointmentSchema = z
     employee: person,
     needsReassignment: z
       .boolean()
-      .describe('O técnico foi excluído e a visita ainda não aconteceu: a gerência deve passar a outro técnico'),
+      .describe(
+        'O técnico foi excluído e a visita ainda não aconteceu: a gerência deve passar a outro técnico',
+      ),
     request: z.object({
       id: z.number().int(),
       status: z.string(),

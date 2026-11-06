@@ -319,7 +319,11 @@ describe('agenda routes', () => {
   describe('reassigning visits of removed technicians', () => {
     async function removeTechnician(id: number) {
       const admin = await t.as('ADMIN');
-      const response = await t.app.inject({ method: 'DELETE', url: `/api/v1/users/${id}`, headers: admin.headers });
+      const response = await t.app.inject({
+        method: 'DELETE',
+        url: `/api/v1/users/${id}`,
+        headers: admin.headers,
+      });
       expect(response.statusCode).toBe(204);
     }
 

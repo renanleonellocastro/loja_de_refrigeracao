@@ -10,9 +10,7 @@ const api = useApi();
 const visits = ref<Appointment[]>([]);
 
 const title = computed(() =>
-  visits.value.length === 1
-    ? '1 atendimento sem técnico'
-    : `${visits.value.length} atendimentos sem técnico`,
+  visits.value.length === 1 ? '1 atendimento sem técnico' : `${visits.value.length} atendimentos sem técnico`,
 );
 
 async function load(): Promise<void> {

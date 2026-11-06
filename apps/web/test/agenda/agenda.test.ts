@@ -252,7 +252,9 @@ describe('visits of removed technicians', () => {
 
   it('names a single visit and never asks for them as a technician', async () => {
     useAuthStore().apply(session(MANAGER_USER));
-    mockApi().on(AWAITING, { body: [orphan(9)] }).on(LIST, { body: [] });
+    mockApi()
+      .on(AWAITING, { body: [orphan(9)] })
+      .on(LIST, { body: [] });
     const page = await mountSuspended(AgendaPage, { route: '/agenda', attachTo: document.body });
     await settle();
     expect(text()).toContain('1 atendimento sem técnico');
