@@ -1,6 +1,6 @@
 import { BRAZILIAN_STATES, digits, isValidCep, isValidPhone } from '@rc/contracts';
 import { z } from 'zod';
-import { emailSchema } from '../../shared/schemas.js';
+import { emailSchema, trimmedText } from '../../shared/schemas.js';
 import { addressViewSchema } from '../users/schemas.js';
 
 const MAX_NOTIFICATION_EMAILS = 10;
@@ -35,16 +35,16 @@ const phone = z.string().transform(digits).refine(isValidPhone, { error: 'Telefo
 
 const addressInputSchema = z.object({
   cep: z.string().transform(digits).refine(isValidCep, { error: 'CEP inválido.' }),
-  street: z.string().trim().min(2).max(150),
-  number: z.string().trim().min(1).max(20),
-  complement: z.string().trim().max(80).nullable(),
-  district: z.string().trim().min(2).max(80),
-  city: z.string().trim().min(2).max(80),
+  street: trimmedText(150).min(2),
+  number: trimmedText(20).min(1),
+  complement: trimmedText(80).nullable(),
+  district: trimmedText(80).min(2),
+  city: trimmedText(80).min(2),
   state: z.enum(BRAZILIAN_STATES),
 });
 
 export const storeUpdateSchema = z.object({
-  name: z.string().trim().min(3).max(80).optional(),
+  name: trimmedText(80).min(3).optional(),
   phone: phone.optional(),
   whatsapp: phone.nullable().optional(),
   email: emailSchema.optional(),

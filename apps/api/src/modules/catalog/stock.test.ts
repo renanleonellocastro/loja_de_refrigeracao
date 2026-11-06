@@ -117,6 +117,17 @@ describe('stock movements', () => {
     expect((await move(999999, manager.headers, { type: 'IN', quantity: 1 })).statusCode).toBe(404);
   });
 
+  it('rejects a reason longer than the 300 characters the contract declares, even padded with spaces', async () => {
+    const { manager, product } = await setup();
+    const tooLong = { type: 'LOSS', quantity: 1, reason: `${'a'.repeat(299)}  ` };
+    const response = await move(product.id, manager.headers, tooLong);
+    expect(response.statusCode).toBe(422);
+    expect(response.json().errors).toEqual([{ path: 'reason', message: 'Motivo longo demais.' }]);
+    expect(await stockOf(product.id)).toBe(5);
+    const atLimit = await move(product.id, manager.headers, { ...tooLong, reason: ` ${'a'.repeat(298)} ` });
+    expect(atLimit.json()).toMatchObject({ movement: { reason: 'a'.repeat(298) }, stockAvailable: 4 });
+  });
+
   it('never goes negative under concurrent losses', async () => {
     const { manager, product } = await setup(5);
     const responses = await Promise.all(
