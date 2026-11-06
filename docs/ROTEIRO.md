@@ -72,7 +72,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 * [x] #41 UC Excluir Cliente com anonimização
 * [ ] #42 UC Cadastrar, Consultar e Excluir Colaborador (pendente: excluir um colaborador ainda não sinaliza os serviços futuros dele)
 * [x] #43 UC Cadastrar, Consultar e Excluir Gerente
-* [ ] #44 LGPD: política de privacidade, exportar e excluir meus dados (pendente: faltam as tarefas agendadas de retenção)
+* [x] #44 LGPD: política de privacidade, exportar e excluir meus dados
 
 ## M4 Catálogo e estoque (épico #45)
 
