@@ -19,7 +19,7 @@ Em **Entrar**, toque em **Criar conta**. Informe nome, email, telefone e uma sen
 ### Comprar para retirar na loja
 
 1. Em **Produtos**, busque pelo nome ou filtre por categoria, marca, condição (novo ou usado revisado) e preço.
-2. Abra o produto para ver fotos, descrição e disponibilidade e toque em **Adicionar ao carrinho**.
+2. Abra o produto para ver fotos, descrição e disponibilidade e toque em **Adicionar ao carrinho**. Toque numa foto para abrir em tela cheia: afaste dois dedos ou toque duas vezes para ampliar e arraste para ver os detalhes. No computador, a roda do mouse, os botões de mais e menos e as teclas `+`, `-`, `0` e as setas fazem o mesmo.
 3. No **Carrinho**, ajuste as quantidades e toque em **Fechar pedido**. O estoque fica reservado para você.
 4. Acompanhe em **Pedidos**: o pedido começa **Em análise**, passa para **Aguardando retirada** quando a loja separa e para **Retirado** no balcão. Você recebe um email a cada mudança e pode cancelar enquanto ele estiver em análise.
 

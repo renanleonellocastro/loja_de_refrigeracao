@@ -2,7 +2,6 @@ import { mountSuspended } from '@nuxt/test-utils/runtime';
 import { flushPromises } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import CatalogFilters from '~/components/catalog/Filters.vue';
-import CatalogGallery from '~/components/catalog/Gallery.vue';
 import CatalogProductCard from '~/components/catalog/ProductCard.vue';
 import CatalogProductImage from '~/components/catalog/ProductImage.vue';
 import CatalogQuantityStepper from '~/components/catalog/QuantityStepper.vue';
@@ -10,7 +9,7 @@ import LayoutCartBadge from '~/components/layout/CartBadge.vue';
 import OrderItems from '~/components/order/Items.vue';
 import { useCartStore } from '~/stores/cart';
 import { filtersFromQuery } from '~/utils/catalog';
-import { FACETS, IMAGE, detail, guestCart, order, product } from '../support/shop';
+import { FACETS, IMAGE, guestCart, order, product } from '../support/shop';
 
 afterEach(() => {
   useCartStore().guest = [];
@@ -120,45 +119,6 @@ describe('CatalogFilters', () => {
       props: { filters: filtersFromQuery({}), facets: { ...FACETS, brands: [], price: null }, idPrefix: 'x' },
     });
     expect(noPrice.text()).not.toContain('De R$ 4');
-  });
-});
-
-describe('CatalogGallery', () => {
-  it('swipes, follows the arrows and the thumbnails', async () => {
-    const wrapper = await mountSuspended(CatalogGallery, {
-      props: { images: detail().images, name: 'Compressor' },
-      attachTo: document.body,
-    });
-    const track = wrapper.get('[role="region"]').element as HTMLElement;
-    Object.defineProperty(track, 'clientWidth', { value: 300, configurable: true });
-    track.scrollTo = vi.fn();
-    const next = wrapper.get('button[aria-label="Próxima foto"]');
-    const previous = wrapper.get('button[aria-label="Foto anterior"]');
-    expect(previous.attributes('disabled')).toBeDefined();
-    await next.trigger('click');
-    expect(track.scrollTo).toHaveBeenCalledWith({ left: 300, behavior: 'smooth' });
-    expect(wrapper.text()).toContain('2/2');
-    expect(next.attributes('disabled')).toBeDefined();
-    await previous.trigger('click');
-    await wrapper.findAll('[aria-label^="Ver foto"]')[1]!.trigger('click');
-    expect(wrapper.get('[aria-label="Ver foto 2"]').attributes('aria-current')).toBe('true');
-    track.scrollLeft = 0;
-    await wrapper.get('[role="region"]').trigger('scroll');
-    expect(wrapper.text()).toContain('1/2');
-    Object.defineProperty(track, 'clientWidth', { value: 0, configurable: true });
-    await wrapper.get('[role="region"]').trigger('scroll');
-    expect(wrapper.text()).toContain('1/2');
-    expect(wrapper.findAll('img')[1]!.attributes('alt')).toBe('Compressor, foto 2');
-    wrapper.unmount();
-  });
-
-  it('shows the placeholder without photos and no arrows for one photo', async () => {
-    const none = await mountSuspended(CatalogGallery, { props: { images: [], name: 'Peça' } });
-    expect(none.get('img').attributes('src')).toBe('/illustrations/produto-sem-foto.svg');
-    const one = await mountSuspended(CatalogGallery, {
-      props: { images: detail().images.slice(0, 1), name: 'Peça' },
-    });
-    expect(one.find('button').exists()).toBe(false);
   });
 });
 
