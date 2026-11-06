@@ -71,7 +71,7 @@ async function approvedRequest(request: APIRequestContext, problem: string): Pro
       windows: [{ day: dayFromToday(LEAD_DAYS), period: 'AFTERNOON' }],
       address: {
         cep: '13800061',
-        street: 'Rua Doutor Ulhoa Cintra',
+        street: 'Rua Doutor Ulhôa Cintra',
         number: '91',
         district: 'Centro',
         city: 'Mogi Mirim',
@@ -115,6 +115,12 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     await dialog.getByRole('combobox', { name: 'Técnico' }).selectOption({ label: 'Paulo Técnico' });
     await dialog.getByRole('textbox', { name: 'Dia' }).fill(day);
     await dialog.getByLabel('Início').fill(`${hour}:00`);
+    // The form saves itself on the device: a reload brings back what was typed (issue #65).
+    await page.reload();
+    await expect(dialog.getByTestId('schedule-draft')).toBeVisible();
+    await expect(dialog.getByRole('combobox', { name: 'Técnico' })).toHaveValue(/\d+/);
+    await expect(dialog.getByRole('textbox', { name: 'Dia' })).toHaveValue(day);
+    await expect(dialog.getByLabel('Início')).toHaveValue(`${hour}:00`);
     await expect(dialog.getByLabel('Duração')).toHaveValue('120');
     await expectAccessibleSettled(page);
     await dialog.getByRole('button', { name: 'Agendar visita' }).click();

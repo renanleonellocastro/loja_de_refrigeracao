@@ -30,7 +30,7 @@ describe('store', () => {
       name: 'Refrigeração Castro',
       cnpj: '63060560000151',
       phone: '1938041658',
-      address: { street: 'Rua Doutor Ulhoa Cintra', number: '91', city: 'Mogi Mirim' },
+      address: { street: 'Rua Doutor Ulhôa Cintra', number: '91', city: 'Mogi Mirim' },
       openNow: true,
     });
     expect(response.json().notificationEmails).toBeUndefined();
@@ -51,7 +51,7 @@ describe('store', () => {
         openingHours: { ...WEEK, '6': { opens: '08:00', closes: '12:00' } },
         address: {
           cep: '13800-061',
-          street: 'Rua Doutor Ulhoa Cintra',
+          street: 'Rua Doutor Ulhôa Cintra',
           number: '91',
           complement: null,
           district: 'Centro',

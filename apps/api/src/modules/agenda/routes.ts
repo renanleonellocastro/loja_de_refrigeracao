@@ -4,7 +4,7 @@ import type { AppContext } from '../../context.js';
 import { defineRoute, registerRoutes } from '../../shared/routes.js';
 import { requireAuth } from '../../plugins/auth.js';
 import { etagFor } from '../../shared/concurrency.js';
-import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
+import { errorResponses, idParamSchema, noContentSchema, problemSchema } from '../../shared/schemas.js';
 import { readMultipart } from '../media/service.js';
 import * as agenda from './agenda.js';
 import * as reports from './reports.js';
@@ -96,7 +96,7 @@ const rescheduleAppointmentRoute = defineRoute({
     security,
     params: idParamSchema,
     body: appointmentUpdateSchema,
-    response: { 200: appointmentSchema, ...errorResponses },
+    response: { 200: appointmentSchema, 412: problemSchema, 428: problemSchema, ...errorResponses },
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);

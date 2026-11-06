@@ -34,7 +34,7 @@ Aprovação do replanejamento, monorepo, CI com cobertura de 100%, ambiente loca
 * [ ] #15 Informações pendentes da Refrigeração Castro (pendente: aguarda as informações do dono da loja)
 * [x] #16 Monorepo pnpm com TypeScript estrito, ESLint e Prettier
 * [x] #17 CI no GitHub Actions com portões de qualidade e cobertura de 100%
-* [ ] #18 Ambiente local em um comando com Docker Compose (pendente: falta o seed com pedidos e serviços em vários estados e o passo a passo para Mac, Linux e Windows)
+* [x] #18 Ambiente local em um comando com Docker Compose, seed com pedidos, orçamentos e serviços em todos os estados e passo a passo para Mac, Linux e Windows (WSL)
 * [x] #19 Higiene do repositório: tokens, scripts de teste, licença e README
 * [x] #20 Convenções de contribuição: branches, commits, templates de PR e issue
 
@@ -79,7 +79,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO, movimentações de estoque. Dependência: depende do M3.
 
 * [x] #46 Gerenciar Categorias
-* [ ] #47 UC Cadastrar e Editar Produto (pendente: faltam as diferenças no aviso de conflito e o formulário em etapas no celular)
+* [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
 * [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
 * [x] #50 Página de detalhes do produto
@@ -111,7 +111,7 @@ Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, 
 
 Agenda dos técnicos (mês, semana, dia), atribuição sem conflitos, finalização pelo celular e aprovação com valor. Dependência: depende do M6.
 
-* [ ] #65 UC Cadastrar Serviço na Agenda do Colaborador (pendente: falta o salvamento automático do formulário)
+* [x] #65 UC Cadastrar Serviço na Agenda do Colaborador
 * [x] #66 UC Consultar Agenda (mês, semana, dia e lista)
 * [x] #67 UC Alterar e Excluir Serviço da Agenda
 * [x] #68 UC Finalizar Serviço pelo celular

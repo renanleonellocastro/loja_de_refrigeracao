@@ -103,7 +103,7 @@ const TIMELINE: TimelineEvent[] = [
 const DETAILS: DescriptionItem[] = [
   { term: 'Cliente', detail: 'Maria Aparecida' },
   { term: 'Telefone', detail: formatPhone('19998765432') },
-  { term: 'Endereço', detail: 'Rua Doutor Ulhoa Cintra, 91, Centro' },
+  { term: 'Endereço', detail: 'Rua Doutor Ulhôa Cintra, 91, Centro' },
   { term: 'Estado', detail: 'PENDING_REVIEW' },
 ];
 

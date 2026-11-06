@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { imageSchema } from '../media/schemas.js';
 import { pageQuerySchema } from '../../shared/pagination.js';
-import { integerInput, positiveIntegerInput } from '../../shared/schemas.js';
+import { integerInput, positiveIntegerInput, trimmedText } from '../../shared/schemas.js';
 
 export const PRODUCT_CONDITIONS = ['NEW', 'USED'] as const;
 export const PRODUCT_SORTS = ['relevance', 'name', 'newest', 'priceAsc', 'priceDesc'] as const;
@@ -19,11 +19,11 @@ export type ManualMovementType = (typeof MANUAL_MOVEMENT_TYPES)[number];
 
 // Input schemas (may have transforms; not registered as named components).
 
-const categoryNameSchema = z
-  .string({ error: 'Informe o nome da categoria.' })
-  .trim()
-  .min(2, { error: 'Informe o nome da categoria.' })
-  .max(60, { error: 'Nome longo demais.' });
+const categoryNameSchema = trimmedText(
+  60,
+  'Nome longo demais.',
+  z.string({ error: 'Informe o nome da categoria.' }),
+).min(2, { error: 'Informe o nome da categoria.' });
 
 export const categoryInputSchema = z.object({ name: categoryNameSchema });
 
@@ -36,10 +36,7 @@ export const categoryOrderSchema = z.object({
 });
 
 const optionalText = (max: number) =>
-  z
-    .string()
-    .trim()
-    .max(max, { error: 'Texto longo demais.' })
+  trimmedText(max, 'Texto longo demais.')
     .transform((value) => (value === '' ? null : value))
     .nullable();
 
@@ -57,16 +54,14 @@ const stockMinSchema = z
   .nullable();
 
 const productFields = {
-  name: z
-    .string({ error: 'Informe o nome do produto.' })
-    .trim()
-    .min(3, { error: 'Informe o nome do produto.' })
-    .max(120, { error: 'Nome longo demais.' }),
+  name: trimmedText(120, 'Nome longo demais.', z.string({ error: 'Informe o nome do produto.' })).min(3, {
+    error: 'Informe o nome do produto.',
+  }),
   categoryId: z.number({ error: 'Escolha a categoria.' }).int().positive({ error: 'Escolha a categoria.' }),
   brand: optionalText(60),
   model: optionalText(60),
   condition: z.enum(PRODUCT_CONDITIONS, { error: 'Escolha novo ou usado.' }),
-  description: z.string().trim().max(5000, { error: 'Descrição longa demais.' }),
+  description: trimmedText(5000, 'Descrição longa demais.'),
   priceCents: priceSchema,
   stockMin: stockMinSchema,
 };
@@ -108,10 +103,10 @@ const booleanQuery = z
   .transform((value) => value === 'true');
 
 const catalogFilters = {
-  q: z.string().trim().max(100).optional(),
+  q: trimmedText(100).optional(),
   categoryId: positiveIntegerInput().optional(),
   condition: z.enum(PRODUCT_CONDITIONS).optional(),
-  brand: z.string().trim().min(1).max(60).optional(),
+  brand: trimmedText(60).min(1).optional(),
   minPriceCents: integerInput(z.number().int().min(0)).optional(),
   maxPriceCents: integerInput(z.number().int().min(0)).optional(),
   available: booleanQuery.optional(),
@@ -210,10 +205,7 @@ export const stockMovementInputSchema = z
       .int({ error: 'Informe um número inteiro.' })
       .min(-MAX_STOCK_QUANTITY, { error: 'Quantidade grande demais.' })
       .max(MAX_STOCK_QUANTITY, { error: 'Quantidade grande demais.' }),
-    reason: z
-      .string()
-      .trim()
-      .max(300, { error: 'Motivo longo demais.' })
+    reason: trimmedText(300, 'Motivo longo demais.')
       .optional()
       .transform((value) => (value ? value : null)),
   })

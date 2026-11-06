@@ -23,7 +23,7 @@ export const fakeFetch: typeof globalThis.fetch = async (input) => {
   const body = url.includes('13800061')
     ? {
         cep: '13800-061',
-        logradouro: 'Rua Doutor Ulhoa Cintra',
+        logradouro: 'Rua Doutor Ulhôa Cintra',
         bairro: 'Centro',
         localidade: 'Mogi Mirim',
         uf: 'SP',
