@@ -23,13 +23,8 @@ export function useResendOnReconnect(resend: () => Promise<void>): ResendOnRecon
   };
   onMounted(() => window.addEventListener('online', onOnline));
   onBeforeUnmount(() => window.removeEventListener('online', onOnline));
-  return {
-    pending,
-    wait: () => {
-      pending.value = true;
-    },
-    cancel: () => {
-      pending.value = false;
-    },
+  const mark = (waiting: boolean) => () => {
+    pending.value = waiting;
   };
+  return { pending, wait: mark(true), cancel: mark(false) };
 }
