@@ -13,12 +13,12 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/core": "^6.1.22",
     "@fullcalendar/daygrid": "^6.1.22",
     "@fullcalendar/interaction": "^6.1.22",
     "@fullcalendar/list": "^6.1.22",
     "@fullcalendar/timegrid": "^6.1.22",
-    "@fullcalendar/vue3": "^6.1.21",
+    "@fullcalendar/vue3": "^6.1.22",
     "@nuxt/fonts": "^0.14.0",
     "@nuxt/image": "^2.2.0",
     "@pinia/nuxt": "^1.0.3",
@@ -33,12 +33,12 @@
   "devDependencies": {
     "@nuxt/test-utils": "^4.3.4",
     "@tailwindcss/vite": "^4.3.3",
-    "@vitest/coverage-v8": "^5.0.5",
+    "@vitest/coverage-v8": "5.0.3",
     "@vue/test-utils": "^2.5.1",
     "happy-dom": "^20.14.5",
     "tailwindcss": "^4.3.3",
     "typescript": "6.0.3",
-    "vitest": "^5.0.5",
+    "vitest": "5.0.3",
     "vue-tsc": "^3.3.14"
   }
 }

@@ -20,6 +20,7 @@ afterEach(() => {
   useToast().clear();
   useConfirm().settle(false);
   useActorPreview().value = null;
+  vi.restoreAllMocks();
 });
 
 describe('error page', () => {
@@ -140,7 +141,8 @@ describe('design page', () => {
   });
 
   it('keeps every demo control interactive', async () => {
-    vi.stubGlobal('URL', { ...URL, createObjectURL: vi.fn(() => 'blob:1'), revokeObjectURL: vi.fn() });
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:1');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
     vi.stubGlobal(
       'createImageBitmap',
       vi.fn(async () => {
