@@ -24,6 +24,7 @@ const configSchema = z
     SMTP_URL: z.string().min(1).default('smtp://localhost:1025'),
     MAIL_FROM: z.string().min(1).default('Refrigeração Castro <nao-responda@refrigeracaocastro.com.br>'),
     STORAGE_PATH: z.string().min(1).default('./storage'),
+    SIGN_UP_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
   })
   .transform((config) => ({
     ...config,

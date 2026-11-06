@@ -35,7 +35,7 @@ function meta(request: FastifyRequest) {
 const registerCustomerRoute = defineRoute({
   method: 'POST',
   url: '/customers',
-  config: { public: true, rateLimit: { max: 10, timeWindow: '1 hour' } },
+  config: { public: true },
   schema: {
     tags,
     summary: 'Criar conta de cliente (autocadastro)',
@@ -47,6 +47,12 @@ const registerCustomerRoute = defineRoute({
     return sendSession(ctx.config, reply, session, 201);
   },
 });
+
+/** Sign ups per IP per hour come from the configuration, so the E2E stack can create every account it needs. */
+function limitedSignUpRoute(signUpsPerHour: number) {
+  const rateLimit = { max: signUpsPerHour, timeWindow: '1 hour' };
+  return { ...registerCustomerRoute, config: { ...registerCustomerRoute.config, rateLimit } };
+}
 
 const createUserRoute = defineRoute({
   method: 'POST',
@@ -211,7 +217,6 @@ const cepLookupRoute = (cache: CepCache) =>
   });
 
 const USER_ROUTES = [
-  registerCustomerRoute,
   createUserRoute,
   listUsersRoute,
   userDetailRoute,
@@ -225,5 +230,6 @@ const USER_ROUTES = [
 
 /** The CEP cache comes from the composition root, so each app instance owns its own. */
 export function userRoutes(ctx: AppContext, cepCache: CepCache): FastifyPluginAsyncZod {
-  return async (app) => registerRoutes(app, ctx, [...USER_ROUTES, cepLookupRoute(cepCache)]);
+  const signUp = limitedSignUpRoute(ctx.config.SIGN_UP_LIMIT_PER_HOUR);
+  return async (app) => registerRoutes(app, ctx, [signUp, ...USER_ROUTES, cepLookupRoute(cepCache)]);
 }

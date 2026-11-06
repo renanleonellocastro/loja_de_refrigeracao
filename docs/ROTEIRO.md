@@ -84,7 +84,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 * [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
 * [ ] #50 Página de detalhes do produto (pendente: falta o zoom da galeria)
 * [x] #51 UC Excluir Produto com arquivamento
-* [ ] #52 Movimentar Estoque e alerta de estoque baixo (pendente: falta a notificação de estoque baixo)
+* [x] #52 Movimentar Estoque e alerta de estoque baixo (painel e notificação para a gerência)
 
 ## M5 Pedidos e vendas (épico #53)
 

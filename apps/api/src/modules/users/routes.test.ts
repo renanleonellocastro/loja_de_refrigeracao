@@ -10,6 +10,7 @@ import {
   users,
 } from '../../infra/db/schema.js';
 import { TEST_PASSWORD, useTestApp } from '../../../test/harness.js';
+import { mapTakenViolation } from './availability.js';
 import { createMemoryCepCache } from './cep-cache.js';
 import { lookupCep } from './cep.js';
 
@@ -569,5 +570,52 @@ describe('user routes', () => {
         title: 'Consulta de CEP indisponível',
       });
     });
+  });
+});
+
+describe('sign up limit', () => {
+  const t = useTestApp({ SIGN_UP_LIMIT_PER_HOUR: '1' });
+
+  it('refuses sign ups past the configured number per address', async () => {
+    const signUp = (email: string) =>
+      t.app.inject({ method: 'POST', url: '/api/v1/customers', payload: { ...registration, email } });
+    expect((await signUp('primeira@exemplo.com.br')).statusCode).toBe(201);
+    expect((await signUp('segunda@exemplo.com.br')).statusCode).toBe(429);
+  });
+});
+
+describe('sign ups racing for the same email', () => {
+  const t = useTestApp({ SIGN_UP_LIMIT_PER_HOUR: '100' });
+
+  it('creates one account and answers the other with the taken email conflict', async () => {
+    const signUp = () => t.app.inject({ method: 'POST', url: '/api/v1/customers', payload: registration });
+    const replies = await Promise.all([signUp(), signUp(), signUp()]);
+    const statuses = replies.map((reply) => reply.statusCode).sort();
+    expect(statuses).toEqual([201, 409, 409]);
+    const conflicts = replies.filter((reply) => reply.statusCode === 409);
+    for (const reply of conflicts) {
+      expect(reply.json().errors).toEqual([{ path: 'email', message: 'Este email já está cadastrado.' }]);
+    }
+  });
+});
+
+describe('mapTakenViolation', () => {
+  const violation = (constraint?: string) => ({ code: '23505', constraint });
+
+  it('answers the conflict of the unique index that the write hit', () => {
+    expect(() => mapTakenViolation({ cause: violation('users_email_active_unique') })).toThrowError(
+      'Já existe uma conta com este email. Tente entrar ou recuperar a senha.',
+    );
+    expect(() => mapTakenViolation(violation('users_cpf_active_unique'))).toThrowError(
+      'Já existe uma conta com este CPF.',
+    );
+  });
+
+  it('rethrows every other failure unchanged', () => {
+    const other = new Error('other');
+    expect(() => mapTakenViolation(other)).toThrowError(other);
+    const otherIndex = violation('availability_windows_unique');
+    expect(() => mapTakenViolation(otherIndex)).toThrow(expect.objectContaining(otherIndex));
+    expect(() => mapTakenViolation(violation())).toThrow(expect.objectContaining({ code: '23505' }));
   });
 });

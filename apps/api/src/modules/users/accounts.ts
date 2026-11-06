@@ -9,7 +9,7 @@ import * as auth from '../auth/service.js';
 import { hashPassword, matchesPassword, type AccessClaims } from '../auth/service.js';
 import { queueEmail } from '../mail/service.js';
 import { recentActivity } from './activity.js';
-import { assertAvailable } from './availability.js';
+import { assertAvailable, withAvailabilityGuard } from './availability.js';
 import { detailOf, toListItem, type UserDetail } from './detail.js';
 import * as users from './service.js';
 import type { ProfileUpdate, STAFF_CREATABLE_ROLES } from './schemas.js';
@@ -114,7 +114,9 @@ async function insertCustomer(
 export async function registerCustomer(ctx: AppContext, input: CustomerRegistration, meta: auth.ClientMeta) {
   auth.assertStrongPassword(input.password, input.email);
   const passwordHash = await hashPassword(input.password);
-  return ctx.db.transaction((tx) => insertCustomer(ctx, tx, { ...input, passwordHash }, meta));
+  return withAvailabilityGuard(() =>
+    ctx.db.transaction((tx) => insertCustomer(ctx, tx, { ...input, passwordHash }, meta)),
+  );
 }
 
 export interface UserCreation {
@@ -152,7 +154,9 @@ export async function createUser(ctx: AppContext, actor: AccessClaims, input: Us
   if (!can(actor.role, CREATE_PERMISSION[input.role])) {
     throw forbidden('Somente o super usuário cadastra a equipe.');
   }
-  return ctx.db.transaction((tx) => insertInvitedUser(ctx, tx, input, { actorId: actor.userId, ip }));
+  return withAvailabilityGuard(() =>
+    ctx.db.transaction((tx) => insertInvitedUser(ctx, tx, input, { actorId: actor.userId, ip })),
+  );
 }
 
 export async function listUsers(

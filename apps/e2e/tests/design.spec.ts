@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { expectAccessible } from '../support/a11y.js';
+import { expectAccessible, expectAccessibleSettled } from '../support/a11y.js';
+import { closeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 test.describe('RNF-05 e RNF-06 guia vivo de componentes', () => {
@@ -24,12 +25,12 @@ test.describe('RNF-05 e RNF-06 guia vivo de componentes', () => {
     const toast = page.getByRole('status').filter({ hasText: 'Pronto! Alterações salvas.' });
     await expect(toast).toBeVisible();
     await toast.getByRole('button', { name: 'Desfazer' }).click();
-    await expect(page.getByText('Alteração desfeita.')).toBeVisible();
+    await closeToast(page, 'Alteração desfeita.');
 
     await page.getByRole('button', { name: 'Excluir produto' }).click();
     const confirm = page.getByRole('dialog', { name: 'Excluir este produto?' });
     await expect(confirm).toBeVisible();
-    await expectAccessible(page);
+    await expectAccessibleSettled(page);
     await confirm.getByRole('button', { name: 'Excluir produto' }).click();
     await expect(page.getByText('Produto excluído.')).toBeVisible();
   });

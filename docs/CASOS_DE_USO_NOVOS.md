@@ -91,7 +91,7 @@ Os atores com acesso a essa funcionalidade são: Gerente e Super usuário.
 2.  O sistema pede **Tipo (Entrada, Ajuste, Perda), Quantidade, Motivo**.
 3.  O sistema registra a movimentação com autor e data e atualiza a quantidade disponível.
 4.  O histórico de movimentações e reservas fica visível nos detalhes do produto.
-5.  Quando a quantidade disponível fica abaixo do mínimo do produto, o painel mostra o alerta de estoque baixo.
+5.  Quando a quantidade disponível fica abaixo do mínimo do produto, o painel mostra o alerta de estoque baixo. Na movimentação ou reserva que leva o produto para baixo do mínimo, gerentes e super usuários recebem uma notificação com email; enquanto o produto continua baixo, novas movimentações não repetem o aviso.
 6.  Fim da funcionalidade.
 
 ### Gerenciar Carrinho

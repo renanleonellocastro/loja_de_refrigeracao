@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
+import { uniqueEmail } from '../support/identity.js';
 import { open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -43,7 +44,7 @@ test.describe('RF-05, RF-07 e RF-08 cadastros da equipe', () => {
     );
     await expectAccessible(page);
     await dialog.getByLabel('Nome completo').fill(name);
-    await dialog.getByLabel('Email').fill(`e2e.${testInfo.project.name}.${Date.now()}@exemplo.com`);
+    await dialog.getByLabel('Email').fill(uniqueEmail('e2e', testInfo));
     await dialog.getByLabel('Telefone').fill('19999998888');
     await dialog.getByRole('button', { name: 'Cadastrar e enviar convite' }).click();
     await expect(page.getByText(/foi cadastrado\./)).toBeVisible();
@@ -62,7 +63,7 @@ test.describe('RF-05, RF-07 e RF-08 cadastros da equipe', () => {
     await page.getByRole('button', { name: 'Cadastrar colaborador' }).first().click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nome completo').fill(`Técnico ${testInfo.project.name}`);
-    await dialog.getByLabel('Email').fill(`tecnico.${testInfo.project.name}.${Date.now()}@exemplo.com`);
+    await dialog.getByLabel('Email').fill(uniqueEmail('tecnico', testInfo));
     await dialog.getByLabel('CPF').fill('11111111111');
     await dialog.getByRole('button', { name: 'Cadastrar e enviar convite' }).click();
     await expect(dialog.getByText('Esse CPF não existe. Confira os números.')).toBeVisible();

@@ -7,8 +7,13 @@ export function deviceOf(testInfo: TestInfo): Device {
   return testInfo.project.name.split('-').pop() as Device;
 }
 
+/**
+ * Compares the page with the device width, not with window.innerWidth: phone browsers widen the layout viewport to
+ * fit content that overflows, so innerWidth grows with the page and would hide the overflow.
+ */
 export async function hasHorizontalScroll(page: Page): Promise<boolean> {
-  return page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+  const deviceWidth = page.viewportSize()!.width;
+  return page.evaluate((width) => document.documentElement.scrollWidth > width, deviceWidth);
 }
 
 /** Opens a page and waits until Vue has hydrated it, so clicks reach the components. */

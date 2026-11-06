@@ -84,8 +84,14 @@ function insertOrder(tx: Executor, input: Placement, totalCents: number, now: Da
   });
 }
 
-async function reserveOrFail(tx: Executor, lines: OrderLine[], link: catalog.StockLink, now: Date) {
-  const unavailable = await catalog.reserveStock(tx, lines, link, now);
+async function reserveOrFail(
+  ctx: AppContext,
+  tx: Executor,
+  lines: OrderLine[],
+  link: catalog.StockLink,
+  now: Date,
+) {
+  const unavailable = await catalog.reserveStock(ctx, tx, lines, link, now);
   if (unavailable.length > 0) throw catalog.insufficientStock(unavailable);
 }
 
@@ -117,7 +123,7 @@ export async function placeOrder(ctx: AppContext, tx: Executor, input: Placement
   const snapshot = snapshotLines(input.items, products);
   const totalCents = totalOf(snapshot);
   const order = await insertOrder(tx, input, totalCents, now);
-  await reserveOrFail(tx, snapshot, { orderId: order.id, authorId: input.createdById }, now);
+  await reserveOrFail(ctx, tx, snapshot, { orderId: order.id, authorId: input.createdById }, now);
   await recordLines(tx, order, snapshot, now);
   return { order, snapshot, totalCents };
 }

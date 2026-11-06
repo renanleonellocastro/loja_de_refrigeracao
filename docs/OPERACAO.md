@@ -88,6 +88,7 @@ O modelo de desenvolvimento é `infra/env.sample`; o de produção é `infra/env
 | `SMTP_URL` | worker | servidor de envio de emails (seção 7) |
 | `MAIL_FROM` | worker | remetente dos emails |
 | `STORAGE_PATH` | API e worker | pasta das fotos; `/data/storage` nas imagens |
+| `SIGN_UP_LIMIT_PER_HOUR` | API | cadastros de cliente por IP por hora, padrão 10; só a stack de testes E2E aumenta |
 | `NUXT_PUBLIC_API_BASE` | site | endereço público da API, lido quando o container inicia |
 
 `STORAGE_DRIVER` aparece no modelo de desenvolvimento, mas hoje só existe o armazenamento em disco (ADR 0010).

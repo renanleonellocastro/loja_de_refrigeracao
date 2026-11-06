@@ -34,7 +34,9 @@ Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CH
 
 * Nenhum segredo no Git; `infra/env.sample` documenta as variáveis.
 * gitleaks e Semgrep no CI; gitleaks também em hook de pre commit. Ações do GitHub fixadas por SHA.
-* `pnpm audit` bloqueia o merge com alertas altos. Exceções só para alertas sem versão corrigida que atingem apenas ferramentas de build ou desenvolvimento, listadas com justificativa em `pnpm-workspace.yaml` e revistas a cada atualização de dependências.
+* `pnpm audit` bloqueia o merge com alertas altos em pull requests e pushes. Exceções só para alertas sem versão corrigida que atingem apenas ferramentas de build ou desenvolvimento, listadas com justificativa em `pnpm-workspace.yaml` (`auditConfig.ignoreGhsas`) e revistas a cada atualização de dependências.
+* Na execução noturna o código não mudou, então um alerta novo não reprova o CI: `infra/audit-report.sh` abre uma única issue com o rótulo `seguranca` (ou atualiza a que estiver aberta, comentando só quando aparece um alerta novo) e a fecha quando a auditoria fica limpa.
+* O Dependabot (`.github/dependabot.yml`) abre toda segunda um pull request agrupado com as atualizações menores e de correção, com espera de 7 dias para versões novas, e pull requests de correção de segurança assim que um alerta é publicado.
 * Os arquivos `.http` com tokens e o script com hash de senha do protótipo saem do repositório no M0. Os tokens antigos já expiraram, mas o `JWT_KEY` usado na época deve ser considerado comprometido e não reaproveitado.
 
 ## 6. LGPD
@@ -51,4 +53,4 @@ Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CH
 
 ## 7. Operação
 
-Backups diários do banco com retenção de 30 dias e teste mensal de restauração; dependências atualizadas automaticamente pelo Renovate com o CI completo; trilha de auditoria imutável das ações administrativas.
+Backups diários do banco com retenção de 30 dias e teste mensal de restauração; dependências atualizadas automaticamente pelo Dependabot com o CI completo; trilha de auditoria imutável das ações administrativas.

@@ -89,7 +89,7 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 
 | Item | Requisito | Status | Como atendemos |
 |---|---|---|---|
-| 10.3.2 | Integridade de dependências e ações | OK | Lockfile congelado, `blockExoticSubdeps` e `trustPolicy: no-downgrade` no pnpm, espera de 7 dias para versões novas no Renovate, ações do GitHub fixadas por SHA, `pnpm audit` e gitleaks no CI. |
+| 10.3.2 | Integridade de dependências e ações | OK | Lockfile congelado, `blockExoticSubdeps` e `trustPolicy: no-downgrade` no pnpm, espera de 7 dias para versões novas no Dependabot, ações do GitHub fixadas por SHA, `pnpm audit` e gitleaks no CI. |
 
 ## V12 Arquivos
 
@@ -112,7 +112,7 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 
 | Item | Requisito | Status | Como atendemos |
 |---|---|---|---|
-| 14.2.1 | Componentes atualizados | OK | Renovate semanal com CI completo. |
+| 14.2.1 | Componentes atualizados | OK | Dependabot semanal agrupado e de segurança, com CI completo; auditoria noturna abre issue `seguranca`. |
 | 14.3.2 | Sem modo de depuração em produção | OK | Configuração validada; sem devtools no build. |
 | 14.3.3 | Cabeçalhos sem versões | OK | A API não revela versão e o site remove o `x-powered-by`. |
 | 14.4.1 | `Content-Type` com charset | OK | Fastify e Nitro definem o tipo em toda resposta. |
