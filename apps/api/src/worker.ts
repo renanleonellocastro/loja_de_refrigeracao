@@ -11,7 +11,6 @@ import { HOUR, systemClock } from './shared/clock.js';
 const config = loadConfig(process.env);
 const database = connect(config.DATABASE_URL, 2);
 const mailer = createSmtpMailer(config.SMTP_URL, config.MAIL_FROM);
-const handlers = { [EMAIL_TOPIC]: emailHandler({ mailer, config }) };
 const ctx: AppContext = {
   config,
   db: database.db,
@@ -20,6 +19,7 @@ const ctx: AppContext = {
   fetch: globalThis.fetch,
   clock: systemClock,
 };
+const handlers = { [EMAIL_TOPIC]: emailHandler(ctx) };
 
 let running = true;
 const stop = () => {
