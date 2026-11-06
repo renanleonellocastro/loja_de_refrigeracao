@@ -259,6 +259,51 @@ describe('finalizing a service', () => {
     page.unmount();
   });
 
+  it('sends the report again by itself when the connection comes back, with the same key', async () => {
+    useAuthStore().apply(session(EMPLOYEE_USER));
+    stubImages();
+    const sent = mockUploads({ status: 201, body: appointment({ report: report() }) });
+    saveDraft(9, { defectFound: 'nao', defectDescription: '', repairDescription: 'Limpeza do condensador.' });
+    const api = mockApi()
+      .on(DETAIL, { body: appointment() })
+      .on(REPORT, new Error('offline'), new Error('offline'), new Error('offline'), {
+        body: appointment({ request: { status: 'AWAITING_COMPLETION_APPROVAL' }, report: report() }),
+      });
+    const page = await mountSuspended(VisitPage, { route: '/agenda/9', attachTo: document.body });
+    await settle();
+    pickFiles(['depois.jpg']);
+    await settle();
+    const keys = vi.spyOn(crypto, 'randomUUID');
+    const online = async () => {
+      window.dispatchEvent(new Event('online'));
+      await settle();
+    };
+
+    await online();
+    expect(api.called(REPORT)).toHaveLength(0);
+    submit('Finalizar serviço');
+    await settle();
+    expect(text()).toContain('enviamos a finalização sozinhos');
+    await online();
+    expect(api.called(REPORT)).toHaveLength(2);
+    expect(keys).not.toHaveBeenCalled();
+    expect(page.find('[data-testid="report-offline"]').exists()).toBe(true);
+
+    // Changing the text after a failed send makes a new key: the API would refuse the old one with other data.
+    await fill('Reparo realizado', 'Limpeza do condensador e do filtro.');
+    expect(keys).toHaveBeenCalledTimes(1);
+    await online();
+    await online();
+    expect(api.called(REPORT)[3]!.body).toMatchObject({ repairDescription: 'Limpeza do condensador e do filtro.' });
+    expect(sent).toHaveLength(1);
+    expect(toastTitles()).toContain('Serviço finalizado. A gerência vai conferir o relatório.');
+    expect(loadDraft(9)).toBeNull();
+    await online();
+    expect(api.called(REPORT)).toHaveLength(4);
+    keys.mockRestore();
+    page.unmount();
+  });
+
   it('restores a draft, resends after a rework and warns when photos fail', async () => {
     useAuthStore().apply(session(EMPLOYEE_USER));
     stubImages();

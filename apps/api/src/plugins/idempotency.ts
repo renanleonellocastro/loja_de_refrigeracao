@@ -46,9 +46,10 @@ function assertValidKey(key: string): void {
   );
 }
 
+/** The concrete URL goes in the hash: one key sent to another appointment must not replay the first one. */
 function requestHash(request: FastifyRequest): string {
   return createHash('sha256')
-    .update(`${routeOf(request)}\n${JSON.stringify(request.body ?? null)}`)
+    .update(`${request.method} ${request.url}\n${JSON.stringify(request.body ?? null)}`)
     .digest('hex');
 }
 
@@ -115,7 +116,10 @@ async function storeFirstResponse(
   return payload;
 }
 
-/** docs/API.md: POST /orders, /counter-sales, /service-requests and /quotes are safe to retry. */
+/**
+ * docs/API.md: POST /orders, /counter-sales, /service-requests, /quotes and /appointments/:id/report are safe
+ * to retry.
+ */
 export const idempotencyPlugin = fp<{ ctx: AppContext }>(async (app, { ctx }) => {
   app.decorateRequest('idempotency', null);
   app.addHook('preHandler', async (request, reply) => replayOrRemember(ctx, request, reply));

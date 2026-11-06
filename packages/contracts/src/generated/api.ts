@@ -6017,7 +6017,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Finalizar o serviço (técnico do atendimento) */
+        /**
+         * Finalizar o serviço (técnico do atendimento)
+         * @description Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.
+         */
         post: {
             parameters: {
                 query?: never;
