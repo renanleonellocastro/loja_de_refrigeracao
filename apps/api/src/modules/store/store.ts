@@ -84,6 +84,12 @@ export async function storeNotificationEmails(db: Executor): Promise<string[]> {
   return (await repo.loadStore(db)).notificationEmails;
 }
 
+/** Name, phones and address the transactional emails show in their footer. */
+export async function storeContact(db: Executor) {
+  const { name, phone, whatsapp, address } = await repo.loadStore(db);
+  return { name, phone, whatsapp, address };
+}
+
 export async function defaultStockMin(db: Executor): Promise<number> {
   return (await repo.loadStore(db)).defaultStockMin;
 }
