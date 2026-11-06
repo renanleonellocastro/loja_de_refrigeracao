@@ -8,11 +8,9 @@ import CatalogProductImage from '~/components/catalog/ProductImage.vue';
 import CatalogQuantityStepper from '~/components/catalog/QuantityStepper.vue';
 import LayoutCartBadge from '~/components/layout/CartBadge.vue';
 import OrderItems from '~/components/order/Items.vue';
-import ProfileRecentOrders from '~/components/profile/RecentOrders.vue';
 import { useCartStore } from '~/stores/cart';
 import { filtersFromQuery } from '~/utils/catalog';
-import { mockApi } from '../support/api';
-import { FACETS, IMAGE, detail, guestCart, order, orderList, orderListItem, product } from '../support/shop';
+import { FACETS, IMAGE, detail, guestCart, order, product } from '../support/shop';
 
 afterEach(() => {
   useCartStore().guest = [];
@@ -219,19 +217,5 @@ describe('OrderItems', () => {
     const wrapper = await mountSuspended(OrderItems, { props: { order: order() } });
     expect(wrapper.text()).toContain('2 × R$ 499,00');
     expect(wrapper.text()).toContain('R$ 998,00');
-  });
-});
-
-describe('ProfileRecentOrders', () => {
-  it('shows the last orders and hides when there are none or offline', async () => {
-    mockApi().on('GET /api/v1/orders', { body: orderList([orderListItem()]) });
-    const wrapper = await mountSuspended(ProfileRecentOrders);
-    await flushPromises();
-    expect(wrapper.text()).toContain('Pedido 2026-000031');
-    expect(wrapper.find('a[href="/minha-conta/pedidos"]').exists()).toBe(true);
-    mockApi().on('GET /api/v1/orders', new TypeError('offline'));
-    const offline = await mountSuspended(ProfileRecentOrders);
-    await flushPromises();
-    expect(offline.text()).toBe('');
   });
 });

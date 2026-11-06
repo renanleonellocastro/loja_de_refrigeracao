@@ -1,39 +1,32 @@
 <script setup lang="ts">
 import { formatDate, formatMoney } from '~/utils/masks';
 
-/** Last three orders on the profile of a customer, with a link to the full list. Hidden when there are none. */
+/** Last orders of the customer on the profile, with a link to the full list. */
 const api = useApi();
-const orders = ref<OrderListItem[]>([]);
-
-onMounted(async () => {
-  try {
-    orders.value = (await unwrap(api.GET('/api/v1/orders', { params: { query: { pageSize: 3 } } }))).data;
-  } catch {
-    // A convenience on the profile: without it the page still works.
-  }
-});
+const { rows, loading, failed } = useRecentList((pageSize) =>
+  unwrap(api.GET('/api/v1/orders', { params: { query: { pageSize } } })),
+);
 </script>
 
 <template>
-  <BaseCard v-if="orders.length > 0" title="Últimos pedidos" :heading-level="2">
-    <template #actions>
-      <NuxtLink to="/minha-conta/pedidos" class="text-sm font-semibold text-link hover:underline"
-        >Ver todos</NuxtLink
-      >
-    </template>
-    <ul class="divide-y divide-border">
-      <li v-for="order in orders" :key="order.id">
-        <NuxtLink
-          :to="`/minha-conta/pedidos/${order.id}`"
-          class="flex flex-wrap items-center gap-x-3 gap-y-1 py-3 hover:text-link"
-        >
-          <span class="font-semibold tabular-nums">Pedido {{ order.number }}</span>
-          <BaseStatusBadge kind="order" :status="order.status" size="sm" />
-          <span class="ml-auto text-sm text-text-muted tabular-nums">
-            {{ formatDate(order.createdAt) }} · {{ formatMoney(order.totalCents) }}
-          </span>
-        </NuxtLink>
-      </li>
-    </ul>
-  </BaseCard>
+  <ProfileRecentCard
+    title="Últimos pedidos"
+    all-to="/minha-conta/pedidos"
+    empty-text="Nenhum pedido ainda."
+    start-to="/produtos"
+    start-label="Ver produtos"
+    :loading="loading"
+    :failed="failed"
+    :empty="rows.length === 0"
+  >
+    <ProfileRecentRow
+      v-for="order in rows"
+      :key="order.id"
+      :to="`/minha-conta/pedidos/${order.id}`"
+      :title="`Pedido ${order.number}`"
+      :details="`${formatDate(order.createdAt)} · ${formatMoney(order.totalCents)}`"
+    >
+      <template #status><BaseStatusBadge kind="order" :status="order.status" size="sm" /></template>
+    </ProfileRecentRow>
+  </ProfileRecentCard>
 </template>

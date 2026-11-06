@@ -104,7 +104,11 @@ onMounted(load);
         </div>
       </section>
 
-      <ProfileRecentOrders v-if="auth.actor === 'CLIENT'" />
+      <div v-if="auth.actor === 'CLIENT'" class="grid items-start gap-4 xl:grid-cols-3">
+        <ProfileRecentOrders />
+        <ProfileRecentServiceRequests />
+        <ProfileRecentQuotes />
+      </div>
 
       <BaseTabs v-model="tab" :tabs="tabs" label="Seções do perfil">
         <template #dados><ProfileDataTab :profile="profile" @saved="onSaved" /></template>
