@@ -1,4 +1,4 @@
-import type { CalendarOptions } from '@fullcalendar/core';
+import type { CalendarOptions } from '@fullcalendar/vue3';
 import { defineComponent, h, watchEffect } from 'vue';
 import type { Appointment, ServiceReport } from '~/utils/agenda';
 import { IMAGE } from './shop';

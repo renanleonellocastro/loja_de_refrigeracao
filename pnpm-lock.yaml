@@ -304,24 +304,9 @@ importers:
 
   apps/web:
     dependencies:
-      '@fullcalendar/core':
-        specifier: ^6.1.22
-        version: 6.1.22
-      '@fullcalendar/daygrid':
-        specifier: ^6.1.22
-        version: 6.1.22(@fullcalendar/core@6.1.22)
-      '@fullcalendar/interaction':
-        specifier: ^6.1.22
-        version: 6.1.22(@fullcalendar/core@6.1.22)
-      '@fullcalendar/list':
-        specifier: ^6.1.22
-        version: 6.1.22(@fullcalendar/core@6.1.22)
-      '@fullcalendar/timegrid':
-        specifier: ^6.1.22
-        version: 6.1.22(@fullcalendar/core@6.1.22)
       '@fullcalendar/vue3':
-        specifier: ^6.1.22
-        version: 6.1.22(@fullcalendar/core@6.1.22)(vue@3.5.44(typescript@6.0.3))
+        specifier: ^7.1.3
+        version: 7.1.3(temporal-polyfill@1.0.6)(vue@3.5.44(typescript@6.0.3))
       '@nuxt/fonts':
         specifier: ^1.2.0
         version: 1.2.0(@nuxt/schema@4.6.3)(cac@7.0.0)(confbox@0.3.1)(db0@0.3.4(drizzle-orm@0.45.4(@types/pg@8.23.1)(pg@8.23.1)))(dotenv@17.4.2)(esbuild@0.28.2)(giget@3.3.1)(ioredis@5.11.1(supports-color@10.2.2))(jiti@2.7.0)(lightningcss@1.33.0)(magic-string@1.4.5)(mlly@1.8.2)(postcss@8.5.31)(rolldown@1.2.16)(rollup@4.66.0)(srvx@0.11.22)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15)(yaml@2.9.1))
@@ -349,6 +334,9 @@ importers:
       reka-ui:
         specifier: ^2.11.0
         version: 2.11.0(vue@3.5.44(typescript@6.0.3))
+      temporal-polyfill:
+        specifier: ^1.0.6
+        version: 1.0.6
       vue:
         specifier: ^3.5.44
         version: 3.5.44(typescript@6.0.3)
@@ -1053,33 +1041,21 @@ packages:
     peerDependencies:
       vue: '>=3.3.0'
 
-  '@fullcalendar/core@6.1.22':
-    resolution: {integrity: sha512-ju5PJUE++zr8XXCGtlXlrodF6doUy9BDfzx+VmE0B+XDBM2A5cUi/aU3M1ANfw/StmKhwqew7Ps7bXMiv/JREg==}
-
-  '@fullcalendar/daygrid@6.1.22':
-    resolution: {integrity: sha512-cpom5+bAvsGG5nX+snsCtpMIyyhAr+QlseD9mhz5Vq7rMBTzx43mSkz6IBvQ3vz5h2idbDmT1cggEn/dzZwt9Q==}
+  '@full-ui/headless-calendar@7.1.3':
+    resolution: {integrity: sha512-CFomIp87osqY65Hlu2c0e2ZnofBe9tKOO8IoPzIfSPVDK/+aGz4Itj6mLu4xPjIvzRDQiopcVzYlip6u1bvYxw==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.22
+      temporal-polyfill: ^1.0.1
 
-  '@fullcalendar/interaction@6.1.22':
-    resolution: {integrity: sha512-r8Njw8aPNFGRwDjVAh9NTh3ZJib5tcUoLi/BM4uYJt5Cs9tDiirmImaqxhx56hclVFX7ktd5CdaMX0+ArSbm5A==}
+  '@fullcalendar/core@7.1.3':
+    resolution: {integrity: sha512-DLGXqX7CnuUQHH679FgE6+jc927wa708ydIcnfVx372IOK/OiDZjqc+IBwuKnu2EyqleCooDoAnUAcvXBhHosA==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.22
+      '@full-ui/headless-calendar': 7.1.3
+      temporal-polyfill: ^1.0.1
 
-  '@fullcalendar/list@6.1.22':
-    resolution: {integrity: sha512-7e5kZbeT3fhtXsts6VMQxbGtpoCFOZCxrIckHfn5VTrRh8Up0TKoYj/AOaIj94uz0qebWgaLXwd9Ijiu3uTwjg==}
+  '@fullcalendar/vue3@7.1.3':
+    resolution: {integrity: sha512-5RhsGi1UAPIKgrYzBuGRT+qdX5RWvTKQwmh4/34fR4tAL4gXU3Dja51RgZB0WzqeaADhnDsTjm5p3Zk6XeSV9Q==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.22
-
-  '@fullcalendar/timegrid@6.1.22':
-    resolution: {integrity: sha512-gNMtkXrkfN3iszXty+pYbJwGxcozL0xBVKYmEd1lm0DMEbrffpVJyV+vifmtl/eIbWCNRWrMWUtGLbYy/ukykA==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.22
-
-  '@fullcalendar/vue3@6.1.22':
-    resolution: {integrity: sha512-D0tiBjn7qbvf5e2RiiK8m8g5ZjD0jVopEfHQJ/ogabGgXowRlscryCvXv8EDiV8wFTx4feLVeuC42dsZ//vKag==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.22
+      temporal-polyfill: ^1.0.1
       vue: ^3.0.11
 
   '@humanfs/core@0.19.2':
@@ -4586,8 +4562,13 @@ packages:
     resolution: {integrity: sha512-C+y9x90UElAddDZmV4qOx9W53B61PO7cIqWz2dQsWlwswuq4mr8NEwytdGKboYbQlGZ3awrkTeNvcZiZNHnQ8A==}
     engines: {node: '>=20'}
 
-  preact@10.12.1:
-    resolution: {integrity: sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==}
+  preact@10.29.8:
+    resolution: {integrity: sha512-ej2aVZ+vZ8WO7tvlQWRM9N63A0KzF9q4mWJfDUHgYaIofWY9hu74QdnQrjoPMmZi2/nZ5gN0bJCQF49xQqx09Q==}
+    peerDependencies:
+      preact-render-to-string: '>=5'
+    peerDependenciesMeta:
+      preact-render-to-string:
+        optional: true
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -4990,6 +4971,15 @@ packages:
 
   teex@1.0.1:
     resolution: {integrity: sha512-eYE6iEI62Ni1H8oIa7KlDU6uQBtqr4Eajni3wX7rpfXD8ysFx8z0+dri+KWEPWpBsxXfxu58x/0jvTVT1ekOSg==}
+
+  temporal-polyfill@1.0.6:
+    resolution: {integrity: sha512-tYyEry1HLGUDbm2356W3iYD0OZdo7rlP7h98Zr/EnjqLZQwTAfcBDUvJnJbfA15v/vQad57hJZScG5O0W2oKEA==}
+
+  temporal-spec@1.0.1:
+    resolution: {integrity: sha512-wxVoanmDeavXie1vu2JaQ3WIc3JZnWAOYFBsJyATaVsXsycKYUflGsyBmrRSnoCpZJpwPyr38VpgSUlQ8CbFxg==}
+
+  temporal-utils@1.0.3:
+    resolution: {integrity: sha512-9jbTSX3HvkOWvDpNpFzwX/d1mkCrgQgwLmVTOEiuocZGKHsrQJtttGZFmybJ2zYP5zCSZuU5ZyeS8+eOEPABiQ==}
 
   terser@5.51.2:
     resolution: {integrity: sha512-bWnjSNscmuI+GJze6ZupnHP8G/cTcsJF+bXCeQknk2SHQsgbNJnLrqiH9jZ2W4STPVXH2mDKKRX3iwPhc9Cn/Q==}
@@ -6314,31 +6304,24 @@ snapshots:
       '@floating-ui/utils': 0.2.12
       vue: 3.5.44(typescript@6.0.3)
 
-  '@fullcalendar/core@6.1.22':
+  '@full-ui/headless-calendar@7.1.3(temporal-polyfill@1.0.6)':
     dependencies:
-      preact: 10.12.1
+      temporal-polyfill: 1.0.6
 
-  '@fullcalendar/daygrid@6.1.22(@fullcalendar/core@6.1.22)':
+  '@fullcalendar/core@7.1.3(@full-ui/headless-calendar@7.1.3(temporal-polyfill@1.0.6))(temporal-polyfill@1.0.6)':
     dependencies:
-      '@fullcalendar/core': 6.1.22
+      '@full-ui/headless-calendar': 7.1.3(temporal-polyfill@1.0.6)
+      temporal-polyfill: 1.0.6
 
-  '@fullcalendar/interaction@6.1.22(@fullcalendar/core@6.1.22)':
+  '@fullcalendar/vue3@7.1.3(temporal-polyfill@1.0.6)(vue@3.5.44(typescript@6.0.3))':
     dependencies:
-      '@fullcalendar/core': 6.1.22
-
-  '@fullcalendar/list@6.1.22(@fullcalendar/core@6.1.22)':
-    dependencies:
-      '@fullcalendar/core': 6.1.22
-
-  '@fullcalendar/timegrid@6.1.22(@fullcalendar/core@6.1.22)':
-    dependencies:
-      '@fullcalendar/core': 6.1.22
-      '@fullcalendar/daygrid': 6.1.22(@fullcalendar/core@6.1.22)
-
-  '@fullcalendar/vue3@6.1.22(@fullcalendar/core@6.1.22)(vue@3.5.44(typescript@6.0.3))':
-    dependencies:
-      '@fullcalendar/core': 6.1.22
+      '@full-ui/headless-calendar': 7.1.3(temporal-polyfill@1.0.6)
+      '@fullcalendar/core': 7.1.3(@full-ui/headless-calendar@7.1.3(temporal-polyfill@1.0.6))(temporal-polyfill@1.0.6)
+      preact: 10.29.8
+      temporal-polyfill: 1.0.6
       vue: 3.5.44(typescript@6.0.3)
+    transitivePeerDependencies:
+      - preact-render-to-string
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -10085,7 +10068,7 @@ snapshots:
 
   powershell-utils@0.2.1: {}
 
-  preact@10.12.1: {}
+  preact@10.29.8: {}
 
   prelude-ls@1.2.1: {}
 
@@ -10536,6 +10519,15 @@ snapshots:
     transitivePeerDependencies:
       - bare-abort-controller
       - react-native-b4a
+
+  temporal-polyfill@1.0.6:
+    dependencies:
+      temporal-spec: 1.0.1
+      temporal-utils: 1.0.3
+
+  temporal-spec@1.0.1: {}
+
+  temporal-utils@1.0.3: {}
 
   terser@5.51.2:
     dependencies:
