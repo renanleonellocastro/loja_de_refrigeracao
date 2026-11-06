@@ -10,7 +10,7 @@ FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list
+	function-length function-length-list load
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
@@ -59,3 +59,7 @@ function-length: ## Strict: fails on any function past 12 lines
 function-length-list: ## Every function past 12 lines, longest first
 	$(FUNCTION_LENGTH) --list
 
+
+# Not part of `check`: it takes about four minutes and needs the PostgreSQL of infra/compose.yaml (pnpm db:up).
+load: packages ## k6 load test of RNF-10: 50 users, 10 thousand products, 50 thousand orders (docs/TESTES.md)
+	infra/load-test.sh

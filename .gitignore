@@ -19,3 +19,4 @@ storybook-static/
 apps/api/storage/
 .schemathesis/
 .lighthouseci/
+tools/load/results/
