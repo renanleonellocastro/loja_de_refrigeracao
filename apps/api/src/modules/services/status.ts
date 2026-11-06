@@ -45,7 +45,7 @@ export function actorKind(role: Role): ActorKind {
 type Transition = (current: RequestStatus) => RequestStatus | null;
 
 const OPEN_STATUSES: readonly RequestStatus[] = ['REQUESTED', 'AWAITING_CUSTOMER'];
-const FINAL_STATUSES: readonly RequestStatus[] = ['COMPLETED', 'REJECTED', 'CANCELED'];
+export const FINAL_STATUSES: readonly RequestStatus[] = ['COMPLETED', 'REJECTED', 'CANCELED'];
 const CANCELABLE_STATUSES: readonly RequestStatus[] = [...OPEN_STATUSES, 'APPROVED', 'SCHEDULED'];
 
 function moveFrom(sources: readonly RequestStatus[], target: RequestStatus): Transition {
