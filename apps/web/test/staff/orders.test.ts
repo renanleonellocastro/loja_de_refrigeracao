@@ -4,6 +4,7 @@ import { useToast } from '~/composables/useToast';
 import CounterPage from '~/pages/balcao.vue';
 import OrderPage from '~/pages/pedidos/[id].vue';
 import OrdersPage from '~/pages/pedidos/index.vue';
+import NewOrderPage from '~/pages/pedidos/novo.vue';
 import { useAuthStore } from '~/stores/auth';
 import { MANAGER_USER, click, fill, mockApi, problem, session } from '../support/api';
 import { order, orderListItem, product } from '../support/shop';
@@ -59,6 +60,7 @@ describe('order queue', () => {
     expect(text()).toContain('Balcão');
     expect(text()).toContain('R$ 998,00');
     expect(page.find('a[href="/pedidos/31"]').exists()).toBe(true);
+    expect(page.find('a[href="/pedidos/novo"]').text()).toContain('Novo pedido');
     const tabs = [...document.querySelectorAll('[role="tab"]')].map((tab) =>
       tab.textContent?.replace(/\s+/g, ' ').trim(),
     );
@@ -390,6 +392,63 @@ describe('counter sale', () => {
     await wait(350);
     await settle();
     expect(api.called('GET /api/v1/products').at(-1)!.url.searchParams.has('q')).toBe(false);
+    page.unmount();
+  });
+});
+
+describe('order on behalf of a customer', () => {
+  const stock = [product({ id: 15, slug: 'gas', name: 'Gás R134a', stockAvailable: 10, priceCents: 9000 })];
+  const customer = {
+    id: 4,
+    role: 'CLIENT',
+    name: 'Carla Cliente',
+    email: 'cliente@castro.dev',
+    phone: '19999998888',
+    cpf: null,
+    createdAt: '2026-10-03T15:00:00.000Z',
+  };
+
+  it('reserves the stock for the chosen customer and starts another order', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    const placed = order({ id: 42, number: '2026-000042', status: 'PENDING_REVIEW' });
+    const api = mockApi()
+      .on('GET /api/v1/products', paged(stock), problem(500, 'Erro.'), paged(stock))
+      .on('GET /api/v1/users', paged([customer]))
+      .on('POST /api/v1/orders', problem(409, 'Sem estoque.', { code: 'insufficient-stock' }), {
+        status: 201,
+        body: placed,
+      });
+    const page = await mountSuspended(NewOrderPage, { route: '/pedidos/novo', attachTo: document.body });
+    await settle();
+    expect(text()).toContain('Retirada na loja.');
+    press('Adicionar Gás R134a');
+    await settle();
+    expect(text()).toContain('Escolha o cliente do pedido.');
+    expect(document.querySelector('[aria-label="Itens do pedido"]')).not.toBeNull();
+    await fill('Cliente', 'carla');
+    await wait(350);
+    await settle();
+    click('Carla Cliente(19) 99999-8888');
+    await settle();
+
+    click('Fechar pedido');
+    await settle();
+    expect(toastTitles()).toContain('Algum produto não tem a quantidade pedida. Confira o estoque e ajuste.');
+    expect(text()).toContain('Algo esquentou por aqui');
+    click('Tentar de novo');
+    await settle();
+    click('Fechar pedido');
+    await settle();
+    const posts = api.called('POST /api/v1/orders');
+    expect(posts[1]!.body).toEqual({ customerId: 4, items: [{ productId: 15, quantity: 1 }] });
+    expect(text()).toContain('Pedido fechado!');
+    expect(document.querySelector('[data-testid="sale-number"]')!.textContent).toBe('2026-000042');
+    expect(page.find('a[href="/pedidos/42"]').exists()).toBe(true);
+
+    click('Novo pedido');
+    await settle();
+    expect(text()).toContain('Adicione pelo menos um produto.');
+    expect(api.called('GET /api/v1/products')).toHaveLength(4);
     page.unmount();
   });
 });
