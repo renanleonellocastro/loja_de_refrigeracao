@@ -6,7 +6,7 @@ VALUES (
   'Refrigeração Castro Ltda.',
   '63060560000151',
   '1938041658',
-  NULL,
+  '19997641658',
   'refrigeracaocastro@yahoo.com.br',
   '{"cep":"13800061","street":"Rua Doutor Ulhôa Cintra","number":"91","complement":null,"district":"Centro","city":"Mogi Mirim","state":"SP"}',
   '{"0":null,"1":{"opens":"09:00","closes":"18:00"},"2":{"opens":"09:00","closes":"18:00"},"3":{"opens":"09:00","closes":"18:00"},"4":{"opens":"09:00","closes":"18:00"},"5":{"opens":"09:00","closes":"18:00"},"6":null}',
