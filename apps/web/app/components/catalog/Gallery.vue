@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-vue-next';
 
 /**
  * Product photos: swipe between them on touch screens (native scroll snap), arrows and thumbnails
- * everywhere. Without photos it shows the store placeholder.
+ * everywhere, and a tap or click on a photo opens the zoom viewer. Without photos it shows the store placeholder.
  */
 const props = defineProps<{ images: ProductImage[]; name: string }>();
 
@@ -22,6 +22,24 @@ function show(index: number): void {
   current.value = target;
   const element = track.value!;
   element.scrollTo({ left: target * element.clientWidth, behavior: 'smooth' });
+}
+
+/** The viewer chunk is fetched on the first open only, so the page load stays as light as before. */
+const isZoomLoaded = ref(false);
+const isZoomOpen = ref(false);
+const zoomIndex = ref(0);
+
+function openZoom(index: number): void {
+  zoomIndex.value = index;
+  isZoomLoaded.value = true;
+  isZoomOpen.value = true;
+}
+
+/** Back from the viewer the gallery shows the last photo seen there, and focus returns to it. */
+function onZoomClosed(event: Event): void {
+  event.preventDefault();
+  show(zoomIndex.value);
+  track.value!.querySelectorAll('button')[zoomIndex.value]!.focus({ preventScroll: true });
 }
 
 const ARROW =
@@ -48,17 +66,32 @@ const ARROW =
           :aria-label="`Foto ${index + 1} de ${images.length}`"
           role="group"
         >
-          <CatalogProductImage
-            :image="image"
-            :alt="index === 0 ? name : `${name}, foto ${index + 1}`"
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            :eager="index === 0"
-          />
+          <button
+            type="button"
+            class="block size-full cursor-zoom-in focus-visible:outline-offset-[-4px]"
+            :aria-label="`Ampliar foto ${index + 1}`"
+            aria-haspopup="dialog"
+            @click="openZoom(index)"
+          >
+            <CatalogProductImage
+              :image="image"
+              :alt="index === 0 ? name : `${name}, foto ${index + 1}`"
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              :eager="index === 0"
+            />
+          </button>
         </div>
       </div>
       <div v-else class="aspect-square">
         <CatalogProductImage :image="null" :alt="name" />
       </div>
+      <span
+        v-if="images.length > 0"
+        class="pointer-events-none absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-castro-950/60 text-white"
+        aria-hidden="true"
+      >
+        <ZoomIn class="size-5" />
+      </span>
       <template v-if="images.length > 1">
         <button
           type="button"
@@ -100,5 +133,13 @@ const ARROW =
         </button>
       </li>
     </ul>
+    <LazyCatalogGalleryZoom
+      v-if="isZoomLoaded"
+      v-model:open="isZoomOpen"
+      v-model:index="zoomIndex"
+      :images="images"
+      :name="name"
+      @closed="onZoomClosed"
+    />
   </div>
 </template>
