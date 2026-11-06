@@ -14,5 +14,21 @@ allowBuilds:
   vue-demi: true
 # simple-git 3.x (pulled by @nuxt/devtools, which is disabled in nuxt.config.ts) has command execution
 # advisories fixed only in 4.x, which no @nuxt/devtools release accepts yet. Drop once devtools moves to 4.x.
+#
+# The other overrides lift transitive packages to the first release that fixes a Dependabot alert, while
+# the packages that pull them still ask for an older range. Drop each one once its parent requires it.
 overrides:
   simple-git: ^4.0.2
+  # ajv and @fastify/ajv-compiler (fastify, @fastify/swagger): URI parsing advisories.
+  fast-uri@^3: ^3.1.9
+  fast-uri@^4: ^4.2.3
+  # @fastify/rate-limit: IP address parsing advisory.
+  ip-address: ^10.7.4
+  # @rollup/plugin-terser (nitropack build).
+  serialize-javascript: ^7.1.3
+  # archiver-utils (nitropack), @vercel/nft and js-beautify: glob 14 and minimatch 11 carry the fixes.
+  glob: ^14.0.2
+  minimatch@>=7 <11.0.1: ^11.0.1
+  # @esbuild-kit/core-utils (drizzle-kit) pins esbuild 0.18 and fontless (@nuxt/fonts) asks for 0.27.
+  '@esbuild-kit/core-utils>esbuild': ^0.25.12
+  fontless>esbuild: ^0.28.1
