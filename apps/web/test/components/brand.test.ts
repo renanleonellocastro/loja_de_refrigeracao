@@ -46,9 +46,9 @@ describe('decorations', () => {
 
 describe('WhatsAppButton', () => {
   it('opens WhatsApp in a new tab with a prefilled message', async () => {
-    const wrapper = await mountSuspended(WhatsAppButton, { props: { phone: '1938041658' } });
+    const wrapper = await mountSuspended(WhatsAppButton, { props: { phone: '19997641658' } });
     const href = wrapper.attributes('href')!;
-    expect(href).toContain('https://wa.me/551938041658?text=');
+    expect(href).toContain('https://wa.me/5519997641658?text=');
     expect(decodeURIComponent(href)).toContain('Vim pelo site');
     expect(wrapper.attributes('target')).toBe('_blank');
     expect(wrapper.attributes('rel')).toContain('noopener');

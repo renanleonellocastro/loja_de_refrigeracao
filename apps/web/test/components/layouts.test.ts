@@ -27,6 +27,7 @@ afterEach(() => {
 
 describe('default layout', () => {
   it('has skip link, header, main and footer, with WhatsApp only when the store has one', async () => {
+    mockApi().on('GET /api/v1/store', { body: storeData({ whatsapp: null }) });
     const wrapper = await mountSuspended(DefaultLayout, { slots: { default: () => h('h1', 'Oi') } });
     expect(wrapper.get('a[href="#conteudo"]').text()).toBe('Pular para o conteúdo');
     expect(wrapper.get('main#conteudo').text()).toBe('Oi');
@@ -42,11 +43,11 @@ describe('default layout', () => {
     wrapper.unmount();
     clearNuxtData();
 
-    mockApi().on('GET /api/v1/store', { body: storeData({ whatsapp: '19999998888' }) });
+    mockApi().on('GET /api/v1/store', { body: storeData() });
     const withWhatsApp = await mountSuspended(DefaultLayout, { slots: { default: () => h('h1', 'Oi') } });
     // The button hydrates when the browser is idle, which on a cold worker takes more than one tick.
     await vi.waitFor(() =>
-      expect(withWhatsApp.find('a[href^="https://wa.me/5519999998888"]').exists()).toBe(true),
+      expect(withWhatsApp.find('a[href^="https://wa.me/5519997641658"]').exists()).toBe(true),
     );
     vi.unstubAllGlobals();
   });
