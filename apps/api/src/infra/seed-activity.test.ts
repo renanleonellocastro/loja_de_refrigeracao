@@ -22,6 +22,9 @@ import { seedSampleActivity, storeTime } from './db/seed-activity.js';
 import { SAMPLE_CUSTOMERS, SAMPLE_ORDERS, SAMPLE_QUOTES, SAMPLE_REQUESTS } from './db/seed-activity-data.js';
 import { createLocalStorage } from './storage/storage.js';
 
+/** Encoding every sample photo to AVIF and WebP takes well over the default timeout on CI runners. */
+const PHOTO_SEED_TIMEOUT_MS = 90_000;
+
 const NOW = new Date('2026-11-06T13:00:00Z');
 
 describe('development sample activity', () => {
@@ -55,7 +58,7 @@ describe('development sample activity', () => {
       ...SAMPLE_QUOTES.map((q) => q.photo),
     ];
     expect(await total(media)).toBe(photos.filter(Boolean).length);
-  });
+  }, PHOTO_SEED_TIMEOUT_MS);
 
   it('keeps the stock, the order history and the visits consistent', async () => {
     await seedDevelopment(database.db);

@@ -16,6 +16,9 @@ import {
 import { CATEGORIES, SAMPLE_PRODUCTS, SAMPLE_USERS, SERVICE_TYPES, seedDevelopment } from './db/seed.js';
 import { createLocalStorage } from './storage/storage.js';
 
+/** Encoding every sample photo to AVIF and WebP takes well over the default timeout on CI runners. */
+const PHOTO_SEED_TIMEOUT_MS = 90_000;
+
 describe('development seed', () => {
   const database = useTestDatabase();
 
@@ -55,7 +58,7 @@ describe('development seed', () => {
     expect(await storage.get(`${image!.storageKey}/960.webp`)).not.toBeNull();
     expect(SAMPLE_PRODUCTS.some((p) => p.stock === 0)).toBe(true);
     expect(new Set(SAMPLE_PRODUCTS.map((p) => p.condition))).toEqual(new Set(['NEW', 'USED']));
-  });
+  }, PHOTO_SEED_TIMEOUT_MS);
 
   it('adds the catalog to a database seeded before it existed, without photos when there is no storage', async () => {
     await database.db.delete(products);
