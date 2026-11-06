@@ -13,6 +13,20 @@
   }
 }
 
+/*
+ * Until the page has loaded (data-fonts set by plugins/fonts.client.ts) text uses only the fallback faces
+ * that @nuxt/fonts generates with Inter and Archivo metrics, so no font file is requested before the
+ * largest paint and the later swap barely moves the layout (RNF-07).
+ */
+:root:not([data-fonts='ready']) {
+  --font-sans:
+    'Inter Fallback: -apple-system', 'Inter Fallback: Segoe UI', 'Inter Fallback: Roboto',
+    'Inter Fallback: Arial', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display:
+    'Archivo Fallback: Arial Black', 'Archivo Fallback: Segoe UI', 'Archivo Fallback: Arial', 'Arial Black',
+    system-ui, sans-serif;
+}
+
 @layer base {
   html {
     background-color: var(--color-bg);
