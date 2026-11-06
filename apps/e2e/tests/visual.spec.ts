@@ -17,10 +17,11 @@ test.describe('Visual', () => {
   for (const { name, path, target } of pages) {
     test(`${name} @visual`, async ({ page }) => {
       await open(page, path);
+      // The floating WhatsApp button follows the store settings and floats over the page: leave it out.
+      await page.addStyleTag({ content: 'a[href^="https://wa.me/"] { display: none !important; }' });
       await page.evaluate(() => document.fonts.ready);
       await expect(target ? page.locator(target) : page).toHaveScreenshot(`${name}.png`, {
         animations: 'disabled',
-        mask: [page.getByRole('link', { name: /WhatsApp/ })],
         maxDiffPixelRatio: 0.01,
       });
     });
