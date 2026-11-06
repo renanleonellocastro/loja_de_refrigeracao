@@ -13,9 +13,13 @@ const props = withDefaults(
     sizes?: string;
     /** Above the fold images load right away; the rest wait until they are near the screen. */
     eager?: boolean;
+    /** cover fills the box (cards, thumbnails); contain shows the whole photo (zoom viewer). */
+    fit?: 'cover' | 'contain';
   }>(),
-  { sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw' },
+  { sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw', fit: 'cover' },
 );
+
+const FITS = { cover: 'object-cover', contain: 'object-contain' } as const;
 
 const config = useRuntimeConfig();
 const failed = ref(false);
@@ -50,7 +54,8 @@ const source = computed(() =>
     :loading="eager ? 'eager' : 'lazy'"
     :fetchpriority="eager ? 'high' : undefined"
     decoding="async"
-    class="size-full object-cover"
+    class="size-full"
+    :class="FITS[fit]"
     @error="failed = true"
   />
   <img
@@ -61,6 +66,7 @@ const source = computed(() =>
     :alt="alt ? `${alt}, sem foto` : ''"
     :loading="eager ? 'eager' : 'lazy'"
     :fetchpriority="eager ? 'high' : undefined"
-    class="size-full object-cover"
+    class="size-full"
+    :class="FITS[fit]"
   />
 </template>
