@@ -480,3 +480,14 @@ describe('auth routes', () => {
     });
   });
 });
+
+describe('password reset limit', () => {
+  const t = useTestApp({ PASSWORD_RESETS_PER_15_MINUTES: '1' });
+
+  it('refuses reset requests past the configured number per address', async () => {
+    const request = () =>
+      t.app.inject({ method: 'POST', url: '/api/v1/auth/password-resets', payload: { email: 'alguem@exemplo.com.br' } });
+    expect((await request()).statusCode).toBe(202);
+    expect((await request()).statusCode).toBe(429);
+  });
+});

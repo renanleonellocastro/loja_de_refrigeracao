@@ -25,6 +25,7 @@ const configSchema = z
     MAIL_FROM: z.string().min(1).default('Refrigeração Castro <nao-responda@refrigeracaocastro.com.br>'),
     STORAGE_PATH: z.string().min(1).default('./storage'),
     SIGN_UP_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
+    PASSWORD_RESETS_PER_15_MINUTES: z.coerce.number().int().positive().default(5),
   })
   .transform((config) => ({
     ...config,
