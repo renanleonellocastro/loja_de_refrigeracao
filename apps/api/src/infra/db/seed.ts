@@ -83,7 +83,7 @@ export const SAMPLE_USERS: Array<{
   { role: 'CLIENT', name: 'Ana Cliente', email: 'cliente@castro.dev', cpf: null, phone: '19999990004' },
 ];
 
-type Illustration =
+export type Illustration =
   | 'geladeira'
   | 'freezer'
   | 'ar-condicionado'
@@ -280,7 +280,7 @@ async function illustrationPhoto(storage: Storage, name: Illustration): Promise<
 }
 
 type CategoryIds = ReadonlyMap<string, number>;
-type Photos = ReadonlyMap<Illustration, StoredImage>;
+export type Photos = ReadonlyMap<Illustration, StoredImage>;
 
 const INITIAL_STOCK_REASON = 'Estoque inicial';
 
@@ -293,11 +293,14 @@ async function categoryIdsByName(db: Database): Promise<CategoryIds> {
   return new Map((await db.select().from(categories)).map((category) => [category.name, category.id]));
 }
 
-/** One photo per illustration the catalog uses; none without a storage. */
-async function renderPhotos(storage: Storage | undefined): Promise<Photos> {
+/** One photo per distinct illustration; none without a storage. */
+export async function renderPhotos(
+  storage: Storage | undefined,
+  illustrations: Illustration[],
+): Promise<Photos> {
   const photos = new Map<Illustration, StoredImage>();
   if (!storage) return photos;
-  for (const illustration of new Set(SAMPLE_PRODUCTS.map((sample) => sample.illustration))) {
+  for (const illustration of new Set(illustrations)) {
     photos.set(illustration, await illustrationPhoto(storage, illustration));
   }
   return photos;
@@ -356,7 +359,10 @@ async function insertSampleProducts(
 async function seedProducts(db: Database, storage: Storage | undefined): Promise<boolean> {
   if (await hasProducts(db)) return false;
   const categoryIds = await categoryIdsByName(db);
-  const photos = await renderPhotos(storage);
+  const photos = await renderPhotos(
+    storage,
+    SAMPLE_PRODUCTS.map((sample) => sample.illustration),
+  );
   await db.transaction((tx) => insertSampleProducts(tx, categoryIds, photos));
   return true;
 }
