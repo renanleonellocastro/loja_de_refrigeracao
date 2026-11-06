@@ -39,7 +39,7 @@ Em **Agendar visita** (ou no botão da página inicial), escolha o serviço, dig
 
 Em **Orçamento**, escolha o tipo de serviço e descreva o que precisa (fotos ajudam). Quando a loja responde, o orçamento mostra o valor, o que está incluído e a validade. Dentro da validade você pode **aceitar**, escolhendo as datas da visita, ou **recusar**. Orçamentos não respondidos a tempo vencem sozinhos.
 
-![Pedido de orçamento](assets/manual/cliente-orcamento.webp)
+![Orçamento respondido, com valor, validade e os botões de aceitar e recusar](assets/manual/cliente-orcamento.webp)
 
 ### Minha conta e privacidade
 

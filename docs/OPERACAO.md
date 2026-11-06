@@ -101,7 +101,7 @@ As migrações SQL ficam em `apps/api/drizzle` e são aplicadas pela própria AP
 
 ### 4.2 Dados de exemplo só em desenvolvimento
 
-`pnpm --filter @rc/api seed` cria categorias, produtos, tipos de serviço e as contas de exemplo com a senha conhecida `Castro-Dev-2026`. O script se recusa a rodar com `NODE_ENV=production` e a imagem de produção nem traz o código fonte necessário para executá-lo. Nunca aponte o seed para o banco de produção.
+`pnpm --filter @rc/api seed` cria categorias, produtos com fotos, tipos de serviço, as contas de exemplo com a senha conhecida `Castro-Dev-2026` e clientes com pedidos, orçamentos e solicitações de serviço em todos os estados. O seed dos testes E2E carrega só a parte básica, sem esse movimento. O script se recusa a rodar com `NODE_ENV=production` e a imagem de produção nem traz o código fonte necessário para executá-lo. Nunca aponte o seed para o banco de produção.
 
 ### 4.3 Primeiro super usuário
 
