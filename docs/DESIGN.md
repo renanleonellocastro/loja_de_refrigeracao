@@ -96,7 +96,7 @@ A página não é indexada (`robots: noindex`).
 | Grupo | Componentes |
 |---|---|
 | Ações | Botão (primário, secundário, fantasma, perigo; tamanhos; carregando), botão de ícone, menu de ações |
-| Formulários | Campo de texto, área de texto, senha com mostrar e força, select com busca, data e período, upload de fotos com prévia e câmera no celular, máscaras de CPF, CNPJ, telefone, CEP e dinheiro, mensagens de erro em linha |
+| Formulários | Campo de texto, área de texto, senha com mostrar e força, select com busca, data e período, upload de fotos com prévia e câmera no celular, máscaras de CPF, CNPJ, telefone, CEP e dinheiro, mensagens de erro em linha, formulários longos em etapas no celular (`useFormSteps` e `FormStepNav`: passo atual, botão por etapa, foco no título da etapa e volta para a etapa do primeiro erro) |
 | Exibição | Card, card de produto, badge de estado, avatar, linha do tempo, galeria com zoom e gesto de deslizar, tabela responsiva (vira lista de cards no celular), descrição em pares |
 | Feedback | Toast com desfazer, alerta, diálogo de confirmação, esqueleto, estado vazio, barra de progresso |
 | Navegação | Cabeçalho público, barra lateral, trilho, barra inferior, abas, migalhas, paginação, busca global da equipe |

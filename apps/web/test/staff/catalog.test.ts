@@ -9,6 +9,7 @@ import NewProductPage from '~/pages/produtos/gerenciar/novo.vue';
 import { useAuthStore } from '~/stores/auth';
 import { MANAGER_USER, click, fill, mockApi, problem, session, submit } from '../support/api';
 import { productFormFrom } from '~/utils/products';
+import { resizeTo } from '../support/agenda';
 import { detail, product } from '../support/shop';
 import {
   ADMIN_USER,
@@ -35,6 +36,7 @@ const toastTitles = () => useToast().toasts.value.map((toast) => toast.title);
 const CATEGORIES = [category(7, 'Peças e acessórios', 3), category(1, 'Geladeiras', 0)];
 
 afterEach(async () => {
+  resizeTo(1024);
   useAuthStore().clear();
   useToast().clear();
   useConfirm().settle(false);
@@ -212,6 +214,56 @@ describe('new product page', () => {
   });
 });
 
+describe('new product page on the phone', () => {
+  it('goes one step at a time and returns to the step of a refused field', async () => {
+    resizeTo(390);
+    useAuthStore().apply(session(MANAGER_USER));
+    const api = mockApi()
+      .on('GET /api/v1/categories', { body: CATEGORIES })
+      .on(
+        'POST /api/v1/products',
+        problem(422, 'Confira os dados.', { errors: [{ path: 'name', message: 'Já existe.' }] }),
+      );
+    const page = await mountSuspended(NewProductPage, { attachTo: document.body });
+    await settle();
+    expect(text()).toContain('Passo 1 de 3');
+    expect(text()).toContain('Cancelar');
+    expect(text()).not.toContain('Cadastrar produto');
+
+    submit('Continuar');
+    await settle();
+    expect(text()).toContain('Escolha a categoria.');
+    expect(text()).toContain('Passo 1 de 3');
+    const stepButton = (label: string) =>
+      [...document.querySelectorAll('nav button')].find((item) => item.textContent?.trim() === label)!;
+    expect(stepButton('Descrição').hasAttribute('disabled')).toBe(true);
+
+    await fill('Nome do produto', 'Filtro secador');
+    await fill('Categoria', '7');
+    submit('Continuar');
+    await settle();
+    expect(text()).toContain('Passo 2 de 3');
+    expect(document.activeElement?.hasAttribute('data-step-heading')).toBe(true);
+    click('Voltar');
+    await settle();
+    expect(text()).toContain('Passo 1 de 3');
+    click('Preço e estoque');
+    await settle();
+    await fill('Preço', '89,90');
+    submit('Continuar');
+    await settle();
+    expect(text()).toContain('Passo 3 de 3');
+
+    submit('Cadastrar produto');
+    await settle();
+    expect(api.called('POST /api/v1/products')).toHaveLength(1);
+    expect(text()).toContain('Passo 1 de 3');
+    expect(text()).toContain('Já existe.');
+    page.findComponent({ name: 'ProductsFields' }).vm.$emit('update:modelValue', productFormFrom(null));
+    page.unmount();
+  });
+});
+
 describe('product edit page', () => {
   const mountAt = (route: string) => mountSuspended(ProductPage, { route, attachTo: document.body });
 
@@ -230,10 +282,12 @@ describe('product edit page', () => {
     again.unmount();
   });
 
-  it('saves with If-Match, explains a conflict and switches tabs', async () => {
+  it('saves with If-Match, shows a conflict and switches tabs', async () => {
     useAuthStore().apply(session(MANAGER_USER));
     const api = mockApi()
-      .on('GET /api/v1/products/14', { body: detail({ version: 3 }) }, { body: detail({ version: 4 }) })
+      .on('GET /api/v1/products/14', { body: detail({ version: 3 }) }, problem(500, 'Erro.'), {
+        body: detail({ version: 4 }),
+      })
       .on('GET /api/v1/categories', { body: CATEGORIES })
       .on('PATCH /api/v1/products/14', problem(412, 'Mudou.'), problem(409, 'Outro erro.'), {
         body: detail({ version: 5, name: 'Compressor novo' }),
@@ -244,12 +298,14 @@ describe('product edit page', () => {
     expect(text()).toContain('Compressor Embraco');
     expect(text()).toContain('Ver no catálogo');
     expect(text()).not.toContain('Excluir ou arquivar');
+    expect(text()).not.toContain('Passo 1 de 3');
 
     await fill('Nome do produto', 'ab');
     submit('Salvar alterações');
     await settle();
     expect(text()).toContain('pelo menos 3 letras');
 
+    // The saved version cannot be read: only the reload is offered.
     await fill('Nome do produto', 'Compressor novo');
     submit('Salvar alterações');
     await settle();
@@ -273,6 +329,98 @@ describe('product edit page', () => {
     await vi.waitFor(() => expect(useRouter().currentRoute.value.query.aba).toBe('estoque'));
     openTab('Dados');
     await settle();
+    page.findComponent({ name: 'ProductsFields' }).vm.$emit('update:modelValue', productFormFrom(null));
+    page.unmount();
+  });
+
+  it('shows the differences of a conflict and keeps or drops the edits', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    const saved = detail({ version: 4, priceCents: 54900, categoryId: 1 });
+    const api = mockApi()
+      .on('GET /api/v1/products/14', { body: detail({ version: 3 }) }, { body: saved })
+      .on('GET /api/v1/categories', { body: CATEGORIES })
+      .on(
+        'PATCH /api/v1/products/14',
+        problem(412, 'Mudou.'),
+        problem(412, 'Mudou.'),
+        problem(412, 'Mudou.'),
+        {
+          body: detail({ version: 5, name: 'Compressor novo', categoryId: 1 }),
+        },
+      );
+    const page = await mountAt('/produtos/gerenciar/14');
+    await settle();
+
+    await fill('Nome do produto', 'Compressor novo');
+    submit('Salvar alterações');
+    await settle();
+    const differences = document.querySelector('[aria-label="Diferenças entre as versões"]')!.textContent!;
+    expect(differences).toContain('Nome do produtoVocê mudou');
+    expect(differences).toContain('CategoriaMudou na outra versão');
+    expect(differences).toContain('Geladeiras');
+    expect(differences).toContain('R$ 549,00');
+    expect(differences).not.toContain('Marca');
+
+    click('Manter minhas alterações');
+    await settle();
+    expect(text()).not.toContain('Outra pessoa alterou este produto');
+    submit('Salvar alterações');
+    await settle();
+    expect(api.called('PATCH /api/v1/products/14')[1]!.body).toMatchObject({
+      name: 'Compressor novo',
+      categoryId: 1,
+      priceCents: 54900,
+    });
+
+    // Someone saved again: this time the person drops the edits.
+    expect(text()).toContain('Outra pessoa alterou este produto');
+    click('Usar a versão salva');
+    await settle();
+    expect(text()).not.toContain('Outra pessoa alterou este produto');
+    expect((document.querySelector('input[required]') as HTMLInputElement).value).toBe('Compressor Embraco');
+
+    // Saved again with the same data: nothing in the form differs.
+    submit('Salvar alterações');
+    await settle();
+    expect(text()).toContain('são iguais nas duas versões');
+    click('Usar a versão salva');
+    await settle();
+    submit('Salvar alterações');
+    await settle();
+    expect(toastTitles()).toContain('Alterações salvas.');
+    page.findComponent({ name: 'ProductsFields' }).vm.$emit('update:modelValue', productFormFrom(null));
+    page.unmount();
+  });
+
+  it('shows the form in steps on the phone, opens any step and brings back the step with a problem', async () => {
+    resizeTo(390);
+    useAuthStore().apply(session(MANAGER_USER));
+    const api = mockApi()
+      .on('GET /api/v1/products/14', { body: detail({ version: 3 }) })
+      .on('GET /api/v1/categories', { body: CATEGORIES })
+      .on('PATCH /api/v1/products/14', { body: detail({ version: 4 }) });
+    const page = await mountAt('/produtos/gerenciar/14');
+    await settle();
+    expect(text()).toContain('Passo 1 de 3');
+    expect(text()).toContain('Nome do produto');
+    expect(document.querySelector('textarea')).toBeNull();
+
+    click('Descrição');
+    await settle();
+    expect(document.activeElement?.textContent).toContain('Passo 3 de 3');
+    await fill('Descrição', 'x'.repeat(5001));
+    click('Identificação');
+    await settle();
+    submit('Salvar alterações');
+    await settle();
+    expect(text()).toContain('Passo 3 de 3');
+    expect(text()).toContain('Use até 5.000 letras na descrição.');
+    expect(api.called('PATCH /api/v1/products/14')).toHaveLength(0);
+
+    await fill('Descrição', 'Nova descrição.');
+    submit('Salvar alterações');
+    await settle();
+    expect(toastTitles()).toContain('Alterações salvas.');
     page.findComponent({ name: 'ProductsFields' }).vm.$emit('update:modelValue', productFormFrom(null));
     page.unmount();
   });
