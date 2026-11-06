@@ -40,7 +40,7 @@ describe('AddressFields', () => {
       {
         body: {
           cep: '13800061',
-          street: 'Rua Doutor Ulhoa Cintra',
+          street: 'Rua Doutor Ulhôa Cintra',
           district: 'Centro',
           city: 'Mogi Mirim',
           state: 'SP',
@@ -67,7 +67,7 @@ describe('AddressFields', () => {
     await flushPromises();
     expect(api.calls[0]!.url.searchParams.get('cep')).toBe('13800061');
     expect(address.value).toMatchObject({
-      street: 'Rua Doutor Ulhoa Cintra',
+      street: 'Rua Doutor Ulhôa Cintra',
       city: 'Mogi Mirim',
       state: 'SP',
     });

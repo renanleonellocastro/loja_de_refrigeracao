@@ -13,7 +13,7 @@ import { storePeriods } from './dashboard.js';
 
 const ADDRESS = {
   cep: '13800061',
-  street: 'Rua Doutor Ulhoa Cintra',
+  street: 'Rua Doutor Ulhôa Cintra',
   number: '91',
   complement: null,
   district: 'Centro',
