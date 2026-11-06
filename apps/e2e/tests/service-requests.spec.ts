@@ -113,7 +113,9 @@ test.describe('RF-30 a RF-34 solicitações de visita', () => {
     await signOut(page);
     await signIn(page, MANAGER);
     await open(page, '/solicitacoes');
+    await expect(page.getByRole('tab', { name: /^Solicitado\s*[1-9]\d*$/ })).toBeVisible();
     await page.getByLabel('Buscar solicitações').fill(id);
+    await expect(page.getByRole('tab', { name: /^Todas\s*1$/ })).toBeVisible();
     await expect(page.getByRole('link', { name: `Solicitação ${id}` }).first()).toBeVisible();
     await expectAccessibleSettled(page);
     await open(page, `/solicitacoes/${id}`);

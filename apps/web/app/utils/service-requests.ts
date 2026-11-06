@@ -6,6 +6,7 @@ import type { TimelineEvent } from './types';
 export type ServiceType = ApiSchemas['ServiceType'];
 export type ServiceRequest = ApiSchemas['ServiceRequest'];
 export type ServiceRequestListItem = ApiSchemas['ServiceRequestListItem'];
+export type ServiceRequestFacets = ApiSchemas['ServiceRequestFacets'];
 export type RequestMessage = ApiSchemas['Message'];
 export type VisitPeriod = 'MORNING' | 'AFTERNOON';
 export interface VisitWindow {

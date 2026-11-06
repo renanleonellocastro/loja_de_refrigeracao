@@ -123,6 +123,7 @@ A busca do catálogo ignora acentos e maiúsculas (coluna `search_text` com nome
 | `POST /service-requests` | Solicitar agendamento (JSON, com `Idempotency-Key`) | cliente; equipe em nome de cliente |
 | `POST /service-requests/{id}/photos` | Enviar fotos do problema (multipart, até 6) | dono enquanto aberta, gerente |
 | `GET /service-requests?status=&q=` | Solicitações visíveis: as suas (cliente), as atribuídas (colaborador), todas (gerente; `q` busca cliente ou número) | logado conforme matriz |
+| `GET /service-requests/facets?q=` | Contagem por estado (todos os estados, mesmo com zero, e o total) das solicitações visíveis, com a mesma visibilidade e busca da listagem; ignora o filtro de estado | logado conforme matriz |
 | `GET /service-requests/{id}` | Detalhes | dono, gerente, colaborador atribuído |
 | `GET /service-requests/{id}/messages`, `POST /service-requests/{id}/messages` | Conversa | dono e gerente |
 | `POST /service-requests/{id}/approval` | Aprovar | gerente |
