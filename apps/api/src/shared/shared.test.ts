@@ -3,7 +3,7 @@ import { FixedClock, MINUTE, systemClock } from './clock.js';
 import { assertIfMatch, etagFor } from './concurrency.js';
 import { AppError, conflict, forbidden, notFound, tooManyRequests, unauthorized } from './errors.js';
 import { pageOf, pageQuerySchema, paginated, toLimitOffset } from './pagination.js';
-import { dateInput, emailSchema, integerInput } from './schemas.js';
+import { dateInput, emailSchema, integerInput, trimmedText } from './schemas.js';
 import { formatBrl, formatDateBr, normalizeEmail, normalizeText, onlyDigits, slugify } from './text.js';
 import { z } from 'zod';
 
@@ -131,5 +131,20 @@ describe('dateInput', () => {
     expect(schema.parse('2026-10-05T09:00-03:00')).toEqual(new Date('2026-10-05T12:00:00.000Z'));
     expect(schema.safeParse('0.5').success).toBe(false);
     expect(schema.safeParse('2026-13-45').error?.issues[0]?.message).toBe('Data inválida.');
+  });
+});
+
+describe('trimmedText', () => {
+  it('limits the text as sent and then trims it', () => {
+    const reason = trimmedText(5, 'Longo demais.');
+    expect(reason.parse(' abc ')).toBe('abc');
+    expect(reason.safeParse(' abcde ').error?.issues[0]?.message).toBe('Longo demais.');
+    expect(z.toJSONSchema(reason, { io: 'input' })).toMatchObject({ type: 'string', maxLength: 5 });
+  });
+
+  it('keeps the type error of the base schema and checks a minimum after trimming', () => {
+    const name = trimmedText(10, undefined, z.string({ error: 'Informe o nome.' })).min(3);
+    expect(name.safeParse(42).error?.issues[0]?.message).toBe('Informe o nome.');
+    expect(name.safeParse(' ab ').success).toBe(false);
   });
 });

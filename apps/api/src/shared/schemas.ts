@@ -40,6 +40,13 @@ export const problemSchema = z
   .loose()
   .meta({ id: 'Problem' });
 
+/**
+ * Text trimmed of surrounding spaces. The length limit applies to the text as sent, before trimming, so
+ * the API rejects every value longer than the maxLength its OpenAPI declares, even one padded with spaces.
+ */
+export const trimmedText = (max: number, tooLong?: string, base: z.ZodString = z.string()) =>
+  base.max(max, { error: tooLong }).trim();
+
 export const emailSchema = z
   .string({ error: 'Informe um email válido.' })
   .trim()

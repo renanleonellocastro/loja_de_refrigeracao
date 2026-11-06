@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { pageQuerySchema } from '../../shared/pagination.js';
+import { trimmedText } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { windowSchema } from '../services/schemas.js';
 import { addressSchema } from '../users/schemas.js';
@@ -10,11 +11,9 @@ export const MAX_VALIDITY_DAYS = 90;
 export const quoteCreationSchema = z.object({
   customerId: z.number().int().positive().optional(),
   serviceTypeId: z.number().int().positive(),
-  description: z
-    .string()
-    .trim()
-    .min(10, { error: 'Descreva o que precisa com pelo menos 10 caracteres.' })
-    .max(2000, { error: 'Use no máximo 2000 caracteres.' }),
+  description: trimmedText(2000, 'Use no máximo 2000 caracteres.').min(10, {
+    error: 'Descreva o que precisa com pelo menos 10 caracteres.',
+  }),
 });
 
 export type QuoteCreation = z.infer<typeof quoteCreationSchema>;
@@ -25,7 +24,7 @@ export const quoteListQuerySchema = z.object({
     .optional()
     .transform((value) => (value ? value.split(',') : undefined))
     .pipe(z.array(z.enum(QUOTE_STATUSES)).optional()),
-  q: z.string().trim().max(100).optional(),
+  q: trimmedText(100).optional(),
   ...pageQuerySchema.shape,
 });
 
@@ -39,12 +38,10 @@ export const answerSchema = z.object({
     .int({ error: 'Informe a validade em dias inteiros.' })
     .min(1, { error: 'A validade mínima é de 1 dia.' })
     .max(MAX_VALIDITY_DAYS, { error: `A validade máxima é de ${MAX_VALIDITY_DAYS} dias.` }),
-  included: z
-    .string()
-    .trim()
-    .min(3, { error: 'Descreva o que está incluído no orçamento.' })
-    .max(2000, { error: 'Use no máximo 2000 caracteres.' }),
-  notes: z.string().trim().max(2000, { error: 'Use no máximo 2000 caracteres.' }).optional(),
+  included: trimmedText(2000, 'Use no máximo 2000 caracteres.').min(3, {
+    error: 'Descreva o que está incluído no orçamento.',
+  }),
+  notes: trimmedText(2000, 'Use no máximo 2000 caracteres.').optional(),
 });
 
 export type QuoteAnswer = z.infer<typeof answerSchema>;
@@ -55,15 +52,15 @@ export const acceptanceSchema = z.object({
     .min(1, { error: 'Escolha pelo menos uma data para a visita.' })
     .max(10, { error: 'Escolha no máximo 10 datas.' }),
   address: addressSchema.optional(),
-  productKind: z.string().trim().min(2, { error: 'Informe o tipo de produto.' }).max(80).optional(),
-  brand: z.string().trim().max(60).optional(),
-  model: z.string().trim().max(60).optional(),
+  productKind: trimmedText(80).min(2, { error: 'Informe o tipo de produto.' }).optional(),
+  brand: trimmedText(60).optional(),
+  model: trimmedText(60).optional(),
 });
 
 export type QuoteAcceptance = z.infer<typeof acceptanceSchema>;
 
-export const declineSchema = z.object({ reason: z.string().trim().max(1000).optional() });
-export const quoteCancellationSchema = z.object({ reason: z.string().trim().max(1000).optional() });
+export const declineSchema = z.object({ reason: trimmedText(1000).optional() });
+export const quoteCancellationSchema = z.object({ reason: trimmedText(1000).optional() });
 
 const personSchema = z.object({ id: z.number().int(), name: z.string() });
 
