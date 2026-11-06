@@ -19,3 +19,7 @@ storybook-static/
 apps/api/storage/
 .schemathesis/
 .lighthouseci/
+
+# OWASP ZAP reports (make zap)
+infra/zap/reports/
+infra/zap/zap.yaml
