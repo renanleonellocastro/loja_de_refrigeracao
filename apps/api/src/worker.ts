@@ -2,12 +2,12 @@ import { loadConfig } from './config.js';
 import type { AppContext } from './context.js';
 import { connect } from './infra/db/client.js';
 import { createSmtpMailer } from './infra/mail/mailer.js';
-import { createLocalStorage } from './infra/storage/storage.js';
-import { EMAIL_TOPIC, emailHandler } from './modules/mail/service.js';
+import { createStorage } from './infra/storage/factory.js';
 import { processOutboxBatch } from './modules/outbox/service.js';
 import { expireQuotes } from './modules/quotes/service.js';
 import { runRetention } from './modules/retention/service.js';
 import { DAY, HOUR, systemClock } from './shared/clock.js';
+import { workerHandlers } from './worker-handlers.js';
 
 const config = loadConfig(process.env);
 const database = connect(config.DATABASE_URL, 2);
@@ -16,11 +16,11 @@ const ctx: AppContext = {
   config,
   db: database.db,
   mailer,
-  storage: createLocalStorage(config.STORAGE_PATH),
+  storage: createStorage(config),
   fetch: globalThis.fetch,
   clock: systemClock,
 };
-const handlers = { [EMAIL_TOPIC]: emailHandler(ctx) };
+const handlers = workerHandlers(ctx);
 
 let running = true;
 const stop = () => {

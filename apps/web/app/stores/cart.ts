@@ -69,7 +69,15 @@ export function cartProductOf(product: ProductSummary | ProductDetail): CartProd
     slug: product.slug,
     priceCents: product.priceCents,
     stockAvailable: product.stockAvailable,
-    cover: cover ? { width: cover.width, height: cover.height, url: cover.url, srcset: cover.srcset } : null,
+    cover: cover
+      ? {
+          width: cover.width,
+          height: cover.height,
+          url: cover.url,
+          srcset: cover.srcset,
+          avifSrcset: cover.avifSrcset,
+        }
+      : null,
   };
 }
 

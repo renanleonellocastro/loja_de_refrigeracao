@@ -370,8 +370,8 @@ describe('product routes', () => {
       });
       expect(response.json()).toEqual({ result: 'deleted' });
       expect(await t.db.select().from(products).where(eq(products.id, product.id))).toEqual([]);
-      expect(await t.ctx.storage.get(`${keys[0]}/320.webp`)).not.toBeNull();
-      expect(await t.ctx.storage.get(`${keys[1]}/320.webp`)).toBeNull();
+      expect(await t.ctx.storage.get(`${keys[0]}/original.webp`)).not.toBeNull();
+      expect(await t.ctx.storage.get(`${keys[1]}/original.webp`)).toBeNull();
       const [audit] = await t.db.select().from(auditLogs).where(eq(auditLogs.action, 'product.delete'));
       expect(audit).toMatchObject({ resourceId: String(product.id), before: { name: 'Freezer' } });
 
@@ -381,7 +381,7 @@ describe('product routes', () => {
         headers: admin.headers,
       });
       expect(plain.json()).toEqual({ result: 'deleted' });
-      expect(await t.ctx.storage.get(`${keys[0]}/320.webp`)).toBeNull();
+      expect(await t.ctx.storage.get(`${keys[0]}/original.webp`)).toBeNull();
       const empty = await createProduct(t, manager.headers, { categoryId: category.id, name: 'Sem fotos' });
       const noImages = await t.app.inject({
         method: 'DELETE',
