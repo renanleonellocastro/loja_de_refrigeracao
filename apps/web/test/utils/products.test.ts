@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { addToCounter, counterLimit, counterTotal } from '~/utils/counter';
+import { addToCounter, counterLimit, counterTotal, draftOf } from '~/utils/counter';
 import {
   ifMatch,
   moveItem,
@@ -97,6 +97,17 @@ describe('counter sale', () => {
     expect(counterTotal(lines)).toBe(3000);
     expect(counterLimit(product({ stockAvailable: 500 }))).toBe(99);
     expect(counterLimit(product({ stockAvailable: -1 }))).toBe(0);
+  });
+
+  it('turns the chosen lines into the API body, without empty notes', () => {
+    const customer = { id: 4, name: 'Carla', email: 'c@castro.dev', phone: null };
+    const lines = [{ product: product({ id: 7 }), quantity: 3 }];
+    expect(draftOf(customer, lines, '  ')).toEqual({ customerId: 4, items: [{ productId: 7, quantity: 3 }] });
+    expect(draftOf(customer, lines, ' Pix ')).toEqual({
+      customerId: 4,
+      items: [{ productId: 7, quantity: 3 }],
+      notes: 'Pix',
+    });
   });
 });
 

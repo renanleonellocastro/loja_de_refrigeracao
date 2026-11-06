@@ -90,4 +90,25 @@ pnpm test:e2e        Playwright nos três dispositivos
 pnpm test:a11y       só as verificações de acessibilidade
 pnpm lighthouse      orçamentos de desempenho
 make load            carga k6 do RNF-10 (seção 4)
+make zap             varredura OWASP ZAP na stack de produção local (seção 8)
 ```
+
+## 8. Varredura com OWASP ZAP
+
+`make zap` monta as imagens de produção (`infra/docker/`) e sobe a stack de `infra/compose.production.yaml` com o Caddyfile de produção, num projeto próprio do Compose (`refrigeracao-castro-zap`) e sem porta publicada na máquina. O arquivo `infra/zap/compose.zap.yaml` muda só o que depende de domínio real: o Caddy atende HTTP na porta 8080 da rede interna, os emails vão para um Mailpit e as origens apontam para o proxy. Em seguida o [ZAP baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) navega pelo site por dois minutos só com análise passiva (sem ataques), e a stack é removida com os volumes. Os relatórios ficam em `infra/zap/reports/` (HTML, JSON e Markdown, fora do git). `make zap-down` limpa a stack se uma execução for interrompida.
+
+O workflow `Varredura ZAP` roda o mesmo alvo toda segunda e sob demanda (Actions, Run workflow) e publica os relatórios como artefato `zap-report`. Não bloqueia os PRs porque montar as imagens leva minutos.
+
+Qualquer alerta novo falha a varredura. Os achados aceitos ficam em `infra/zap/rules.tsv`, um por linha com o motivo:
+
+| Regra | Ação | Motivo |
+|---|---|---|
+| 10027 Comentários suspeitos | Ignorar | Palavras como "select" e "query" nos chunks minificados do Nuxt, não comentários. |
+| 10049 Conteúdo armazenável em cache | Ignorar | Os arquivos de `/_nuxt` têm hash no nome e cache de um ano de propósito; o HTML não leva dados privados. |
+| 10055 CSP com `style-src 'unsafe-inline'` | Ignorar | Necessário para os estilos do Vue e das fontes ([SEGURANCA.md](SEGURANCA.md)); remoção em #170. |
+| 10096 Data Unix exposta | Ignorar | Números do payload do Nuxt parecidos com datas, não horários do servidor. |
+| 10109 Aplicação web moderna | Ignorar | Informativo: o site é Nuxt. |
+| 10116 ZAP desatualizado | Informar | A versão da imagem é fixa em `compose.zap.yaml`; atualize à mão quando aparecer. |
+| 90004 Isolamento contra Spectre | Ignorar | O site manda `Cross-Origin-Resource-Policy: same-origin`; `Cross-Origin-Embedder-Policy: require-corp` bloquearia o mapa do Google. |
+
+Limites: a varredura é anônima e o banco começa vazio (a imagem de produção não traz o seed), então cobre as páginas públicas, as telas das áreas logadas sem dados e os cabeçalhos de todas as respostas. A varredura no ambiente de homologação depende do deploy (#87): é o mesmo baseline com o alvo trocado, por exemplo `docker run -v "$PWD/infra/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:2.17.0 zap-baseline.py -t https://<domínio de homologação> -c rules.tsv -r reports/zap.html`.

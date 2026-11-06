@@ -124,9 +124,10 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 | 14.4.6 | `Referrer-Policy` | OK | `strict-origin-when-cross-origin` na API e no site. |
 | 14.4.7 | Proteção contra enquadramento | OK | `frame-ancestors 'none'` e `X-Frame-Options: DENY`. |
 | 14.5.3 | CORS restrito | OK | Só `APP_ORIGIN`, com credenciais; qualquer outra origem recebe o cabeçalho fixo e o navegador bloqueia. |
+| | `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` | OK | `same-origin` no site, `same-site` nos arquivos da API (isolamento contra Spectre, regra 90004 do ZAP). |
 | | `Permissions-Policy` | OK | Câmera, microfone, localização, pagamento e USB desligados (o envio de fotos usa o campo de arquivo, que abre a câmera nativa sem a API do navegador). |
 
 ## Pendências fora deste PR
 
-* Varredura com OWASP ZAP no ambiente de homologação (#86), quando o provedor da ADR 0012 estiver definido.
+* Varredura com OWASP ZAP no ambiente de homologação (#86), depois do deploy (#87). A mesma varredura já roda contra as imagens de produção locais com `make zap` e no workflow semanal `Varredura ZAP` ([TESTES.md](TESTES.md) seção 8).
 * TLS e certificados no provedor (9.1.1).

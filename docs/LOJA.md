@@ -1,6 +1,6 @@
 # A loja
 
-Dados usados no site, nos emails e na semeadura das configurações da loja (`StoreSettings`). Fonte: Renan (03/10/2026), contrato social consolidado arquivado na JUCESP em 13/11/2025 (razão social, CNPJ e endereço da sede), cadastro público do CNPJ e a página da loja no Facebook.
+Dados usados no site, nos emails e na semeadura das configurações da loja (`StoreSettings`). Fonte: Renan (03/10/2026), Eduardo (telefones, 06/11/2026), contrato social consolidado arquivado na JUCESP em 13/11/2025 (razão social, CNPJ e endereço da sede), cadastro público do CNPJ e a página da loja no Facebook.
 
 ## História
 
@@ -13,7 +13,8 @@ A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e e
 | Razão social | Refrigeração Castro Ltda. |
 | CNPJ | 63.060.560/0001-51 (abertura em 29/05/1990) |
 | Endereço | Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim, SP, CEP 13800-061 (sede, conforme o contrato social) |
-| Telefone | (19) 3804-1658 |
+| Telefone fixo | (19) 3804-1658 |
+| Celular e WhatsApp | (19) 99764-1658 |
 | Email público | refrigeracaocastro@yahoo.com.br |
 | Horário | Segunda a sexta, das 9h às 18h |
 | Facebook | facebook.com/p/Refrigeração-Castro-100083537263714 |
@@ -21,7 +22,7 @@ A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e e
 
 O rodapé do site mostra razão social, CNPJ e endereço, como pede o Decreto 7.962/2013 para o comércio eletrônico.
 
-Ainda a confirmar com o dono (#15): ano de fundação (o contrato mostra só o registro atual na JUCESP, de 2019), telefone e WhatsApp, e se o site deve mostrar a filial.
+Ainda a confirmar com o dono (#15): ano de fundação (o contrato mostra só o registro atual na JUCESP, de 2019) e se o site deve mostrar a filial. O celular foi tomado também como WhatsApp; se não for, basta apagar o campo WhatsApp em Configurações.
 
 ## Serviços
 
