@@ -88,6 +88,9 @@ describe('visit detail for the management', () => {
     expect(page.find('a[href*="google.com/maps"]').exists()).toBe(true);
     expect(page.find('a[href="/solicitacoes/41"]').exists()).toBe(true);
     expect(page.find('img[alt="Foto 1 do problema, abre em tamanho grande"]').exists()).toBe(true);
+    expect(page.find('picture source[type="image/avif"]').attributes('srcset')).toContain(
+      '/abc/320.avif 320w',
+    );
     expect(page.find('[data-testid="rework-comment"]').text()).toContain('Faltou a foto da peça.');
     expect(page.find('[data-testid="report-status"]').text()).toContain('Devolvido para ajuste');
     expect(text()).toContain('Relé de partida queimado.');
