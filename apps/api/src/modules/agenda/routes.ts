@@ -45,6 +45,22 @@ const listAgendaRoute = defineRoute({
   handle: async ({ ctx, request }) => agenda.listAgenda(ctx, requireAuth(request), request.query),
 });
 
+const awaitingReassignmentRoute = defineRoute({
+  method: 'GET',
+  url: '/appointments/awaiting-reassignment',
+  config: { permission: 'appointments.manage' },
+  schema: {
+    tags,
+    summary: 'Atendimentos de técnicos excluídos',
+    description:
+      'Visitas ainda não feitas cujo técnico foi excluído, da mais antiga para a mais nova. A gerência passa ' +
+      'cada uma para outro técnico com PATCH /appointments/{id}.',
+    security,
+    response: { 200: z.array(appointmentSchema), ...errorResponses },
+  },
+  handle: async ({ ctx }) => agenda.listAwaitingReassignment(ctx),
+});
+
 const getAppointmentRoute = defineRoute({
   method: 'GET',
   url: '/appointments/:id',
@@ -222,6 +238,7 @@ const requestReworkRoute = defineRoute({
 
 const AGENDA_ROUTES = [
   listAgendaRoute,
+  awaitingReassignmentRoute,
   getAppointmentRoute,
   scheduleAppointmentRoute,
   rescheduleAppointmentRoute,

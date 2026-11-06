@@ -227,6 +227,46 @@ describe('agenda on the phone', () => {
   });
 });
 
+describe('visits of removed technicians', () => {
+  const AWAITING = 'GET /api/v1/appointments/awaiting-reassignment';
+  const orphan = (id: number) =>
+    appointment({ id, needsReassignment: true, employee: { id: 8, name: 'Conta removida' } });
+
+  it('lists them on top for the management, also on the phone', async () => {
+    resizeTo(400);
+    useAuthStore().apply(session(MANAGER_USER));
+    mockApi()
+      .on('GET /api/v1/employees/availability', availability())
+      .on(AWAITING, { body: [orphan(9), orphan(10)] })
+      .on(LIST, { body: [orphan(9)] });
+    const page = await mountSuspended(AgendaPage, { route: '/agenda', attachTo: document.body });
+    await settle();
+    const warning = document.querySelector('[data-testid="reassignments"]')!;
+    expect(warning.textContent).toContain('2 atendimentos sem técnico');
+    expect(warning.textContent).toContain('quarta-feira, 7 de outubro, 08:00 às 10:00');
+    const links = [...warning.querySelectorAll('a')].map((link) => link.getAttribute('href'));
+    expect(links).toEqual(['/agenda/9', '/agenda/10']);
+    expect(document.querySelector('ol')!.textContent).toContain('Sem técnico');
+    page.unmount();
+  });
+
+  it('names a single visit and never asks for them as a technician', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    mockApi().on(AWAITING, { body: [orphan(9)] }).on(LIST, { body: [] });
+    const page = await mountSuspended(AgendaPage, { route: '/agenda', attachTo: document.body });
+    await settle();
+    expect(text()).toContain('1 atendimento sem técnico');
+    page.unmount();
+
+    useAuthStore().apply(session(EMPLOYEE_USER));
+    const api = mockApi().on(LIST, { body: [] });
+    const own = await mountSuspended(AgendaPage, { route: '/agenda', attachTo: document.body });
+    await settle();
+    expect(api.called(AWAITING)).toHaveLength(0);
+    own.unmount();
+  });
+});
+
 describe('scheduling an approved request', () => {
   const REQUEST = 'GET /api/v1/service-requests/41';
   const approved = serviceRequest({

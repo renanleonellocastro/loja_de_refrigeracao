@@ -397,6 +397,7 @@ describe('user details', () => {
     click('Excluir colaborador');
     await flushPromises();
     expect(useConfirm().current.value!.title).toBe('Excluir este colaborador?');
+    expect(useConfirm().current.value!.description).toContain('ficam na agenda como sem técnico');
     useConfirm().settle(false);
     await flushPromises();
     expect(api.called('DELETE /api/v1/users/7')).toHaveLength(0);
@@ -411,6 +412,19 @@ describe('user details', () => {
     await flushPromises();
     expect(toastTitles()).toContain('Tiago foi excluído.');
     expect(navigateMock).toHaveBeenCalledWith('/colaboradores');
+    page.unmount();
+  });
+
+  it('only mentions the agenda when deleting an employee', async () => {
+    useAuthStore().apply(session(ADMIN_USER));
+    mockApi().on('GET /api/v1/users/7', { body: detail() });
+    const page = await mountSuspended(CustomerPage, { route: '/clientes/7', attachTo: document.body });
+    await flushPromises();
+    click('Excluir cliente');
+    await flushPromises();
+    expect(useConfirm().current.value!.description).not.toContain('agenda');
+    useConfirm().settle(false);
+    await flushPromises();
     page.unmount();
   });
 

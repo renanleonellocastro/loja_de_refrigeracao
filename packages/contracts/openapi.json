@@ -124,6 +124,10 @@
               "name"
             ]
           },
+          "needsReassignment": {
+            "type": "boolean",
+            "description": "O técnico foi excluído e a visita ainda não aconteceu: a gerência deve passar a outro técnico"
+          },
           "request": {
             "type": "object",
             "properties": {
@@ -350,6 +354,7 @@
           "endsAt",
           "version",
           "employee",
+          "needsReassignment",
           "request",
           "report"
         ]
@@ -3039,6 +3044,10 @@
             ],
             "additionalProperties": false
           },
+          "needsReassignment": {
+            "type": "boolean",
+            "description": "O técnico foi excluído e a visita ainda não aconteceu: a gerência deve passar a outro técnico"
+          },
           "request": {
             "type": "object",
             "properties": {
@@ -3276,6 +3285,7 @@
           "endsAt",
           "version",
           "employee",
+          "needsReassignment",
           "request",
           "report"
         ],
@@ -13223,6 +13233,105 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Appointment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/appointments/awaiting-reassignment": {
+      "get": {
+        "summary": "Atendimentos de técnicos excluídos",
+        "tags": [
+          "Agenda"
+        ],
+        "description": "Visitas ainda não feitas cujo técnico foi excluído, da mais antiga para a mais nova. A gerência passa cada uma para outro técnico com PATCH /appointments/{id}.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Appointment"
+                  }
                 }
               }
             }
