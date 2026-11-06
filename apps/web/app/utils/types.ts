@@ -8,6 +8,13 @@ export interface SelectOption {
   description?: string;
 }
 
+/** One step of a form split in parts on the phone: its title and the fields it shows. */
+export interface FormStep {
+  key: string;
+  label: string;
+  fields: readonly string[];
+}
+
 export interface TableColumn {
   key: string;
   label: string;

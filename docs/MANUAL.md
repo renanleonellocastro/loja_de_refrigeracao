@@ -107,6 +107,10 @@ Em **Orçamentos**, abra os pedidos novos e responda com o valor, a validade em 
 
 Em **Produtos**, cadastre e edite produtos com preço, condição e categoria, adicione fotos do produto (a primeira vira capa e dá para reordenar) e registre entradas, ajustes e perdas de estoque. Produtos abaixo do mínimo aparecem no painel. Quando uma movimentação ou um pedido deixa um produto abaixo do mínimo, gerentes e super usuários recebem um aviso na central de notificações e por email, uma vez só; o aviso volta a ser enviado se o estoque for reposto e cair de novo.
 
+No celular, o formulário do produto aparece em três etapas: **Identificação**, **Preço e estoque** e **Descrição**. No cadastro, toque em **Continuar** para avançar e em **Cadastrar produto** na última etapa. Na edição, toque no nome da etapa para abrir qualquer uma e salve de onde estiver. Se algum campo precisar de correção, o formulário volta para a etapa dele.
+
+Se outra pessoa salvar o mesmo produto enquanto você edita, o sistema não sobrescreve nada: ele mostra cada campo diferente entre a versão salva agora e a sua edição, dizendo quem mudou. Toque em **Manter minhas alterações** para juntar as duas (os campos que você mudou ficam com o seu valor, o resto vem da versão salva) e depois salve, ou em **Usar a versão salva** para descartar a sua edição.
+
 ![Gerenciar produtos](assets/manual/gerente-produtos.webp)
 
 ### Clientes
