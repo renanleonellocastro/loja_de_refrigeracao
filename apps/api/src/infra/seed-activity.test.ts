@@ -38,27 +38,31 @@ describe('development sample activity', () => {
 
   beforeEach(() => database.reset());
 
-  it('adds customers with orders, quotes and service requests in every state, once', async () => {
-    const storage = createLocalStorage(mkdtempSync(join(tmpdir(), 'rc-activity-')));
-    await seedDevelopment(database.db, storage);
-    expect(await seedSampleActivity(database.db, storage, NOW)).toBe(true);
-    expect(await seedSampleActivity(database.db, storage, NOW)).toBe(false);
+  it(
+    'adds customers with orders, quotes and service requests in every state, once',
+    async () => {
+      const storage = createLocalStorage(mkdtempSync(join(tmpdir(), 'rc-activity-')));
+      await seedDevelopment(database.db, storage);
+      expect(await seedSampleActivity(database.db, storage, NOW)).toBe(true);
+      expect(await seedSampleActivity(database.db, storage, NOW)).toBe(false);
 
-    expect(await total(users)).toBe(SAMPLE_USERS.length + SAMPLE_CUSTOMERS.length - 1);
-    expect(await total(addresses)).toBe(SAMPLE_CUSTOMERS.length);
-    expect(await statuses(orders)).toEqual(
-      new Set(['PENDING_REVIEW', 'READY_FOR_PICKUP', 'PICKED_UP', 'CANCELED']),
-    );
-    expect(await statuses(quotes)).toEqual(
-      new Set(['REQUESTED', 'ANSWERED', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'CANCELED']),
-    );
-    expect((await statuses(serviceRequests)).size).toBe(8);
-    const photos = [
-      ...SAMPLE_REQUESTS.flatMap((r) => [r.photo, r.visit?.report?.photo]),
-      ...SAMPLE_QUOTES.map((q) => q.photo),
-    ];
-    expect(await total(media)).toBe(photos.filter(Boolean).length);
-  }, PHOTO_SEED_TIMEOUT_MS);
+      expect(await total(users)).toBe(SAMPLE_USERS.length + SAMPLE_CUSTOMERS.length - 1);
+      expect(await total(addresses)).toBe(SAMPLE_CUSTOMERS.length);
+      expect(await statuses(orders)).toEqual(
+        new Set(['PENDING_REVIEW', 'READY_FOR_PICKUP', 'PICKED_UP', 'CANCELED']),
+      );
+      expect(await statuses(quotes)).toEqual(
+        new Set(['REQUESTED', 'ANSWERED', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'CANCELED']),
+      );
+      expect((await statuses(serviceRequests)).size).toBe(8);
+      const photos = [
+        ...SAMPLE_REQUESTS.flatMap((r) => [r.photo, r.visit?.report?.photo]),
+        ...SAMPLE_QUOTES.map((q) => q.photo),
+      ];
+      expect(await total(media)).toBe(photos.filter(Boolean).length);
+    },
+    PHOTO_SEED_TIMEOUT_MS,
+  );
 
   it('keeps the stock, the order history and the visits consistent', async () => {
     await seedDevelopment(database.db);
