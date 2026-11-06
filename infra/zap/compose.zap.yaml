@@ -1,0 +1,52 @@
+# OWASP ZAP baseline scan against the production stack running locally (docs/TESTES.md, #86).
+# Layered over infra/compose.production.yaml so the scan sees the same images, Caddyfile and
+# headers as production; only what needs a real domain changes: Caddy serves plain HTTP on :8080
+# with no published host port, the email goes to Mailpit and the origins point at the proxy.
+# Usage: `make zap` (reports in infra/zap/reports/).
+
+x-local-origin: &local-origin
+  APP_ORIGIN: http://caddy:8080
+
+services:
+  api:
+    environment: *local-origin
+
+  worker:
+    environment: *local-origin
+
+  web:
+    environment:
+      NUXT_PUBLIC_API_BASE: http://caddy:8080
+
+  caddy:
+    ports: !reset []
+
+  mailpit:
+    image: axllent/mailpit:v1.29
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:2.17.0
+    profiles: [scan]
+    command:
+      - zap-baseline.py
+      - -t
+      - http://caddy:8080
+      - -c
+      - rules.tsv
+      - -m
+      - '2'
+      - -r
+      - reports/zap.html
+      - -J
+      - reports/zap.json
+      - -w
+      - reports/zap.md
+    volumes:
+      - ./zap:/zap/wrk
+    depends_on:
+      - caddy
