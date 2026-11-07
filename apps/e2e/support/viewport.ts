@@ -21,3 +21,17 @@ export async function open(page: Page, path: string): Promise<void> {
   await page.goto(path);
   await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
 }
+
+/**
+ * Types in a search field and waits until the list shows that search: the field reloads the list after a pause, and
+ * a click on the list from before the reload can be lost when the list is replaced.
+ */
+export async function search(page: Page, label: string, text: string, apiPath: string): Promise<void> {
+  const answered = page.waitForResponse((response) => {
+    const url = new URL(response.url());
+    return url.pathname === apiPath && url.searchParams.get('q') === text;
+  });
+  await page.getByLabel(label).fill(text);
+  await answered;
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
+}

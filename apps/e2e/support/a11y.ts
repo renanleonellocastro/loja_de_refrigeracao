@@ -13,17 +13,26 @@ export async function expectAccessible(page: Page): Promise<void> {
 }
 
 /**
- * Waits for toasts, dialogs and sheets to finish animating in, then runs expectAccessible, so contrast is checked on
- * the final colors instead of a frame of the fade. Endless animations, like skeletons and spinners, are not awaited.
+ * Waits for toasts, dialogs, sheets and tab panels to finish animating in, then runs expectAccessible, so contrast is
+ * checked on the final colors instead of a frame of the fade. An animation can start a frame after the check looks
+ * (WebKit reports a just mounted fade as finished before it plays), so the page counts as settled only after two
+ * frames in a row with no fade left. Endless animations, like skeletons and spinners, are not awaited.
  */
 export async function expectAccessibleSettled(page: Page): Promise<void> {
-  await page.evaluate(() =>
-    Promise.all(
+  await page.evaluate(async () => {
+    const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const playing = () =>
       document
         .getAnimations()
         .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
-        .map((animation) => animation.finished.catch(() => undefined)),
-    ),
-  );
+        .filter((animation) => animation.pending || animation.playState === 'running');
+    for (let rounds = 0; rounds < 20; rounds += 1) {
+      await nextFrame();
+      await nextFrame();
+      const fades = playing();
+      if (fades.length === 0) return;
+      await Promise.all(fades.map((animation) => animation.finished.catch(() => undefined)));
+    }
+  });
   await expectAccessible(page);
 }
