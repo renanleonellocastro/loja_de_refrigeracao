@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import { addDays, formatLongDay, formatTimeRange, storeDay, technicianColor } from '~/utils/agenda';
+import {
+  addDays,
+  formatLongDay,
+  formatTimeRange,
+  storeDay,
+  technicianColor,
+  technicianName,
+} from '~/utils/agenda';
 
 /** Phone agenda: the visits of one day in order; swipe sideways or use the arrows to change the day. */
 const props = defineProps<{
@@ -96,7 +103,7 @@ function touchEnd(event: TouchEvent): void {
             </span>
             <span class="truncate text-sm text-text-muted">
               {{ item.request.address.district }}, {{ item.request.address.city }}
-              <template v-if="showTechnician"> · {{ item.employee.name }}</template>
+              <template v-if="showTechnician"> · {{ technicianName(item) }}</template>
             </span>
           </span>
         </NuxtLink>

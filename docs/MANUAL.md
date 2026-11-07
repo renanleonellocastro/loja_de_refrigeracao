@@ -91,6 +91,7 @@ Quando um cliente pedir por telefone ou WhatsApp, toque em **Novo pedido**: esco
 
 1. Em **Solicitações**, as abas mostram quantas solicitações há em cada estado (e em **Todas**), já contando a busca por número ou cliente. Abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
 2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita. O formulário de agendamento e o de remarcação salvam sozinhos neste aparelho enquanto você preenche: se a janela fechar ou a página recarregar, o que foi digitado volta ao abrir de novo. **Cancelar** descarta o rascunho.
+   Quando um técnico é excluído, as visitas que ele ainda tinha ficam na agenda como **Sem técnico** e a gerência recebe um aviso. Elas aparecem num alerta no alto da **Agenda**; abra cada uma, toque em **Remarcar** e escolha outro técnico.
 3. Em **Aprovações**, revise as finalizações dos técnicos e aprove com o valor cobrado ou devolva para ajuste.
 
 ![Solicitações de visita](assets/manual/gerente-solicitacoes.webp)
@@ -127,7 +128,7 @@ O super usuário faz tudo o que o gerente faz e ainda administra a equipe e a lo
 
 ### Equipe
 
-Em **Colaboradores** e **Gerentes**, cadastre as pessoas com CPF; elas recebem um convite por email para definir a senha. No detalhe dá para editar os dados ou excluir (os dados pessoais são apagados e o histórico fica anônimo). O detalhe do colaborador mostra os 5 últimos atendimentos.
+Em **Colaboradores** e **Gerentes**, cadastre as pessoas com CPF; elas recebem um convite por email para definir a senha. No detalhe dá para editar os dados ou excluir (os dados pessoais são apagados e o histórico fica anônimo; as visitas marcadas de um colaborador excluído ficam na agenda como sem técnico, para passar a outra pessoa). O detalhe do colaborador mostra os 5 últimos atendimentos.
 
 ![Lista de colaboradores](assets/manual/admin-colaboradores.webp)
 
