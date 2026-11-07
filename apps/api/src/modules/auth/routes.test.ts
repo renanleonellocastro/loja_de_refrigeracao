@@ -486,7 +486,11 @@ describe('password reset limit', () => {
 
   it('refuses reset requests past the configured number per address', async () => {
     const request = () =>
-      t.app.inject({ method: 'POST', url: '/api/v1/auth/password-resets', payload: { email: 'alguem@exemplo.com.br' } });
+      t.app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/password-resets',
+        payload: { email: 'alguem@exemplo.com.br' },
+      });
     expect((await request()).statusCode).toBe(202);
     expect((await request()).statusCode).toBe(429);
   });
