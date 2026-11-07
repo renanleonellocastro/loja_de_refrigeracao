@@ -199,8 +199,8 @@ onMounted(() => {
     >
       <li v-for="person in technicians" :key="person.id" class="flex items-center gap-2 text-text">
         <span
+          v-dynamic-style="{ 'background-color': technicianColor(person.id) }"
           class="size-3 rounded-full"
-          :style="{ backgroundColor: technicianColor(person.id) }"
           aria-hidden="true"
         />
         {{ person.name }}

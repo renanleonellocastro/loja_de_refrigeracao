@@ -26,7 +26,17 @@ Referência: OWASP ASVS nível 1, com itens do nível 2 em autenticação e cont
 
 ## 4. Cabeçalhos e transporte
 
-HTTPS obrigatório com HSTS (só no build de produção); Content Security Policy sem `unsafe-inline` em scripts (o site usa nonce por resposta com `strict-dynamic`, em `apps/web/server/plugins/security-headers.ts`; a API usa `default-src 'none'`); `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` restritos ao próprio site; `Permissions-Policy` restritiva (câmera desligada: o envio de fotos usa o campo de arquivo, que abre a câmera nativa); CORS apenas para `APP_ORIGIN` com credenciais.
+HTTPS obrigatório com HSTS (só no build de produção); Content Security Policy sem `unsafe-inline` (o site usa nonce por resposta com `strict-dynamic`, em `apps/web/server/plugins/security-headers.ts`; a API usa `default-src 'none'`, veja abaixo); `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` restritos ao próprio site; `Permissions-Policy` restritiva (câmera desligada: o envio de fotos usa o campo de arquivo, que abre a câmera nativa); CORS apenas para `APP_ORIGIN` com credenciais.
+
+### Content Security Policy do site
+
+`script-src 'self' 'nonce-…' 'strict-dynamic'` e `style-src 'self' 'nonce-…'`, sem `unsafe-inline`, `unsafe-eval` nem `unsafe-hashes` (`apps/web/app/utils/security.ts`). Um CSS injetado não roda, então não dá para vazar dados por seletores nem mudar a aparência da página.
+
+* **Nonce por resposta**: o plugin do Nitro gera 16 bytes aleatórios a cada página e coloca o nonce em toda tag `<script>` e `<style>` do HTML (o CSS que o Nuxt embute no `<head>` com `features.inlineStyles`). Páginas servidas do cache do servidor (#180) recebem um nonce novo em todas as tags e em todas as diretivas do cabeçalho (`withFreshNonce`).
+* **Bibliotecas**: o FullCalendar cria o próprio `<style>` e copia o nonce da primeira tag `<script nonce>` da página. As folhas de estilo dos chunks saem como `<link rel="stylesheet">` do próprio site.
+* **Atributos `style` são bloqueados**. Um `:style` do Vue vira atributo no HTML do servidor, por isso os componentes não usam `:style` (o ESLint proíbe `:style` e `style=` em `apps/web/app`). Valores fixos viram classes (a máscara do logo); valores calculados usam a diretiva `v-dynamic-style` (`app/utils/dynamic-style.ts`), que não gera nada no servidor e escreve pelo CSSOM (`element.style.setProperty`) no navegador, o que a CSP permite. No navegador o próprio Vue, o Reka UI e as transições também escrevem pelo CSSOM.
+* **Exceções conhecidas**: o guia `/design` renderiza só no navegador, porque os componentes do Reka UI (abas, interruptor, caixa de seleção) geram atributos `style` no servidor; numa página pública renderizada no servidor, use esses componentes só depois de alguma interação ou dentro de `<ClientOnly>`. A foto da fachada em `/sobre` usa um `<picture>` simples, porque o `<NuxtPicture>` do `@nuxt/image` gera um `onerror` inline que a CSP bloqueia.
+* **Verificação**: `apps/e2e/tests/csp.spec.ts` falha com qualquer violação nas páginas principais dos três dispositivos, contra o build de produção ([TESTES.md](TESTES.md), seção 6), e o ZAP baseline (`make zap`) não aceita mais a regra 10055.
 
 Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CHECKLIST.md).
 

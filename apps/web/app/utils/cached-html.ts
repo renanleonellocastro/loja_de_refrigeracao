@@ -12,15 +12,15 @@ export interface NoncedPage {
 }
 
 /**
- * Swaps the nonce of a page served from the server cache for a fresh one, in the script tags and in the CSP
- * header, so no two responses share a nonce. A page without a nonce in its policy is returned as is.
+ * Swaps the nonce of a page served from the server cache for a fresh one, in the script and style tags and in every
+ * directive of the CSP header, so no two responses share a nonce. A page without a nonce in its policy is returned as is.
  */
 export function withFreshNonce(page: NoncedPage, nonce: string): NoncedPage {
   const previous = POLICY_NONCE.exec(page.policy)?.[1];
   if (!previous) return page;
   return {
     html: page.html.replaceAll(`nonce="${previous}"`, `nonce="${nonce}"`),
-    policy: page.policy.replace(`'nonce-${previous}'`, `'nonce-${nonce}'`),
+    policy: page.policy.replaceAll(`'nonce-${previous}'`, `'nonce-${nonce}'`),
   };
 }
 

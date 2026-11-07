@@ -5,6 +5,7 @@ import {
   PUBLIC_PAGE_CACHE_SECONDS,
   STATIC_ASSET_CACHE_CONTROL,
   pageRouteRules,
+  BROWSER_RENDERED_ROUTE_RULE,
 } from '~/utils/route-rules';
 import { PRIVATE_ROUTES } from '~/utils/routes';
 
@@ -47,6 +48,12 @@ describe('pageRouteRules', () => {
     ]) {
       expect(isCached(rules[path])).toBe(false);
     }
+  });
+
+  it('renders the design gallery in the browser, where Reka UI styles go through the CSSOM', () => {
+    const rules = pageRouteRules({ cachePublicPages: true });
+    expect(rules['/design']).toEqual(BROWSER_RENDERED_ROUTE_RULE);
+    expect(rules['/design/**']).toEqual({ ssr: false });
   });
 
   it('caches nothing outside production', () => {

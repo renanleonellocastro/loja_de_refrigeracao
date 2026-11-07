@@ -20,7 +20,8 @@ describe('AppLogo', () => {
     expect(wrapper.attributes('role')).toBe('img');
     expect(wrapper.attributes('aria-label')).toBe('Refrigeração Castro');
     expect(wrapper.classes()).toContain('bg-current');
-    expect(wrapper.attributes('style')).toContain('/brand/logo-mono.svg');
+    expect(wrapper.attributes('class')).toContain('/brand/logo-mono.svg');
+    expect(wrapper.attributes('style')).toBeUndefined();
     expect(wrapper.find('svg').exists()).toBe(false);
   });
 

@@ -63,6 +63,17 @@ function privateRouteRules(): [string, PageRouteRule][] {
   ]);
 }
 
+/**
+ * The design gallery renders in the browser: on the server the Reka UI components it shows (tabs, switch,
+ * checkbox) write style attributes, which the CSP blocks. In the browser Vue sets them through the CSSOM.
+ */
+export const BROWSER_RENDERED_ROUTE_RULE: PageRouteRule = { ssr: false };
+const BROWSER_RENDERED_PATHS = ['/design', '/design/**'];
+
+function browserRenderedRules(): [string, PageRouteRule][] {
+  return BROWSER_RENDERED_PATHS.map((path) => [path, BROWSER_RENDERED_ROUTE_RULE]);
+}
+
 function publicCacheRules(): [string, PageRouteRule][] {
   return CACHED_PUBLIC_ROUTES.map((path) => [path, { swr: PUBLIC_PAGE_CACHE_SECONDS }]);
 }
@@ -74,5 +85,10 @@ function publicCacheRules(): [string, PageRouteRule][] {
  */
 export function pageRouteRules(options: { cachePublicPages: boolean }): Record<string, PageRouteRule> {
   const cached = options.cachePublicPages ? publicCacheRules() : [];
-  return Object.fromEntries([...staticAssetRules(), ...cached, ...privateRouteRules()]);
+  return Object.fromEntries([
+    ...staticAssetRules(),
+    ...cached,
+    ...browserRenderedRules(),
+    ...privateRouteRules(),
+  ]);
 }

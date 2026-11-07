@@ -24,7 +24,7 @@ interface PolicySources {
 const POLICY_DIRECTIVES: ReadonlyArray<(sources: PolicySources) => string> = [
   () => "default-src 'self'",
   ({ nonce }) => `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
-  () => "style-src 'self' 'unsafe-inline'",
+  ({ nonce }) => `style-src 'self' 'nonce-${nonce}'`,
   ({ apiOrigin }) => `img-src 'self' data: blob: ${apiOrigin}`,
   () => "font-src 'self' data:",
   ({ apiOrigin }) => `connect-src 'self' ${apiOrigin}`,
@@ -39,14 +39,18 @@ const POLICY_DIRECTIVES: ReadonlyArray<(sources: PolicySources) => string> = [
 
 /**
  * Scripts run only from this origin or with the per response nonce ('strict-dynamic' lets the Nuxt entry load
- * its chunks), so there is no 'unsafe-inline' for scripts. Inline styles stay allowed for Vue and the fonts.
+ * its chunks). Styles follow the same rule: the inlined CSS of Nuxt and the style element FullCalendar adds
+ * carry the nonce, and style attributes are blocked, so components set dynamic values through the CSSOM
+ * (v-dynamic-style). There is no 'unsafe-inline' anywhere.
  */
 export function contentSecurityPolicy(nonce: string, apiBase: string): string {
   const sources: PolicySources = { nonce, apiOrigin: new URL(apiBase).origin };
   return POLICY_DIRECTIVES.map((directive) => directive(sources)).join('; ');
 }
 
-/** Adds the nonce to every script tag of a rendered HTML fragment that does not have one yet. */
+const UNNONCED_TAG = /<(script|style)\b(?![^>]*\bnonce=)/g;
+
+/** Adds the nonce to every script and style tag of a rendered HTML fragment that does not have one yet. */
 export function withNonce(fragment: string, nonce: string): string {
-  return fragment.replace(/<script\b(?![^>]*\bnonce=)/g, `<script nonce="${nonce}"`);
+  return fragment.replace(UNNONCED_TAG, (_tag, name: string) => `<${name} nonce="${nonce}"`);
 }
