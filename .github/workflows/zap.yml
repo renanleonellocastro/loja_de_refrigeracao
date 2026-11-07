@@ -1,0 +1,25 @@
+name: Varredura ZAP
+
+# OWASP ZAP baseline against the production images running on the runner (make zap, docs/TESTES.md).
+# Weekly and on demand: the image build takes minutes, too slow to gate every pull request.
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: ZAP baseline na stack de produção
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: make zap
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: zap-report
+          path: infra/zap/reports/

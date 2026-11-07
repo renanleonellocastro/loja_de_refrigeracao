@@ -109,14 +109,24 @@ Solicitação (`REQUESTED`) → conversa → aprovação → `POST /api/v1/appoi
 * Paginação com `limit` máximo de 100; listas grandes da equipe usam cursor.
 * `ETag` nas leituras públicas de catálogo e `Cache-Control` adequado; imagens com nome por conteúdo e cache de um ano.
 * Nuxt: SSR com cache por rota nas páginas públicas, divisão de código por rota, `@nuxt/image` para variantes responsivas, fontes auto hospedadas com `font-display: swap` e subconjunto latino.
+* Cache do SSR (`apps/web/app/utils/route-rules.ts`, só no build de produção):
+  * início, catálogo, produto, serviços, sobre, contato e privacidade ficam 60 segundos no cache do servidor e são renderizadas de novo em segundo plano (`swr`), então produto, preço ou dado da loja alterado no painel aparece no site em até um minuto;
+  * o HTML é igual para todos: o SSR nunca vê a sessão (o token fica na memória do navegador) e a renderização guardada não recebe cookies;
+  * cada resposta ganha um nonce novo da CSP, é comprimida para o cliente e sai com `Cache-Control: private, no-cache`, sem `ETag` (`server/plugins/cached-pages.ts`);
+  * páginas privadas, login e páginas com token no endereço nunca entram no cache; as privadas saem com `Cache-Control: no-store`;
+  * o cache guarda no máximo 500 páginas (LRU), para que endereços com parâmetros variados não esgotem a memória;
+  * `apps/web/scripts/check-page-cache.mjs` confere tudo isso no CI contra o build de produção.
+* Arquivos de `public/` (ilustrações, marca e ícones) ficam um dia no navegador e se renovam em segundo plano por uma semana; o `sw.js` é sempre conferido.
 * Primeira dobra das páginas públicas (RNF-07 a RNF-11):
   * CSS global embutido no HTML (`features.inlineStyles`), sem folha de estilo bloqueando a pintura;
-  * a imagem do herói é o elemento LCP, com `preload` por tamanho de tela e `fetchpriority="high"`; nenhuma fonte é pré carregada;
+  * a imagem do herói é o elemento LCP, com `preload` por tamanho de tela e `fetchpriority="high"`; na página de produto a primeira foto (ou a ilustração sem foto) carrega na hora com prioridade alta;
+  * as fontes Inter e Archivo só são pedidas depois do evento `load` (`plugins/fonts.client.ts`); até lá o texto usa as fontes de reserva com as mesmas métricas, geradas pelo `@nuxt/fonts`;
+  * o payload do Nuxt fica embutido no HTML (`payloadExtraction: false`), sem um pedido a mais antes da hidratação;
   * os scripts só hidratam a página já pintada: os `modulepreload` saem com prioridade baixa (`server/plugins/resource-hints.ts`), não há `prefetch` de componentes preguiçosos e o código comum às páginas públicas fica em poucos pedaços (`vite.$client` em `nuxt.config.ts`), sem código da área logada;
   * rodapé, mapa, horários, cartões de produto e botão do WhatsApp hidratam só quando aparecem; o menu lateral, o diálogo de filtros e o de confirmação baixam no primeiro uso;
   * o logotipo vem como imagem (`/brand/*.svg`), fora do HTML e do JavaScript.
 * Compressão: CSS, JS e SVG do build saem pré comprimidos (gzip e brotli, `nitro.compressPublicAssets`) e o HTML renderizado é comprimido pelo servidor Node (`server/plugins/compression.ts`). As páginas de erro 404 e 500 saem sem compressão, porque o tratador de erros do Nuxt relê esse HTML como texto; o teste E2E `performance.spec.ts` garante que continuam legíveis. **Em produção a compressão deve ficar também no proxy reverso** (gzip e brotli para `text/html`, `application/json` e `image/svg+xml`), que cobre as páginas de erro e as respostas da API e alivia o processo Node.
-* Orçamentos de desempenho verificados no CI (job Lighthouse com `apps/web/lighthouserc.json`: nota mínima 90 em desempenho no runner do CI e 95 em acessibilidade, boas práticas e SEO; e `apps/web/scripts/check-bundle-size.mjs`: até 150 KB de JavaScript inicial comprimido por página pública) e teste de carga k6 antes do lançamento.
+* Orçamentos de desempenho verificados no CI (job Lighthouse com `apps/web/lighthouserc.json`: nota mínima 90 em desempenho no runner do CI e 95 em acessibilidade, boas práticas e SEO; LCP mediano de até 3 s no CI, com meta de 2 s (RNF-07, issue #49); e `apps/web/scripts/check-bundle-size.mjs`: até 150 KB de JavaScript inicial comprimido por página pública) e teste de carga k6 antes do lançamento.
 
 ## 5. Configuração
 

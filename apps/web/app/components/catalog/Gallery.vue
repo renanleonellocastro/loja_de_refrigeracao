@@ -83,7 +83,7 @@ const ARROW =
         </div>
       </div>
       <div v-else class="aspect-square">
-        <CatalogProductImage :image="null" :alt="name" />
+        <CatalogProductImage :image="null" :alt="name" eager />
       </div>
       <span
         v-if="images.length > 0"

@@ -111,7 +111,7 @@ export async function addPhotos(ctx: AppContext, viewer: AccessClaims, id: numbe
   const request = await loadVisible(ctx.db, viewer, id);
   await assertPhotosAccepted(ctx.db, viewer, request, files.length);
   const stored: Array<{ key: string; width: number; height: number }> = [];
-  for (const file of files) stored.push(await storeImage(ctx.storage, file));
+  for (const file of files) stored.push(await storeImage(ctx, file));
   await ctx.db.transaction(async (tx) => {
     for (const image of stored) await repo.insertMedia(tx, REQUEST_OWNER_TYPE, id, image);
   });

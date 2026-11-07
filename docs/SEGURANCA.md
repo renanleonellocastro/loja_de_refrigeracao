@@ -26,7 +26,7 @@ Referência: OWASP ASVS nível 1, com itens do nível 2 em autenticação e cont
 
 ## 4. Cabeçalhos e transporte
 
-HTTPS obrigatório com HSTS (só no build de produção); Content Security Policy sem `unsafe-inline` em scripts (o site usa nonce por resposta com `strict-dynamic`, em `apps/web/server/plugins/security-headers.ts`; a API usa `default-src 'none'`); `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Permissions-Policy` restritiva (câmera desligada: o envio de fotos usa o campo de arquivo, que abre a câmera nativa); CORS apenas para `APP_ORIGIN` com credenciais.
+HTTPS obrigatório com HSTS (só no build de produção); Content Security Policy sem `unsafe-inline` em scripts (o site usa nonce por resposta com `strict-dynamic`, em `apps/web/server/plugins/security-headers.ts`; a API usa `default-src 'none'`); `X-Content-Type-Options: nosniff`; `Referrer-Policy: strict-origin-when-cross-origin`; `Cross-Origin-Opener-Policy` e `Cross-Origin-Resource-Policy` restritos ao próprio site; `Permissions-Policy` restritiva (câmera desligada: o envio de fotos usa o campo de arquivo, que abre a câmera nativa); CORS apenas para `APP_ORIGIN` com credenciais.
 
 Situação item a item do ASVS nível 1 em [SEGURANCA_CHECKLIST.md](SEGURANCA_CHECKLIST.md).
 

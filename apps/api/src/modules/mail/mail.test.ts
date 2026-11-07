@@ -120,7 +120,7 @@ describe('emailHandler', () => {
     expect(first).toMatchObject({ to: 'ana@x.com', subject: 'Sua senha foi alterada' });
     expect(
       first.text.endsWith(
-        'Refrigeração Castro · Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP · (19) 3804-1658',
+        'Refrigeração Castro · Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP · (19) 3804-1658 · WhatsApp (19) 99764-1658',
       ),
     ).toBe(true);
     await t.db
