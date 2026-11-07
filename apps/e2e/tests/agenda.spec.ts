@@ -183,7 +183,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
     if (deviceOf(testInfo) === 'celular') {
       await expect(page.getByRole('button', { name: 'Próximo dia' })).toBeVisible();
     } else {
-      await expect(page.locator('.fc-timegrid')).toBeVisible();
+      await expect(page.locator('.rc-fc-timeGridWeek')).toBeVisible();
     }
     await expectAccessibleSettled(page);
 
