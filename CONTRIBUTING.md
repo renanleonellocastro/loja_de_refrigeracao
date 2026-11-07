@@ -28,6 +28,7 @@ Documentação, issues, interface e emails em português do Brasil. Código, ban
 
 ```
 make check         tudo que o job de qualidade do CI verifica, mais o tamanho das funções
+make load          teste de carga k6 do RNF-10 (precisa do pnpm db:up), antes de cada versão
 pnpm install       dependências
 pnpm dev           sistema completo local (Docker + API + site)
 pnpm test          unitários e integração com cobertura
