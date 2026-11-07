@@ -30,6 +30,8 @@ test.describe('orçamentos', () => {
   test('cliente pede orçamento, gerente responde com valor e cliente aceita com datas', async ({
     page,
   }, testInfo) => {
+    // Two people, several sign ins and accessibility scans: Firefox on the CI runner passes the default 30 s.
+    test.slow();
     const description = `Instalar split de 12.000 BTUs na sala (${testInfo.project.name} ${Date.now()}).`;
 
     // Asking for a quote needs an account: guests sign in and come back to the form.
