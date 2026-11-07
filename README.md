@@ -25,7 +25,7 @@ O passo a passo de cada papel, com imagens, está no [manual do usuário](docs/M
 
 * **API:** Node.js 24, Fastify 5, Zod com OpenAPI 3.1 gerada, Drizzle ORM, PostgreSQL 17, Argon2id, JWT com refresh rotativo, Nodemailer, sharp e um worker com outbox no próprio banco.
 * **Site:** Nuxt 4, Vue 3, Tailwind CSS v4, Reka UI, Pinia, FullCalendar e cliente da API tipado a partir da OpenAPI.
-* **Qualidade:** TypeScript estrito, ESLint, Prettier, dependency cruiser, Vitest com 100% de cobertura, Playwright em celular, tablet e desktop, axe, Lighthouse CI e Schemathesis.
+* **Qualidade:** TypeScript estrito, ESLint, Prettier, dependency cruiser, Vitest com 100% de cobertura, Playwright em celular, tablet e desktop, axe, Lighthouse CI, Schemathesis e teste de carga com k6.
 * **Entrega:** imagens Docker da API (com o worker) e do site, Docker Compose e Caddy com HTTPS automático.
 
 A arquitetura está em [docs/ARQUITETURA.md](docs/ARQUITETURA.md) e as decisões em [docs/adr](docs/adr/README.md).

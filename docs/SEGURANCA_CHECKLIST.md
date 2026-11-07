@@ -129,5 +129,5 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 
 ## Pendências fora deste PR
 
-* Varredura com OWASP ZAP no ambiente de homologação (#86), depois do deploy (#87). A mesma varredura já roda contra as imagens de produção locais com `make zap` e no workflow semanal `Varredura ZAP` ([TESTES.md](TESTES.md) seção 7).
+* Varredura com OWASP ZAP no ambiente de homologação (#86), depois do deploy (#87). A mesma varredura já roda contra as imagens de produção locais com `make zap` e no workflow semanal `Varredura ZAP` ([TESTES.md](TESTES.md) seção 8).
 * TLS e certificados no provedor (9.1.1).

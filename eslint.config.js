@@ -75,6 +75,11 @@ export default tseslint.config(
     rules: { 'vue/one-component-per-file': 'off' },
   },
   {
+    // k6 scripts run in the k6 runtime, which injects these globals (docs/TESTES.md, load test).
+    files: ['tools/load/**/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly', __VU: 'readonly', __ITER: 'readonly' } },
+  },
+  {
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

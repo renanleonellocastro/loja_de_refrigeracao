@@ -57,10 +57,15 @@ const details = computed<DescriptionItem[]>(() => {
   ];
 });
 
+/** A technician's unfinished visits stay on the agenda, flagged for management to pass to someone else. */
+const PENDING_VISITS_NOTE =
+  ' Os atendimentos marcados ficam na agenda como sem técnico, para a gerência passar a outra pessoa.';
+
 function removalQuestion(current: UserDetail): ConfirmOptions {
+  const visitsNote = current.role === 'EMPLOYEE' ? PENDING_VISITS_NOTE : '';
   return {
     title: `Excluir ${config.value.thisNoun}?`,
-    description: `Os dados pessoais de ${current.name} são apagados na hora e o histórico de pedidos e serviços fica anônimo. Não dá para desfazer.`,
+    description: `Os dados pessoais de ${current.name} são apagados na hora e o histórico de pedidos e serviços fica anônimo.${visitsNote} Não dá para desfazer.`,
     confirmLabel: `Excluir ${config.value.noun}`,
     danger: true,
   };

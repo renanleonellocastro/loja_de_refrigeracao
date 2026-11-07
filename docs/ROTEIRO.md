@@ -81,7 +81,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 * [x] #46 Gerenciar Categorias
 * [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
-* [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
+* [x] #49 UC Consultar Produtos: catálogo público
 * [x] #50 Página de detalhes do produto
 * [x] #51 UC Excluir Produto com arquivamento
 * [x] #52 Movimentar Estoque e alerta de estoque baixo (painel e notificação para a gerência)
@@ -142,8 +142,8 @@ Página inicial com a marca, páginas institucionais, SEO local, painel da equip
 E2E de todos os casos de uso nos três dispositivos, auditorias de acessibilidade, desempenho e segurança, deploy e documentação final. Dependência: fecha o projeto; E2E e auditorias acompanham cada milestone desde o M1.
 
 * [ ] #83 E2E de todos os casos de uso em celular, tablet e desktop (pendente: falta a matriz de rastreabilidade e a conferência dos emails)
-* [ ] #84 Auditoria de acessibilidade WCAG 2.2 AA (pendente: faltam axe em account.spec.ts, testes de teclado e o registro com leitores de tela)
-* [ ] #85 Desempenho: Lighthouse CI, bundle e carga com k6 (pendente: falta o teste de carga com k6)
+* [ ] #84 Auditoria de acessibilidade WCAG 2.2 AA (axe em account.spec.ts e testes de teclado feitos; pendente: teste manual com VoiceOver e TalkBack)
+* [x] #85 Desempenho: Lighthouse CI, bundle e carga com k6
 * [ ] #86 Revisão de segurança antes do lançamento (pendente: falta a varredura com OWASP ZAP)
 * [ ] #87 Deploy em produção, backups e monitoramento (pendente: imagens Docker, compose de produção e guia de operação prontos; falta escolher o provedor e publicar)
 * [ ] #88 Documentação final e manual por papel (pendente: README, manual por papel e guia de operação entregues neste PR)

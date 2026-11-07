@@ -43,7 +43,8 @@ const DEFAULT_START = '08:00';
 
 function valuesOfAppointment(appointment: Appointment) {
   return {
-    employeeId: String(appointment.employee.id),
+    // A removed technician is not an option any more: the form asks for another one.
+    employeeId: appointment.needsReassignment ? '' : String(appointment.employee.id),
     day: storeDay(appointment.startsAt),
     time: storeTime(appointment.startsAt),
     duration: String(durationOf(appointment)),
