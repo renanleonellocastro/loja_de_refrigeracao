@@ -93,8 +93,8 @@ test.describe('ASVS 14.4.3 CSP sem unsafe-inline', () => {
     await signIn(page, 'gerente@castro.dev');
     await visitAll(page, STAFF_PAGES);
     await visitAll(page, ['/agenda']);
-    // Tablets and desktops show FullCalendar, whose own style element must carry the nonce.
-    if (deviceOf(testInfo) !== 'celular') await expect(page.locator('.fc').first()).toBeVisible();
+    // Tablets and desktops show FullCalendar; version 7 ships its styles as bundled CSS and sets styles through the CSSOM.
+    if (deviceOf(testInfo) !== 'celular') await expect(page.locator('.rc-fc-view').first()).toBeVisible();
     await expectNoViolations(page, '/agenda');
   });
 
