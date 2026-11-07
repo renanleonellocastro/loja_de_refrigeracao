@@ -340,6 +340,9 @@ importers:
       '@rc/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens
+      lru-cache:
+        specifier: ^11.5.3
+        version: 11.5.3
       lucide-vue-next:
         specifier: ^1.0.0
         version: 1.0.0(vue@3.5.44(typescript@6.0.3))
