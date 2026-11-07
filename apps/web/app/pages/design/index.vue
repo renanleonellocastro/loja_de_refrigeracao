@@ -227,8 +227,8 @@ const roleNavigation = computed(() =>
                 <ul class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-11">
                   <li v-for="(hex, shade) in swatch.shades" :key="shade" class="flex flex-col gap-1">
                     <span
+                      v-dynamic-style="{ 'background-color': hex }"
                       class="h-12 rounded-md ring-1 ring-black/5 ring-inset"
-                      :style="{ backgroundColor: hex }"
                     />
                     <span class="text-xs font-semibold text-text">{{ shade }}</span>
                     <span class="font-mono text-[0.6875rem] text-text-muted uppercase">{{ hex }}</span>

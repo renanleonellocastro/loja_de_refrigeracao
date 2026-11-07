@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { isCacheablePage, withFreshNonce } from '~/utils/cached-html';
 
 describe('withFreshNonce', () => {
-  it('replaces the nonce in every script tag and in the policy', () => {
+  it('replaces the nonce in every script and style tag and in every directive of the policy', () => {
     const page = {
-      html: '<script nonce="old1">a</script><script nonce="old1" src="/x.js"></script>',
-      policy: "default-src 'self'; script-src 'self' 'nonce-old1' 'strict-dynamic'",
+      html: '<style nonce="old1">p{}</style><script nonce="old1">a</script><script nonce="old1" src="/x.js"></script>',
+      policy: "script-src 'self' 'nonce-old1' 'strict-dynamic'; style-src 'self' 'nonce-old1'",
     };
     const fresh = withFreshNonce(page, 'new2');
-    expect(fresh.html).toBe('<script nonce="new2">a</script><script nonce="new2" src="/x.js"></script>');
-    expect(fresh.policy).toBe("default-src 'self'; script-src 'self' 'nonce-new2' 'strict-dynamic'");
+    expect(fresh.html).toBe(
+      '<style nonce="new2">p{}</style><script nonce="new2">a</script><script nonce="new2" src="/x.js"></script>',
+    );
+    expect(fresh.policy).toBe(
+      "script-src 'self' 'nonce-new2' 'strict-dynamic'; style-src 'self' 'nonce-new2'",
+    );
   });
 
   it('returns the page as is when the policy has no nonce', () => {

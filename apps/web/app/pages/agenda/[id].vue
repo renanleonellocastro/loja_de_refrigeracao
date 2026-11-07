@@ -134,8 +134,8 @@ onMounted(load);
           </p>
           <p class="mt-1 flex items-center gap-2 text-sm text-text">
             <span
+              v-dynamic-style="{ 'background-color': technicianColor(appointment.employee.id) }"
               class="size-3 rounded-full"
-              :style="{ backgroundColor: technicianColor(appointment.employee.id) }"
               aria-hidden="true"
             />
             Técnico: {{ appointment.employee.name }}

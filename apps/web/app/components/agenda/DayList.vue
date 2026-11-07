@@ -85,8 +85,8 @@ function touchEnd(event: TouchEvent): void {
           class="flex min-h-16 items-stretch gap-3 overflow-hidden rounded-xl border border-border bg-surface transition-colors hover:bg-surface-sunken"
         >
           <span
+            v-dynamic-style="{ 'background-color': technicianColor(item.employee.id) }"
             class="w-1.5 shrink-0"
-            :style="{ backgroundColor: technicianColor(item.employee.id) }"
             aria-hidden="true"
           />
           <span class="flex min-w-0 flex-1 flex-col gap-0.5 py-3 pr-3">
