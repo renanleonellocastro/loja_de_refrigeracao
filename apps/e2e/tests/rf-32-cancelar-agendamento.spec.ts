@@ -9,7 +9,10 @@ import { open } from '../support/viewport.js';
 
 // Following the state and answering the store run in service-requests.spec.ts; this file covers the cancellation.
 test.describe('RF-32 meus agendamentos: o cliente cancela até a véspera', { tag: '@RF-32' }, () => {
-  test('o cliente cancela a visita marcada e a loja e o técnico são avisados', async ({ page, request }, testInfo) => {
+  test('o cliente cancela a visita marcada e a loja e o técnico são avisados', async ({
+    page,
+    request,
+  }, testInfo) => {
     const manager = await signInApi(request, MANAGER);
     const technician = await signInApi(request, TECHNICIAN);
     const customer = await newCustomer(request, testInfo, 'Clara Cancela');

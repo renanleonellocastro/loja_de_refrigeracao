@@ -5,7 +5,9 @@ import { waitForEmail } from '../support/mailpit.js';
 
 // The request form runs in service-requests.spec.ts; this file checks the emails it sends.
 test.describe('RF-25 solicitar agendamento: emails ao cliente e à gerência', { tag: '@RF-25' }, () => {
-  test('a solicitação chega por email ao cliente, aos gerentes e ao super usuário', async ({ request }, testInfo) => {
+  test('a solicitação chega por email ao cliente, aos gerentes e ao super usuário', async ({
+    request,
+  }, testInfo) => {
     const customer = await newCustomer(request, testInfo, 'Sara Solicita');
     const problem = `Geladeira não gela (${crypto.randomUUID()}).`;
     const id = await requestService(request, customer, problem);

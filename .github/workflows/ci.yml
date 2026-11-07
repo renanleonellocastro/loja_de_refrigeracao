@@ -50,6 +50,8 @@ jobs:
       - run: pnpm depcruise
       - name: Tamanho das funções (estrito, docs/QUALIDADE.md)
         run: make function-length
+      - name: Matriz de rastreabilidade RF x E2E (docs/RASTREABILIDADE.md)
+        run: make traceability-check
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm --filter @rc/web run build

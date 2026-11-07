@@ -6,7 +6,10 @@ import { closeToast } from '../support/toast.js';
 import { deviceOf, open } from '../support/viewport.js';
 
 function positionOf(page: Page, name: string) {
-  return page.getByRole('list', { name: 'Categorias em ordem' }).getByRole('listitem').filter({ hasText: name });
+  return page
+    .getByRole('list', { name: 'Categorias em ordem' })
+    .getByRole('listitem')
+    .filter({ hasText: name });
 }
 
 async function nameDialog(page: Page, title: string, name: string, action: string): Promise<void> {
@@ -45,7 +48,10 @@ test.describe('RF-11 gerenciar categorias de produto', { tag: '@RF-11' }, () => 
     await expect(positionOf(page, renamed)).toHaveCount(0);
   });
 
-  test('uma categoria com produtos só sai depois de mover os produtos', async ({ page, request }, testInfo) => {
+  test('uma categoria com produtos só sai depois de mover os produtos', async ({
+    page,
+    request,
+  }, testInfo) => {
     const admin = await signInApi(request, ADMIN);
     const name = `Usados ${testInfo.project.name} ${crypto.randomUUID().slice(0, 8)}`;
     const category = await call<{ id: number }>(

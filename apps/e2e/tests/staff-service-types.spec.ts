@@ -15,7 +15,7 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await closeWelcomeToast(page);
 }
 
-test.describe('RF-24 tipos de reparo e manutenção', () => {
+test.describe('RF-24 tipos de reparo e manutenção', { tag: '@RF-24' }, () => {
   test('o super usuário cadastra, altera, desativa e exclui um tipo de serviço', async ({
     page,
   }, testInfo) => {

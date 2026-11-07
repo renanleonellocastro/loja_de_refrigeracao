@@ -32,7 +32,11 @@ export async function signInApi(request: APIRequestContext, email: string): Prom
 }
 
 /** A new customer, created through the public sign up, that no other test uses. */
-export async function newCustomer(request: APIRequestContext, testInfo: TestInfo, name: string): Promise<Account> {
+export async function newCustomer(
+  request: APIRequestContext,
+  testInfo: TestInfo,
+  name: string,
+): Promise<Account> {
   const data = { name, email: uniqueEmail('rf', testInfo), phone: '19999995555', password: PASSWORD };
   const response = await request.post(`${API}/api/v1/customers`, { data: { ...data, acceptPrivacy: true } });
   expect(response.status()).toBe(201);

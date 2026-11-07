@@ -17,7 +17,10 @@ test.describe('RF-04 cadastrar cliente: emails de boas vindas e de convite', { t
     expect(email.text).toContain(customer.email);
   });
 
-  test('o cliente cadastrado pela equipe cria a senha pelo link do convite', async ({ page, request }, testInfo) => {
+  test('o cliente cadastrado pela equipe cria a senha pelo link do convite', async ({
+    page,
+    request,
+  }, testInfo) => {
     const manager = await signInApi(request, MANAGER);
     const address = uniqueEmail('convite', testInfo);
     const data = { role: 'CLIENT', name: 'Caio Convidado', email: address, phone: '19999996666' };

@@ -32,7 +32,7 @@ async function forgetSession(page: Page): Promise<void> {
   await page.evaluate(() => localStorage.clear());
 }
 
-test.describe('RF-01 e RF-04 conta', () => {
+test.describe('RF-01, RF-04, RF-06 e RF-10 conta', { tag: ['@RF-01', '@RF-04', '@RF-06', '@RF-10'] }, () => {
   // A fresh account per run: wrong passwords on a shared seed account add up to the login lockout (#141).
   test('entra, volta para a página pedida e sai', async ({ page }, testInfo) => {
     const email = uniqueEmail('entrar', testInfo);

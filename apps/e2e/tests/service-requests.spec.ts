@@ -30,7 +30,7 @@ async function next(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Continuar' }).click();
 }
 
-test.describe('RF-30 a RF-34 solicitações de visita', () => {
+test.describe('RF-25, RF-26 e RF-32 solicitações de visita', { tag: ['@RF-25', '@RF-26', '@RF-32'] }, () => {
   test('cliente pede visita com foto, gerente pergunta, cliente responde e gerente aprova', async ({
     page,
   }, testInfo) => {

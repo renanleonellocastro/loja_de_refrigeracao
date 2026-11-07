@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { MANAGER, newCustomer, signInApi, TECHNICIAN } from '../support/api.js';
-import { approveFinalization, approveRequest, finalizeVisit, requestService, scheduleVisit } from '../support/flows.js';
+import {
+  approveFinalization,
+  approveRequest,
+  finalizeVisit,
+  requestService,
+  scheduleVisit,
+} from '../support/flows.js';
 import { waitForEmail } from '../support/mailpit.js';
 
 // The approval screen runs in agenda.spec.ts; this file checks the summary email to the customer.

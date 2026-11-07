@@ -8,7 +8,10 @@ import { closeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 test.describe('RF-09 cadastrar, consultar e excluir gerentes', { tag: '@RF-09' }, () => {
-  test('o super usuário cadastra um gerente, abre o cadastro e o exclui', async ({ page, request }, testInfo) => {
+  test('o super usuário cadastra um gerente, abre o cadastro e o exclui', async ({
+    page,
+    request,
+  }, testInfo) => {
     const name = `Gerente ${testInfo.project.name} ${crypto.randomUUID().slice(0, 8)}`;
     const email = uniqueEmail('gerente', testInfo);
     await signIn(page, ADMIN);

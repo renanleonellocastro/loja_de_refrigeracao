@@ -7,15 +7,18 @@ CHECK_POSTGRES_CONTAINER ?= rc-check-postgres
 CHECK_POSTGRES_IMAGE ?= postgres:17-alpine
 TEST_DATABASE_URL ?= postgres://castro:castro@localhost:$(CHECK_POSTGRES_PORT)/castro
 FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
+TRACEABILITY = tools/traceability/node_modules/.bin/tsx tools/traceability/src/cli.ts
+# The E2E test list as Playwright JSON; test-results/ is ignored by git.
+TRACEABILITY_REPORT = apps/e2e/test-results/traceability.json
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list
+	function-length function-length-list traceability traceability-check traceability-report
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
 
-check: packages contracts lint depcruise typecheck function-length test web ## Everything the CI quality job checks
+check: packages contracts lint depcruise typecheck function-length traceability-check test web ## Everything the CI quality job checks
 	@echo "make check: OK"
 
 packages: ## Build the shared packages the apps import
@@ -59,3 +62,13 @@ function-length: ## Strict: fails on any function past 12 lines
 function-length-list: ## Every function past 12 lines, longest first
 	$(FUNCTION_LENGTH) --list
 
+
+traceability-report:
+	@mkdir -p $(dir $(TRACEABILITY_REPORT))
+	cd apps/e2e && $(PNPM) exec playwright test --list --reporter=json > ../../$(TRACEABILITY_REPORT)
+
+traceability: traceability-report ## Write docs/RASTREABILIDADE.md from docs/REQUISITOS.md and the @RF-NN E2E tags
+	$(TRACEABILITY) --report $(TRACEABILITY_REPORT)
+
+traceability-check: traceability-report ## Fails when a requirement has no E2E test or docs/RASTREABILIDADE.md is stale
+	$(TRACEABILITY) --check --report $(TRACEABILITY_REPORT)

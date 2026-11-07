@@ -9,7 +9,10 @@ import { open } from '../support/viewport.js';
 const NEW_PASSWORD = 'Outra-Senha-2026';
 
 test.describe('RF-03 alterar a própria senha', { tag: '@RF-03' }, () => {
-  test('o cliente troca a senha informando a atual e recebe o aviso por email', async ({ page, request }, testInfo) => {
+  test('o cliente troca a senha informando a atual e recebe o aviso por email', async ({
+    page,
+    request,
+  }, testInfo) => {
     const customer = await newCustomer(request, testInfo, 'Tiago Troca');
     await signIn(page, customer.email);
     await open(page, '/perfil?aba=seguranca');

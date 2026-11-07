@@ -5,7 +5,9 @@ import { waitForEmail } from '../support/mailpit.js';
 
 // The technician finalizes on a phone in agenda.spec.ts; this file checks the email to the management.
 test.describe('RF-30 finalizar serviço: email à gerência', { tag: '@RF-30' }, () => {
-  test('a finalização do técnico chega por email aos gerentes e ao super usuário', async ({ request }, testInfo) => {
+  test('a finalização do técnico chega por email aos gerentes e ao super usuário', async ({
+    request,
+  }, testInfo) => {
     const manager = await signInApi(request, MANAGER);
     const technician = await signInApi(request, TECHNICIAN);
     const customer = await newCustomer(request, testInfo, 'Fábio Final');

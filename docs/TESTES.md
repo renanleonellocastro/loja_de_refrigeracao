@@ -14,6 +14,7 @@ Regra do projeto: **todo código entra com teste, e o CI recusa qualquer mudanç
 | Contrato | OpenAPI gerada igual à versionada; Schemathesis contra a API | Cliente gerado sem divergência |
 | Permissões | Teste gerado da matriz: cada rota × cada papel × dono ou não dono | Guardas de rota por papel |
 | E2E | | Playwright em três dispositivos (Pixel 7, iPad, desktop 1440 px) e três motores (Chromium, WebKit, Firefox) |
+| Rastreabilidade | | Todo RF de `docs/REQUISITOS.md` com ao menos um teste E2E e `docs/RASTREABILIDADE.md` atualizado |
 | Acessibilidade | | `@axe-core/playwright` em toda tela, zero violações AA |
 | Visual | | Capturas do guia vivo `/design` e das telas principais comparadas por dispositivo (`@visual`) |
 | Desempenho | | Lighthouse CI com os orçamentos do RNF-08; limite de tamanho de bundle |
@@ -28,7 +29,11 @@ Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras
 * **Concorrência**: testes que disparam pedidos simultâneos para o último item do estoque e garantem exatamente uma reserva; serviços sobrepostos na agenda do mesmo técnico; edição concorrente com `If-Match`.
 * **Componentes**: cada componente base em todos os estados (padrão, foco, desabilitado, carregando, erro) e com teclado.
 * **Páginas**: fluxos da tela com a API simulada, incluindo erros de rede e respostas lentas.
-* **E2E**: um arquivo por caso de uso (`e2e/uc-solicitar-agendamento.spec.ts`), nomeado com o RF correspondente, rodando contra a stack completa com banco semeado e Mailpit para verificar os emails enviados.
+* **E2E**: um arquivo por caso de uso, nomeado com o RF correspondente (`apps/e2e/tests/rf-02-recuperar-senha.spec.ts`), rodando contra a stack completa com banco semeado. Os casos que mandam email conferem a mensagem no Mailpit (`apps/e2e/support/mailpit.ts`): destinatário, assunto e o conteúdo que importa, como o link de recuperação de senha que o teste segue.
+
+### Matriz de rastreabilidade
+
+Cada `test.describe` E2E leva as tags dos requisitos que cobre (`{ tag: '@RF-02' }`, ou uma lista quando a jornada cobre vários). `make traceability` lista os testes com `playwright test --list` e gera [RASTREABILIDADE.md](RASTREABILIDADE.md): cada RF de [REQUISITOS.md](REQUISITOS.md) com os testes que o citam. `make traceability-check`, que roda no `make check` e no job de qualidade do CI, falha quando um RF fica sem teste, quando uma tag cita um RF que não existe ou quando o arquivo commitado está desatualizado. O gerador fica em `tools/traceability`, com 100% de cobertura.
 
 ## 3. Contrato com Schemathesis
 

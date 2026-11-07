@@ -7,10 +7,17 @@ import { closeToast } from '../support/toast.js';
 import { open } from '../support/viewport.js';
 
 test.describe('RF-40 central de notificações', { tag: '@RF-40' }, () => {
-  test('o cliente vê as não lidas, abre uma e marca todas como lidas', async ({ page, request }, testInfo) => {
+  test('o cliente vê as não lidas, abre uma e marca todas como lidas', async ({
+    page,
+    request,
+  }, testInfo) => {
     const manager = await signInApi(request, MANAGER);
     const customer = await newCustomer(request, testInfo, 'Nara Notificada');
-    const id = await requestQuote(request, customer, `Freezer horizontal sem gelar (${crypto.randomUUID()}).`);
+    const id = await requestQuote(
+      request,
+      customer,
+      `Freezer horizontal sem gelar (${crypto.randomUUID()}).`,
+    );
     await answerQuote(request, manager, id);
 
     await signIn(page, customer.email);

@@ -13,7 +13,7 @@ async function signIn(page: Page, email: string, landing: RegExp): Promise<void>
   await expect(page).toHaveURL(landing);
 }
 
-test.describe('RF-38 painel da equipe', () => {
+test.describe('RF-38 painel da equipe', { tag: '@RF-38' }, () => {
   test('gerente vê os indicadores que levam às listas filtradas @a11y', async ({ page }) => {
     await signIn(page, 'gerente@castro.dev', /\/painel$/);
     const kpis = page.getByTestId('kpi');

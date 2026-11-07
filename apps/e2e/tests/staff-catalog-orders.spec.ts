@@ -70,7 +70,10 @@ async function createProduct(page: Page, testInfo: TestInfo, name: string): Prom
   await closeToast(page, 'Produto cadastrado.');
 }
 
-test.describe('RF-12 a RF-16, RF-25 e RF-26 produtos, pedidos e balcão', () => {
+// The requirements this journey covers, read by tools/traceability for docs/RASTREABILIDADE.md.
+const REQUIREMENTS = { tag: ['@RF-12', '@RF-13', '@RF-17', '@RF-19', '@RF-20', '@RF-22'] };
+
+test.describe('RF-12, RF-13, RF-17, RF-19, RF-20 e RF-22 produtos, pedidos e balcão', REQUIREMENTS, () => {
   test('o gerente cadastra um produto, o cliente compra, a loja entrega e o técnico vende no balcão', async ({
     page,
   }, testInfo) => {

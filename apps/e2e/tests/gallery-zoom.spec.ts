@@ -40,7 +40,7 @@ async function productWithTwoPhotos(request: APIRequestContext, name: string): P
   return slug;
 }
 
-test.describe('RF-15 zoom da galeria do produto', () => {
+test.describe('RF-15 zoom da galeria do produto', { tag: '@RF-15' }, () => {
   test('abre a foto em tela cheia, amplia pelo teclado, botões e toque duplo, troca de foto e devolve o foco', async ({
     page,
     request,
