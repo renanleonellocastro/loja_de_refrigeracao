@@ -28,6 +28,7 @@ export const appointment = (
     endsAt: '2026-10-07T13:00:00.000Z',
     version: 1,
     employee: { id: 3, name: 'Tiago Técnico' },
+    needsReassignment: false,
     report: null,
     ...rest,
     request: {

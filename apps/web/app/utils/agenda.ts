@@ -149,12 +149,24 @@ export function isMovable(appointment: Appointment): boolean {
   return appointment.request.status === 'SCHEDULED' && appointment.report?.status !== 'SUBMITTED';
 }
 
+/** Shown instead of the technician of a visit whose technician was removed (API needsReassignment). */
+export const REASSIGN_LABEL = 'Sem técnico';
+
+/** The technician as screens show it: "Sem técnico" once they were removed and the visit is still ahead. */
+export function technicianName(appointment: Appointment): string {
+  return appointment.needsReassignment ? REASSIGN_LABEL : appointment.employee.name;
+}
+
+function eventTechnician(appointment: Appointment): string {
+  return appointment.needsReassignment ? REASSIGN_LABEL : appointment.employee.name.split(' ')[0]!;
+}
+
 export function toCalendarEvent(appointment: Appointment, withTechnician: boolean): CalendarEvent {
   const color = technicianColor(appointment.employee.id);
   const subject = `${appointment.request.serviceType}: ${appointment.request.customer.name}`;
   return {
     id: String(appointment.id),
-    title: withTechnician ? `${appointment.employee.name.split(' ')[0]} · ${subject}` : subject,
+    title: withTechnician ? `${eventTechnician(appointment)} · ${subject}` : subject,
     start: toStoreWall(appointment.startsAt),
     end: toStoreWall(appointment.endsAt),
     backgroundColor: color,

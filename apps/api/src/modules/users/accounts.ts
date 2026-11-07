@@ -4,10 +4,12 @@ import type { Executor } from '../../infra/db/client.js';
 import type { AddressSnapshot } from '../../infra/db/schema.js';
 import { conflict, forbidden, notFound, unauthorized, unprocessable } from '../../shared/errors.js';
 import { pageOf, toLimitOffset } from '../../shared/pagination.js';
+import * as agenda from '../agenda/service.js';
 import { recordAudit, type AuditEntry } from '../audit/service.js';
 import * as auth from '../auth/service.js';
 import { hashPassword, matchesPassword, type AccessClaims } from '../auth/service.js';
 import { queueEmail } from '../mail/service.js';
+import { notifyManagement } from '../notifications/service.js';
 import { recentActivity } from './activity.js';
 import { assertAvailable, withAvailabilityGuard } from './availability.js';
 import { detailOf, toListItem, type UserDetail } from './detail.js';
@@ -215,10 +217,29 @@ export async function adminUpdateUser(
   return ctx.db.transaction((tx) => updateAudited(ctx, tx, { user, changes }, { actorId: actor.userId, ip }));
 }
 
+function reassignmentNotice(name: string, pending: number) {
+  const visits = pending === 1 ? '1 atendimento marcado' : `${pending} atendimentos marcados`;
+  return {
+    type: 'appointment',
+    subject: 'Atendimentos para passar a outro técnico',
+    paragraphs: [`${name} foi excluído e tinha ${visits}. Escolha outro técnico para cada um na agenda.`],
+    path: '/agenda',
+    actionLabel: 'Abrir agenda',
+  };
+}
+
+/** Removing a technician leaves their unfinished visits flagged on the agenda; management hears about it. */
+async function flagPendingVisits(ctx: AppContext, tx: Executor, user: users.UserRow, origin: AuditOrigin) {
+  if (user.role !== 'EMPLOYEE') return;
+  const pending = await agenda.countAwaitingReassignment(tx, user.id);
+  if (pending > 0) await notifyManagement(ctx, tx, origin.actorId, reassignmentNotice(user.name, pending));
+}
+
 async function anonymizeAudited(ctx: AppContext, tx: Executor, user: users.UserRow, origin: AuditOrigin) {
   const before = await detailOf(tx, user);
   await users.anonymizeUser(tx, user.id, ctx.clock.now());
   await recordUserAudit(tx, origin, { action: 'user.delete', resourceId: user.id, before });
+  await flagPendingVisits(ctx, tx, user, origin);
 }
 
 export async function deleteUser(
