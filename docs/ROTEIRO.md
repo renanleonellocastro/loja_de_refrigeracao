@@ -143,7 +143,7 @@ E2E de todos os casos de uso nos três dispositivos, auditorias de acessibilidad
 
 * [ ] #83 E2E de todos os casos de uso em celular, tablet e desktop (pendente: falta a matriz de rastreabilidade e a conferência dos emails)
 * [ ] #84 Auditoria de acessibilidade WCAG 2.2 AA (pendente: faltam axe em account.spec.ts, testes de teclado e o registro com leitores de tela)
-* [ ] #85 Desempenho: Lighthouse CI, bundle e carga com k6 (pendente: falta o teste de carga com k6)
+* [x] #85 Desempenho: Lighthouse CI, bundle e carga com k6
 * [ ] #86 Revisão de segurança antes do lançamento (pendente: falta a varredura com OWASP ZAP)
 * [ ] #87 Deploy em produção, backups e monitoramento (pendente: imagens Docker, compose de produção e guia de operação prontos; falta escolher o provedor e publicar)
 * [ ] #88 Documentação final e manual por papel (pendente: README, manual por papel e guia de operação entregues neste PR)
