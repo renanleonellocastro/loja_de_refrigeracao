@@ -80,9 +80,11 @@ jobs:
           --health-cmd "pg_isready -U castro" --health-interval 2s --health-timeout 3s --health-retries 30
       mailpit:
         image: axllent/mailpit:latest
-        ports: ['1025:1025']
+        ports: ['1025:1025', '8025:8025']
     env:
       E2E_ENGINES: ${{ matrix.engine }}
+      # The specs read the emails through the Mailpit API; the service listens on IPv4 only.
+      E2E_MAILPIT_URL: http://127.0.0.1:8025
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
