@@ -186,6 +186,8 @@ jobs:
         run: node apps/web/scripts/check-bundle-size.mjs http://localhost:3000 / /produtos /produtos/compressor-embraco-1-4-hp /servicos
       # Mobile emulation with simulated 4G. The shared runner is noisier than a developer machine, so
       # performance asserts 90 here; the 95 of RNF-08 is measured locally and recorded in the pull request.
+      - name: Cache das páginas públicas e páginas privadas sem cache
+        run: node apps/web/scripts/check-page-cache.mjs http://localhost:3000
       - name: Lighthouse CI (desempenho, acessibilidade, boas práticas e SEO)
         working-directory: apps/web
         run: npx --yes @lhci/cli@0.15.1 autorun --config=lighthouserc.json
@@ -193,6 +195,7 @@ jobs:
         if: always()
         with:
           name: lighthouse
+          include-hidden-files: true
           path: |
             apps/web/.lighthouseci/
             api.log

@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 
-/** Where uploaded files live. Local disk today; an S3 compatible adapter can implement the same port. */
+/** Where uploaded files live: local disk (this file) or any S3 compatible service (s3.ts). */
 export interface Storage {
   put(key: string, data: Buffer): Promise<void>;
   get(key: string): Promise<Buffer | null>;
@@ -18,9 +18,14 @@ export class InvalidStorageKeyError extends Error {
   }
 }
 
-function pathIn(base: string, key: string): string {
+/** Every adapter accepts only lower case keys without `..`, so no key escapes its root or bucket prefix. */
+export function assertSafeKey(key: string): string {
   if (!SAFE_KEY.test(key) || key.includes('..')) throw new InvalidStorageKeyError(key);
-  return join(base, key);
+  return key;
+}
+
+function pathIn(base: string, key: string): string {
+  return join(base, assertSafeKey(key));
 }
 
 async function writeCreatingFolders(path: string, data: Buffer): Promise<void> {

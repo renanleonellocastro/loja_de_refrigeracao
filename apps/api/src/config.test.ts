@@ -59,4 +59,28 @@ describe('loadConfig', () => {
       expect((error as InvalidConfigError).issues).toHaveLength(3);
     }
   });
+
+  it('reads the S3 storage settings, empty values meaning not set', () => {
+    expect(loadConfig({ STORAGE_DRIVER: 's3', S3_BUCKET: 'fotos', S3_ENDPOINT: '' })).toMatchObject({
+      STORAGE_DRIVER: 's3',
+      S3_BUCKET: 'fotos',
+      S3_REGION: 'us-east-1',
+      S3_ENDPOINT: undefined,
+      S3_FORCE_PATH_STYLE: false,
+    });
+    expect(loadConfig({ S3_ENDPOINT: 'http://localhost:9000' }).S3_FORCE_PATH_STYLE).toBe(true);
+    expect(
+      loadConfig({ S3_ENDPOINT: 'https://r2.example', S3_FORCE_PATH_STYLE: 'false' }).S3_FORCE_PATH_STYLE,
+    ).toBe(false);
+  });
+
+  it('requires a bucket for S3 and both keys or none', () => {
+    expect(() => loadConfig({ STORAGE_DRIVER: 's3' })).toThrowError(/S3_BUCKET: required/);
+    expect(() => loadConfig({ S3_ACCESS_KEY_ID: 'id' })).toThrowError(
+      /S3_SECRET_ACCESS_KEY: S3_ACCESS_KEY_ID and/,
+    );
+    expect(loadConfig({ S3_ACCESS_KEY_ID: 'id', S3_SECRET_ACCESS_KEY: 'secret' }).S3_ACCESS_KEY_ID).toBe(
+      'id',
+    );
+  });
 });

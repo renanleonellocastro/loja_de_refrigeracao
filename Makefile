@@ -6,6 +6,9 @@ CHECK_POSTGRES_PORT ?= 5482
 CHECK_POSTGRES_CONTAINER ?= rc-check-postgres
 CHECK_POSTGRES_IMAGE ?= postgres:17-alpine
 TEST_DATABASE_URL ?= postgres://castro:castro@localhost:$(CHECK_POSTGRES_PORT)/castro
+ZAP_PROJECT ?= refrigeracao-castro-zap
+ZAP_COMPOSE = docker compose --project-name $(ZAP_PROJECT) --env-file infra/zap/zap.env \
+	-f infra/compose.production.yaml -f infra/zap/compose.zap.yaml
 FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
 TRACEABILITY = tools/traceability/node_modules/.bin/tsx tools/traceability/src/cli.ts
 # The E2E test list as Playwright JSON; test-results/ is ignored by git.
@@ -13,7 +16,7 @@ TRACEABILITY_REPORT = apps/e2e/test-results/traceability.json
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list traceability traceability-check traceability-report
+	function-length function-length-list traceability traceability-check traceability-report zap zap-down
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
@@ -62,6 +65,14 @@ function-length: ## Strict: fails on any function past 12 lines
 function-length-list: ## Every function past 12 lines, longest first
 	$(FUNCTION_LENGTH) --list
 
+# The production images behind Caddy on a private network; ZAP writes to infra/zap/reports/ as uid 1000.
+zap: ## OWASP ZAP baseline scan of the production stack built locally (docs/TESTES.md)
+	mkdir -p infra/zap/reports && chmod a+w infra/zap/reports
+	$(ZAP_COMPOSE) up --detach --build --wait postgres mailpit api worker web caddy
+	$(ZAP_COMPOSE) run --rm zap; status=$$?; $(MAKE) zap-down; exit $$status
+
+zap-down: ## Remove the containers and volumes of the ZAP stack
+	$(ZAP_COMPOSE) --profile scan down --volumes --remove-orphans
 
 traceability-report:
 	@mkdir -p $(dir $(TRACEABILITY_REPORT))

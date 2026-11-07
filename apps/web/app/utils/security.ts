@@ -6,6 +6,8 @@ export const SECURITY_HEADERS: Readonly<Record<string, string>> = {
   'referrer-policy': 'strict-origin-when-cross-origin',
   'x-frame-options': 'DENY',
   'cross-origin-opener-policy': 'same-origin',
+  // No other site may embed the pages, scripts or icons (Spectre isolation, ZAP rule 90004).
+  'cross-origin-resource-policy': 'same-origin',
   // Photo uploads use the file input (capture opens the native camera), so no feature needs the browser APIs.
   'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
 };

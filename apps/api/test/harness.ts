@@ -10,10 +10,10 @@ import { join } from 'node:path';
 import { MemoryMailer } from '../src/infra/mail/mailer.js';
 import { createLocalStorage } from '../src/infra/storage/storage.js';
 import { hashPassword } from '../src/modules/auth/passwords.js';
-import { EMAIL_TOPIC, emailHandler } from '../src/modules/mail/service.js';
 import { processOutboxBatch } from '../src/modules/outbox/service.js';
 import { insertUser, type NewUser, type UserRow } from '../src/modules/users/service.js';
 import { FixedClock } from '../src/shared/clock.js';
+import { workerHandlers } from '../src/worker-handlers.js';
 import { useTestDatabase } from './database.js';
 
 /** Answers like ViaCEP for 13800061 (the store) and 404 style for 99999999; fails for 00000000. */
@@ -120,9 +120,9 @@ export function useTestApp(configOverrides: Record<string, string> = {}) {
       return { user, headers: { authorization: `Bearer ${token}` } };
     },
 
-    /** Runs the worker once so queued emails land in the memory mailer. */
+    /** Runs the worker once: queued emails land in the memory mailer and photos get their variants. */
     async deliverEmails() {
-      return processOutboxBatch(database.db, { [EMAIL_TOPIC]: emailHandler(state.ctx!) }, clock, 100);
+      return processOutboxBatch(database.db, workerHandlers(state.ctx!), clock, 100);
     },
 
     lastEmailTo(address: string) {
