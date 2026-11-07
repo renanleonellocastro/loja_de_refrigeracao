@@ -81,7 +81,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 * [x] #46 Gerenciar Categorias
 * [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
-* [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
+* [x] #49 UC Consultar Produtos: catálogo público
 * [x] #50 Página de detalhes do produto
 * [x] #51 UC Excluir Produto com arquivamento
 * [x] #52 Movimentar Estoque e alerta de estoque baixo (painel e notificação para a gerência)

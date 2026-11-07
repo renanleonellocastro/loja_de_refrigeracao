@@ -1,5 +1,5 @@
 // JavaScript budget of the public pages (RNF-09): the scripts a server rendered page loads up front (the
-// entry module and its modulepreload links) must stay under the limit, brotli compressed, as served from
+// entry module and its modulepreload links, added by the deferred loader after the first paint) must stay under the limit, brotli compressed, as served from
 // the precompressed copies of the build. Usage, with the production server running:
 //   node scripts/check-bundle-size.mjs http://localhost:3000 / /produtos /servicos
 import { readFileSync, existsSync } from 'node:fs';
@@ -16,18 +16,25 @@ function compressedSize(asset) {
   return brotliCompressSync(readFileSync(file)).length;
 }
 
+/** Scripts the deferred loader adds after the first paint (app/utils/resource-hints.ts) still count. */
+function deferredScripts(html) {
+  const loader = /<script[^>]*data-entry="([^"]+)"[^>]*data-preload="([^"]*)"/.exec(html);
+  return loader ? [loader[1], ...loader[2].split(' ').filter(Boolean)] : [];
+}
+
 let failed = false;
 for (const path of paths.length > 0 ? paths : ['/']) {
   const response = await fetch(new URL(path, origin), { headers: { accept: 'text/html' } });
   if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
   const html = await response.text();
-  const scripts = new Set(
-    [
+  const scripts = new Set([
+    ...[
       ...html.matchAll(
         /<(?:script[^>]*type="module"|link[^>]*rel="modulepreload")[^>]*(?:src|href)="([^"]+\.js)"/g,
       ),
     ].map((match) => match[1]),
-  );
+    ...deferredScripts(html),
+  ]);
   const bytes = [...scripts].reduce((total, asset) => total + compressedSize(asset), 0);
   const kb = bytes / 1024;
   const ok = kb <= BUDGET_KB;
