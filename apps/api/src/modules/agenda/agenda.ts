@@ -1,4 +1,5 @@
 import type { AppContext } from '../../context.js';
+import type { Executor } from '../../infra/db/client.js';
 import type { AccessClaims } from '../auth/service.js';
 import * as services from '../services/service.js';
 import { loadAppointment } from './appointment-rules.js';
@@ -24,6 +25,17 @@ export async function listAgenda(ctx: AppContext, viewer: AccessClaims, query: A
   const employeeId = viewer.role === 'EMPLOYEE' ? viewer.userId : query.employeeId;
   const rows = await repo.listAppointmentsInRange(ctx.db, query.from, query.to, employeeId);
   return rows.map((row) => toAppointmentView(row));
+}
+
+/** Unfinished visits of removed technicians, oldest first, so management passes them to someone else. */
+export async function listAwaitingReassignment(ctx: AppContext) {
+  const rows = await repo.listAwaitingReassignment(ctx.db);
+  return rows.map((row) => toAppointmentView(row));
+}
+
+/** How many visits of the technician wait for reassignment, for the notice sent when they are removed. */
+export async function countAwaitingReassignment(db: Executor, employeeId: number): Promise<number> {
+  return (await repo.listAwaitingReassignment(db, employeeId)).length;
 }
 
 function busyIntervalsOf(employeeId: number, busy: readonly BusyInterval[]) {

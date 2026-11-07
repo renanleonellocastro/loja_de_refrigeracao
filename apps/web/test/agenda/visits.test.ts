@@ -57,6 +57,25 @@ afterEach(async () => {
   document.body.innerHTML = '';
 });
 
+describe('visit of a removed technician', () => {
+  it('warns the management and asks for another technician when rescheduling', async () => {
+    useAuthStore().apply(session(MANAGER_USER));
+    const visit = appointment({ needsReassignment: true, employee: { id: 8, name: 'Conta removida' } });
+    mockApi()
+      .on(DETAIL, { body: visit, headers: { etag: 'W/"1"' } })
+      .on('GET /api/v1/service-requests/41', { body: serviceRequest() })
+      .on('GET /api/v1/employees/availability', availability());
+    const page = await mountSuspended(VisitPage, { route: '/agenda/9', attachTo: document.body });
+    await settle();
+    expect(page.find('[data-testid="needs-reassignment"]').text()).toContain('foi excluído');
+    expect(text()).toContain('Técnico: Sem técnico');
+    click('Remarcar');
+    await settle();
+    expect(document.querySelector<HTMLSelectElement>('[role="dialog"] select')!.value).toBe('');
+    page.unmount();
+  });
+});
+
 describe('visit detail for the management', () => {
   it('shows the customer and reschedules with If-Match, reloading after a conflict', async () => {
     useAuthStore().apply(session(MANAGER_USER));
