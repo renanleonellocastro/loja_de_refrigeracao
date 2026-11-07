@@ -18,9 +18,6 @@ updates:
       include: scope
     labels: [infra]
     ignore:
-      # FullCalendar 7 changes the locale imports and the types; the upgrade is tracked in an issue.
-      - dependency-name: '@fullcalendar/*'
-        update-types: [version-update:semver-major]
       # Vitest 5.0.4 and 5.0.5 report a branch that never runs in the web pages and break the 100% coverage.
       - dependency-name: vitest
         versions: ['5.0.4', '5.0.5']
