@@ -34,6 +34,8 @@ test.describe('RF-25, RF-26 e RF-32 solicitações de visita', { tag: ['@RF-25',
   test('cliente pede visita com foto, gerente pergunta, cliente responde e gerente aprova', async ({
     page,
   }, testInfo) => {
+    // Three people, three sign ins and ten accessibility scans: WebKit and Firefox on the CI runner pass the default 30 s.
+    test.slow();
     const problem = `Geladeira não gela embaixo (${testInfo.project.name} ${Date.now()}).`;
 
     // The services page is public; booking asks to sign in and comes back to the form.
