@@ -127,10 +127,12 @@ describe('session plugin', () => {
   it('restores the session in the background when the browser signed in before', async () => {
     localStorage.setItem(SIGNED_IN_HINT, '1');
     const api = mockApi().on(REFRESH, { body: session() });
+    document.documentElement.removeAttribute('data-session');
     await (sessionPlugin as unknown as () => unknown)();
     await flushPromises();
     expect(api.called(REFRESH)).toHaveLength(1);
     expect(useAuthStore().signedIn).toBe(true);
+    expect(document.documentElement.dataset.session).toBe('settled');
   });
 
   it('waits for the hydration of a server rendered page before restoring', async () => {

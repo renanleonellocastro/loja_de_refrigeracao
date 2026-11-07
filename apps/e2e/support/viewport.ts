@@ -16,10 +16,16 @@ export async function hasHorizontalScroll(page: Page): Promise<boolean> {
   return page.evaluate((width) => document.documentElement.scrollWidth > width, deviceWidth);
 }
 
-/** Opens a page and waits until Vue has hydrated it, so clicks reach the components. */
+/**
+ * Opens a page and waits until Vue has hydrated it, so clicks reach the components, and until the session restore
+ * settled: leaving a page while its refresh is still on the way loses the rotated token and signs the user out.
+ */
 export async function open(page: Page, path: string): Promise<void> {
   await page.goto(path);
-  await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true');
+  await page.waitForFunction(() => {
+    const { hydrated, session } = document.documentElement.dataset;
+    return hydrated === 'true' && session === 'settled';
+  });
 }
 
 /**

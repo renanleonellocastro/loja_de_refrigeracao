@@ -41,6 +41,23 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     resolve: { conditions: ['@rc/source'] },
+    // The dev server bundles these packages at startup. Found later, on the first page that imports them, they
+    // would make Vite reload every open page and break the ones still starting (flaky E2E on a cold server).
+    optimizeDeps: {
+      include: [
+        '@fullcalendar/vue3',
+        '@fullcalendar/vue3/daygrid',
+        '@fullcalendar/vue3/interaction',
+        '@fullcalendar/vue3/list',
+        '@fullcalendar/vue3/locales/pt-br',
+        '@fullcalendar/vue3/themes/classic',
+        '@fullcalendar/vue3/timegrid',
+        'lucide-vue-next',
+        // Imported by the API client in @rc/contracts, which apps/web reaches through the workspace.
+        '@rc/contracts > openapi-fetch',
+        'reka-ui',
+      ],
+    },
     // Code shared by the public pages is grouped into a few larger chunks instead of dozens of tiny ones:
     // fewer requests before the first paint on mobile connections (RNF-07, RNF-09). Only modules of the
     // public site are listed, so signed in area code never rides along.
