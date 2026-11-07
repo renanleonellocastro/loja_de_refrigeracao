@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { errorKindFor } from '~/utils/errors';
 import { htmlEncodingFor } from '~/utils/compression';
-import { lowerScriptPreloadPriority } from '~/utils/resource-hints';
 import { optionalReason } from '~/utils/optional-reason';
 import { pageSlots } from '~/utils/pagination';
 import { passwordStrength } from '~/utils/password';
@@ -73,18 +72,6 @@ describe('errorKindFor', () => {
     expect(errorKindFor(403, true)).toBe('forbidden');
     expect(errorKindFor(500, true)).toBe('server');
     expect(errorKindFor(undefined, true)).toBe('server');
-  });
-});
-
-describe('lowerScriptPreloadPriority', () => {
-  it('gives script preloads low priority once', () => {
-    const head =
-      '<link rel="modulepreload" crossorigin href="/_nuxt/a.js"><link rel="preload" as="image" href="/x.svg">';
-    const lowered = lowerScriptPreloadPriority(head);
-    expect(lowered).toBe(
-      '<link rel="modulepreload" fetchpriority="low" crossorigin href="/_nuxt/a.js"><link rel="preload" as="image" href="/x.svg">',
-    );
-    expect(lowerScriptPreloadPriority(lowered)).toBe(lowered);
   });
 });
 

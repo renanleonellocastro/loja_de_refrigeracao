@@ -118,7 +118,7 @@ Legenda: **OK** atendido e verificado; **Parcial** atendido em parte, com o que 
 | 14.3.2 | Sem modo de depuração em produção | OK | Configuração validada; sem devtools no build. |
 | 14.3.3 | Cabeçalhos sem versões | OK | A API não revela versão e o site remove o `x-powered-by`. |
 | 14.4.1 | `Content-Type` com charset | OK | Fastify e Nitro definem o tipo em toda resposta. |
-| 14.4.3 | Content Security Policy | OK | Site: nonce por resposta com `strict-dynamic`, sem `unsafe-inline` em scripts, `frame-ancestors 'none'` (só no build de produção; o servidor de desenvolvimento do Vite precisa de scripts inline). API: `default-src 'none'`, exceto a página `/api/docs`. |
+| 14.4.3 | Content Security Policy | OK | Site: nonce por resposta com `strict-dynamic` nos scripts e nonce nos estilos, sem `unsafe-inline` (verificado sem violações por `csp.spec.ts`), `frame-ancestors 'none'` (só no build de produção; o servidor de desenvolvimento do Vite precisa de scripts inline). API: `default-src 'none'`, exceto a página `/api/docs`. |
 | 14.4.4 | `X-Content-Type-Options: nosniff` | OK | API e site. |
 | 14.4.5 | HSTS | OK | API e site em produção, 2 anos com subdomínios. |
 | 14.4.6 | `Referrer-Policy` | OK | `strict-origin-when-cross-origin` na API e no site. |

@@ -17,7 +17,7 @@ Regra do projeto: **todo código entra com teste, e o CI recusa qualquer mudanç
 | Acessibilidade | | `@axe-core/playwright` em toda tela, zero violações AA |
 | Visual | | Capturas do guia vivo `/design` e das telas principais comparadas por dispositivo (`@visual`) |
 | Desempenho | | Lighthouse CI com os orçamentos do RNF-08; limite de tamanho de bundle |
-| Segurança | `pnpm audit`, gitleaks, Semgrep | `pnpm audit`, Semgrep |
+| Segurança | `pnpm audit`, gitleaks, Semgrep | `pnpm audit`, Semgrep; `csp.spec.ts` contra o build de produção falha com qualquer violação de CSP nas páginas principais |
 
 Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras críticas alterados: estoque, máquinas de estado, permissões, dinheiro. Teste de carga k6 antes de cada versão (seção 4).
 
@@ -29,6 +29,7 @@ Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras
 * **Componentes**: cada componente base em todos os estados (padrão, foco, desabilitado, carregando, erro) e com teclado.
 * **Páginas**: fluxos da tela com a API simulada, incluindo erros de rede e respostas lentas.
 * **E2E**: um arquivo por caso de uso (`e2e/uc-solicitar-agendamento.spec.ts`), nomeado com o RF correspondente, rodando contra a stack completa com banco semeado e Mailpit para verificar os emails enviados.
+* **Teclado**: `apps/e2e/tests/keyboard.spec.ts` percorre os fluxos principais (atalho para o conteúdo, criar conta e entrar, comprar e cancelar, pedir visita técnica) só com Tab, Enter, Espaço, setas e digitação, sem cliques. O auxiliar `tabTo` de `apps/e2e/support/keyboard.ts` aperta Tab até o controle receber foco, então o teste prova que ele está na ordem de tabulação.
 
 ## 3. Contrato com Schemathesis
 
@@ -93,6 +94,8 @@ make load            carga k6 do RNF-10 (seção 4)
 make zap             varredura OWASP ZAP na stack de produção local (seção 8)
 ```
 
+A CSP só sai no build de produção (o servidor de desenvolvimento do Vite precisa de scripts inline), então `apps/e2e/tests/csp.spec.ts` se pula no `pnpm test:e2e` comum. Ele roda no job `lighthouse` do CI, contra `node apps/web/.output/server/index.mjs`, e localmente com o build de produção e a API de teste no ar: `E2E_BASE_URL=http://localhost:3000 pnpm --filter @rc/e2e exec playwright test tests/csp.spec.ts`. O teste escuta o evento `securitypolicyviolation` desde o início de cada documento e falha com qualquer violação nas páginas públicas, no menu do celular, na área da equipe (incluindo a agenda com FullCalendar) e na área do cliente.
+
 ## 8. Varredura com OWASP ZAP
 
 `make zap` monta as imagens de produção (`infra/docker/`) e sobe a stack de `infra/compose.production.yaml` com o Caddyfile de produção, num projeto próprio do Compose (`refrigeracao-castro-zap`) e sem porta publicada na máquina. O arquivo `infra/zap/compose.zap.yaml` muda só o que depende de domínio real: o Caddy atende HTTP na porta 8080 da rede interna, os emails vão para um Mailpit e as origens apontam para o proxy. Em seguida o [ZAP baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) navega pelo site por dois minutos só com análise passiva (sem ataques), e a stack é removida com os volumes. Os relatórios ficam em `infra/zap/reports/` (HTML, JSON e Markdown, fora do git). `make zap-down` limpa a stack se uma execução for interrompida.
@@ -105,7 +108,6 @@ Qualquer alerta novo falha a varredura. Os achados aceitos ficam em `infra/zap/r
 |---|---|---|
 | 10027 Comentários suspeitos | Ignorar | Palavras como "select" e "query" nos chunks minificados do Nuxt, não comentários. |
 | 10049 Conteúdo armazenável em cache | Ignorar | Os arquivos de `/_nuxt` têm hash no nome e cache de um ano de propósito; o HTML não leva dados privados. |
-| 10055 CSP com `style-src 'unsafe-inline'` | Ignorar | Necessário para os estilos do Vue e das fontes ([SEGURANCA.md](SEGURANCA.md)); remoção em #170. |
 | 10096 Data Unix exposta | Ignorar | Números do payload do Nuxt parecidos com datas, não horários do servidor. |
 | 10109 Aplicação web moderna | Ignorar | Informativo: o site é Nuxt. |
 | 10116 ZAP desatualizado | Informar | A versão da imagem é fixa em `compose.zap.yaml`; atualize à mão quando aparecer. |

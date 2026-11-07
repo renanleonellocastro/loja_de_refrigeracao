@@ -12,6 +12,16 @@ usePageSeo({
 
 const store = useStoreInfo();
 
+// A plain <picture> instead of <NuxtPicture>, which renders an inline onerror handler that the CSP blocks.
+const image = useImage();
+const FACADE_PHOTO = '/brand/fachada-foto.jpg';
+const FACADE_WIDTHS = [640, 1280, 1920];
+const FACADE_SIZES = '(max-width: 1023px) 100vw, 640px';
+
+function facadeSrcset(format: string): string {
+  return FACADE_WIDTHS.map((width) => `${image(FACADE_PHOTO, { format, width })} ${width}w`).join(', ');
+}
+
 const FACTS = [
   { value: '40+', label: 'anos no mercado' },
   { value: '3', label: 'irmãos fundadores' },
@@ -50,18 +60,20 @@ const FACTS = [
         </p>
       </div>
       <figure class="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-        <NuxtPicture
-          src="/brand/fachada-foto.jpg"
-          format="avif,webp"
-          sizes="100vw lg:640px"
-          width="1920"
-          height="944"
-          loading="lazy"
-          :img-attrs="{
-            alt: 'Fachada azul da Refrigeração Castro com o letreiro prateado',
-            class: 'block h-auto w-full',
-          }"
-        />
+        <picture>
+          <source type="image/avif" :srcset="facadeSrcset('avif')" :sizes="FACADE_SIZES" />
+          <source type="image/webp" :srcset="facadeSrcset('webp')" :sizes="FACADE_SIZES" />
+          <img
+            :src="image(FACADE_PHOTO, { format: 'jpeg', width: 1280 })"
+            :srcset="facadeSrcset('jpeg')"
+            :sizes="FACADE_SIZES"
+            width="1920"
+            height="944"
+            loading="lazy"
+            alt="Fachada azul da Refrigeração Castro com o letreiro prateado"
+            class="block h-auto w-full"
+          />
+        </picture>
         <figcaption class="px-4 py-3 text-sm text-text-muted">
           A nossa fachada: {{ streetLine(store.address) }}, {{ cityLine(store.address) }}.
         </figcaption>

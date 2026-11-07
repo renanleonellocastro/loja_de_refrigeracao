@@ -27,8 +27,8 @@ const clamped = computed(() =>
     >
       <div
         v-if="clamped !== undefined"
+        v-dynamic-style="{ width: `${clamped}%` }"
         class="h-full rounded-full bg-gradient-to-r from-castro-500 to-frost-400 transition-[width] duration-300 ease-brand"
-        :style="{ width: `${clamped}%` }"
       />
       <div
         v-else
