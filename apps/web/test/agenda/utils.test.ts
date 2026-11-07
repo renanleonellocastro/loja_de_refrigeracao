@@ -16,6 +16,7 @@ import {
   saveDraft,
   storeDay,
   technicianColor,
+  technicianName,
   toCalendarEvent,
   toStoreWall,
 } from '~/utils/agenda';
@@ -62,6 +63,10 @@ describe('agenda time helpers', () => {
     });
     expect(event.start).toBe('2026-10-07T08:00:00');
     expect(toCalendarEvent(appointment(), false).title).toBe('Conserto de geladeira: Carla Cliente');
+    const orphan = appointment({ needsReassignment: true, employee: { id: 3, name: 'Conta removida' } });
+    expect(toCalendarEvent(orphan, true).title).toBe('Sem técnico · Conserto de geladeira: Carla Cliente');
+    expect(technicianName(orphan)).toBe('Sem técnico');
+    expect(technicianName(appointment())).toBe('Tiago Técnico');
     expect(isMovable(appointment({ report: report() }))).toBe(false);
     expect(isMovable(appointment({ report: report({ status: 'REWORK' }) }))).toBe(true);
     expect(isMovable(appointment({ request: { status: 'COMPLETED' } }))).toBe(false);
