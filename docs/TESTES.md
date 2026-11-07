@@ -19,7 +19,7 @@ Regra do projeto: **todo código entra com teste, e o CI recusa qualquer mudanç
 | Desempenho | | Lighthouse CI com os orçamentos do RNF-08; limite de tamanho de bundle |
 | Segurança | `pnpm audit`, gitleaks, Semgrep | `pnpm audit`, Semgrep |
 
-Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras críticas alterados: estoque, máquinas de estado, permissões, dinheiro. Teste de carga k6 antes de cada versão.
+Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras críticas alterados: estoque, máquinas de estado, permissões, dinheiro. Teste de carga k6 antes de cada versão (seção 4).
 
 ## 2. O que cada camada garante
 
@@ -29,6 +29,7 @@ Mutação com StrykerJS (pontuação mínima de 85%) roda nos módulos de regras
 * **Componentes**: cada componente base em todos os estados (padrão, foco, desabilitado, carregando, erro) e com teclado.
 * **Páginas**: fluxos da tela com a API simulada, incluindo erros de rede e respostas lentas.
 * **E2E**: um arquivo por caso de uso (`e2e/uc-solicitar-agendamento.spec.ts`), nomeado com o RF correspondente, rodando contra a stack completa com banco semeado e Mailpit para verificar os emails enviados.
+* **Teclado**: `apps/e2e/tests/keyboard.spec.ts` percorre os fluxos principais (atalho para o conteúdo, criar conta e entrar, comprar e cancelar, pedir visita técnica) só com Tab, Enter, Espaço, setas e digitação, sem cliques. O auxiliar `tabTo` de `apps/e2e/support/keyboard.ts` aperta Tab até o controle receber foco, então o teste prova que ele está na ordem de tabulação.
 
 ## 3. Contrato com Schemathesis
 
@@ -43,25 +44,57 @@ Exclusões, todas falsos positivos documentados:
 | `/api/v1/addresses/lookup` | Consulta o ViaCEP, serviço externo que o CI não deve sobrecarregar. |
 | `/api/v1/auth/*` e `/api/v1/me*` na passada autenticada | Sair, trocar a senha ou excluir a conta encerraria a sessão usada no teste; a passada anônima cobre essas rotas. |
 
-## 4. Dados de teste
+## 4. Carga com k6
+
+Verifica o RNF-10: p95 abaixo de 150 ms nas leituras e de 300 ms nas escritas com 10 mil produtos, 50 mil pedidos e 50 usuários simultâneos. Não roda em PR: é manual, antes de cada versão.
+
+* **Como rodar**: `pnpm db:up` e depois `make load`. O script `infra/load-test.sh` recria o banco `castro_load` (`apps/api/scripts/load-stack.ts`), aplica as migrações, os dados de exemplo e o volume do RNF-10 (`apps/api/scripts/load-volume.sql`: 10 mil produtos, 500 clientes `carga-N@castro.dev` com a senha dos dados de exemplo e 50 mil pedidos com itens e linha do tempo), sobe a API em modo de produção e roda `tools/load/main.js`. Usa o `k6` instalado ou a imagem Docker `grafana/k6`. Variáveis: `LOAD_API_PORT` (3001), `LOAD_DATABASE_URL`, `LOAD_DURATION` (3m) e `LOAD_RESULTS` (`tools/load/results`, com `summary.json` e o log da API).
+* **No CI**: workflow "Teste de carga" (`.github/workflows/load.yml`), disparado à mão em Actions; o resumo fica como artefato `k6` por 30 dias e vai para o PR de lançamento.
+* **Fluxos**: 30 visitantes (início, categorias, busca, filtros, facetas, produto, serviços), 14 clientes com a própria conta (busca, produto, carrinho, fechar pedido, meus pedidos, detalhe) e 6 da gerência (painel, fila de pedidos, busca de pedidos e clientes, detalhe, catálogo, edição de produto com `If-Match`, venda no balcão, solicitações e agenda). Cada usuário pensa cerca de 1 s entre as telas. Subida de 30 s, 3 min com os 50 e descida de 15 s.
+* **Limites**: p95 por tipo (leitura, escrita) e por rota, menos de 1% de falhas e 99% das verificações de status. Qualquer limite estourado faz o comando falhar. Os logins ficam fora da medição (feitos uma vez por conta), porque o hash Argon2 é lento de propósito.
+
+### Resultado medido em 06/11/2026
+
+Máquina local (Apple M5 Pro, 18 núcleos, 48 GB), API em modo de produção com log `info`, PostgreSQL 17 em Docker, outros processos rodando em paralelo. 18.555 requisições em 3 min 45 s (81 por segundo), nenhuma falha.
+
+| Rota | p95 | p99 |
+|---|---|---|
+| Leituras (todas) | 38 ms | 61 ms |
+| Escritas (todas) | 45 ms | 124 ms |
+| `GET /products?q` (busca do visitante) | 55 ms | 83 ms |
+| `GET /products` da gerência (com arquivados) | 63 ms | 86 ms |
+| `GET /orders` fila da gerência (com contagem por estado) | 58 ms | 253 ms |
+| `GET /orders?q` busca de pedidos | 46 ms | 69 ms |
+| `GET /orders` meus pedidos | 41 ms | 77 ms |
+| `GET /dashboard` | 18 ms | 57 ms |
+| `GET /orders/:id` | 13 ms | 24 ms |
+| `POST /orders` | 84 ms | 162 ms |
+| `POST /counter-sales` | 74 ms | 126 ms |
+| `PATCH /products/:id` | 25 ms | 60 ms |
+| `PUT /me/cart/items/:productId` | 26 ms | 58 ms |
+
+Todas as rotas ficaram bem abaixo dos limites. Os máximos isolados perto de 2 s aparecem ao mesmo tempo em rotas diferentes, inclusive nas triviais como `GET /store`: são pausas da máquina compartilhada, não gargalo da aplicação. As rotas mais pesadas são as listas com contagem e busca (`/orders` da gerência e `/products` com texto); são as primeiras a observar se o volume crescer.
+
+## 5. Dados de teste
 
 Fábricas tipadas (`test/factories`) criam usuários de cada papel, produtos com e sem estoque, pedidos em cada estado e serviços em cada etapa. Os dados de exemplo para desenvolvimento usam nomes e documentos fictícios gerados com CPFs válidos de teste; nenhum dado real de cliente entra no repositório.
 
-## 5. Exclusões de cobertura
+## 6. Exclusões de cobertura
 
 Somente arquivos de configuração e pontos de entrada do processo (`server.ts`, `worker.ts`, `nuxt.config.ts`), listados explicitamente na configuração do Vitest. Comentários `istanbul ignore` ou `v8 ignore` exigem justificativa no PR e são revisados um a um.
 
-## 6. Como rodar
+## 7. Como rodar
 
 ```
 pnpm test            unitários e integração com cobertura
 pnpm test:e2e        Playwright nos três dispositivos
 pnpm test:a11y       só as verificações de acessibilidade
 pnpm lighthouse      orçamentos de desempenho
-make zap             varredura OWASP ZAP na stack de produção local (seção 7)
+make load            carga k6 do RNF-10 (seção 4)
+make zap             varredura OWASP ZAP na stack de produção local (seção 8)
 ```
 
-## 7. Varredura com OWASP ZAP
+## 8. Varredura com OWASP ZAP
 
 `make zap` monta as imagens de produção (`infra/docker/`) e sobe a stack de `infra/compose.production.yaml` com o Caddyfile de produção, num projeto próprio do Compose (`refrigeracao-castro-zap`) e sem porta publicada na máquina. O arquivo `infra/zap/compose.zap.yaml` muda só o que depende de domínio real: o Caddy atende HTTP na porta 8080 da rede interna, os emails vão para um Mailpit e as origens apontam para o proxy. Em seguida o [ZAP baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) navega pelo site por dois minutos só com análise passiva (sem ataques), e a stack é removida com os volumes. Os relatórios ficam em `infra/zap/reports/` (HTML, JSON e Markdown, fora do git). `make zap-down` limpa a stack se uma execução for interrompida.
 
