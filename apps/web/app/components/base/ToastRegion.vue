@@ -3,7 +3,8 @@ import { CircleAlert, CircleCheck, Info, X } from 'lucide-vue-next';
 
 /**
  * Live region for useToast(). Mounted once in app.vue. On phones it drops in from the top, over the header, so it never
- * covers the bottom bar or the form buttons at the end of a page; from tablet up it sits in the bottom right corner.
+ * covers the bottom bar or the form buttons at the end of a page; from tablet up it sits in the bottom right corner,
+ * above the bottom padding the area layout reserves for it.
  */
 const { toasts, dismiss, undo } = useToast();
 

@@ -23,7 +23,12 @@ test.describe('RNF-04 notificação não bloqueia o próximo passo', () => {
     const welcome = page.getByRole('region', { name: 'Notificações' }).getByRole('status');
     const proceed = page.getByRole('button', { name: 'Continuar' });
     await expect(welcome).toHaveText(/Que bom te ver/);
-    await proceed.scrollIntoViewIfNeeded();
+    // A person scrolls to the end of the form to reach the button; how far depends on how many services the store
+    // offers, and the layout leaves room below the button for the toast at any length.
+    await expect(page.getByRole('radio', { name: /Conserto de geladeira/ })).toBeChecked();
+    await page.evaluate(() =>
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
+    );
     await expect(proceed).toBeInViewport();
     expect(await overlaps(welcome, proceed)).toBe(false);
 
