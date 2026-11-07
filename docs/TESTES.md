@@ -101,6 +101,19 @@ make zap             varredura OWASP ZAP na stack de produção local (seção 8
 
 A CSP só sai no build de produção (o servidor de desenvolvimento do Vite precisa de scripts inline), então `apps/e2e/tests/csp.spec.ts` se pula no `pnpm test:e2e` comum. Ele roda no job `lighthouse` do CI, contra `node apps/web/.output/server/index.mjs`, e localmente com o build de produção e a API de teste no ar: `E2E_BASE_URL=http://localhost:3000 pnpm --filter @rc/e2e exec playwright test tests/csp.spec.ts`. O teste escuta o evento `securitypolicyviolation` desde o início de cada documento e falha com qualquer violação nas páginas públicas, no menu do celular, na área da equipe (incluindo a agenda com FullCalendar) e na área do cliente.
 
+### Imagens do manual
+
+As capturas de `docs/MANUAL.md` e do README (`docs/assets/manual/` e `docs/assets/telas/`) saem de um script do Playwright, fora da suíte E2E. `pnpm --filter @rc/api manual:stack` recria o banco `castro_manual` com o seed completo de desenvolvimento (fotos dos produtos e atividade de exemplo) e sobe a API e o worker; com o site no ar apontando para essa API, `pnpm --filter @rc/e2e manual:screenshots` grava as imagens em WebP: computador em 1280 × 800 e celular em 412 × 860 com densidade 2. Exemplo com portas próprias:
+
+```
+MANUAL_DATABASE_URL=postgres://castro:castro@localhost:5433/castro_manual MANUAL_API_PORT=3101 \
+  MANUAL_APP_ORIGIN=http://localhost:3100 pnpm --filter @rc/api manual:stack
+NUXT_PUBLIC_API_BASE=http://localhost:3101 pnpm --filter @rc/web exec nuxt dev --port 3100
+E2E_BASE_URL=http://localhost:3100 E2E_API_URL=http://localhost:3101 pnpm --filter @rc/e2e manual:screenshots
+```
+
+Os ids usados no script são os que o seed cria num banco novo, então suba a stack de novo antes de cada captura. Confira cada imagem antes de publicar.
+
 ## 8. Varredura com OWASP ZAP
 
 `make zap` monta as imagens de produção (`infra/docker/`) e sobe a stack de `infra/compose.production.yaml` com o Caddyfile de produção, num projeto próprio do Compose (`refrigeracao-castro-zap`) e sem porta publicada na máquina. O arquivo `infra/zap/compose.zap.yaml` muda só o que depende de domínio real: o Caddy atende HTTP na porta 8080 da rede interna, os emails vão para um Mailpit e as origens apontam para o proxy. Em seguida o [ZAP baseline](https://www.zaproxy.org/docs/docker/baseline-scan/) navega pelo site por dois minutos só com análise passiva (sem ataques), e a stack é removida com os volumes. Os relatórios ficam em `infra/zap/reports/` (HTML, JSON e Markdown, fora do git). `make zap-down` limpa a stack se uma execução for interrompida.
