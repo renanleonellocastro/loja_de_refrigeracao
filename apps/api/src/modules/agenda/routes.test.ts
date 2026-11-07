@@ -316,6 +316,85 @@ describe('agenda routes', () => {
     });
   });
 
+  describe('reassigning visits of removed technicians', () => {
+    async function removeTechnician(id: number) {
+      const admin = await t.as('ADMIN');
+      const response = await t.app.inject({
+        method: 'DELETE',
+        url: `/api/v1/users/${id}`,
+        headers: admin.headers,
+      });
+      expect(response.statusCode).toBe(204);
+    }
+
+    function awaiting(headers: Record<string, string>) {
+      return t.app.inject({ method: 'GET', url: '/api/v1/appointments/awaiting-reassignment', headers });
+    }
+
+    async function submitReport(id: number, headers: Record<string, string>) {
+      const response = await t.app.inject({
+        method: 'POST',
+        url: `/api/v1/appointments/${id}/report`,
+        headers,
+        payload: { defectFound: false, repairDescription: 'Troca do termostato.' },
+      });
+      expect(response.statusCode).toBe(200);
+    }
+
+    it('flags the unfinished visits of a removed technician and tells management', async () => {
+      const ana = await t.as('EMPLOYEE');
+      const bruno = await t.createUser('EMPLOYEE');
+      const manager = await t.as('MANAGER');
+      const first = (await schedule(manager.headers, ana.user.id, AT(12))).response.json();
+      const second = (await schedule(manager.headers, ana.user.id, AT(16))).response.json();
+      const done = (await schedule(manager.headers, ana.user.id, AT(20))).response.json();
+      await schedule(manager.headers, bruno.id, AT(12));
+      await submitReport(done.id, ana.headers);
+      expect((await awaiting(manager.headers)).json()).toEqual([]);
+
+      await removeTechnician(ana.user.id);
+      const flagged = (await awaiting(manager.headers)).json();
+      expect(flagged.map((item: { id: number }) => item.id)).toEqual([first.id, second.id]);
+      expect(flagged[0]).toMatchObject({ needsReassignment: true, employee: { name: 'Conta removida' } });
+      const agenda = await t.app.inject({
+        method: 'GET',
+        url: `/api/v1/appointments?from=${AT(0).toISOString()}&to=${AT(23).toISOString()}`,
+        headers: manager.headers,
+      });
+      const flags = agenda.json().map((item: { needsReassignment: boolean }) => item.needsReassignment);
+      expect(flags.sort()).toEqual([false, false, true, true]);
+      await t.deliverEmails();
+      expect(t.lastEmailTo(manager.user.email)?.text).toContain('tinha 2 atendimentos marcados');
+
+      const moved = await t.app.inject({
+        method: 'PATCH',
+        url: `/api/v1/appointments/${first.id}`,
+        headers: { ...manager.headers, 'if-match': 'W/"1"' },
+        payload: { employeeId: bruno.id, startsAt: AT(8).toISOString() },
+      });
+      expect(moved.json()).toMatchObject({ needsReassignment: false, employee: { id: bruno.id } });
+      expect((await awaiting(manager.headers)).json()).toHaveLength(1);
+    });
+
+    it('tells about a single visit and stays quiet when there is none', async () => {
+      const carla = await t.createUser('EMPLOYEE');
+      const idle = await t.createUser('EMPLOYEE');
+      const manager = await t.as('MANAGER');
+      await schedule(manager.headers, carla.id);
+      await removeTechnician(carla.id);
+      await t.deliverEmails();
+      expect(t.lastEmailTo(manager.user.email)?.text).toContain('tinha 1 atendimento marcado.');
+      await removeTechnician(idle.id);
+      await t.deliverEmails();
+      expect(t.lastEmailTo(manager.user.email)?.text).toContain(carla.name);
+    });
+
+    it('is only for management', async () => {
+      const tech = await t.as('EMPLOYEE');
+      expect((await awaiting(tech.headers)).statusCode).toBe(403);
+    });
+  });
+
   describe('finishing and approving', () => {
     async function scheduledFor(tech: { id: number }) {
       const { headers } = await t.as('MANAGER');

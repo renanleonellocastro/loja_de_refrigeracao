@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, isNull, lt, ne } from 'drizzle-orm';
+import { and, asc, eq, gt, inArray, isNotNull, isNull, lt, ne, or } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import type { Executor } from '../../infra/db/client.js';
 import { appointments, serviceReports, serviceRequests, serviceTypes, users } from '../../infra/db/schema.js';
@@ -11,7 +11,7 @@ const customer = alias(users, 'customer');
 
 const APPOINTMENT_COLUMNS = {
   appointment: appointments,
-  employee: { id: employee.id, name: employee.name },
+  employee: { id: employee.id, name: employee.name, deletedAt: employee.deletedAt },
   request: serviceRequests,
   serviceType: serviceTypes.name,
   customer: {
@@ -50,6 +50,24 @@ export async function findAppointmentJoin(db: Executor, id: number) {
 
 export async function listAppointmentsInRange(db: Executor, from: Date, to: Date, employeeId?: number) {
   const conditions = [lt(appointments.startsAt, to), gt(appointments.endsAt, from)];
+  if (employeeId !== undefined) conditions.push(eq(appointments.employeeId, employeeId));
+  return selectAppointments(db)
+    .where(and(...conditions))
+    .orderBy(asc(appointments.startsAt), asc(appointments.id));
+}
+
+/**
+ * Visits still to be done by a removed technician: the request is scheduled and no report waits for approval
+ * (a submitted report means the visit already happened). Derived from the data, so no flag is stored.
+ */
+const AWAITING_REASSIGNMENT = and(
+  isNotNull(employee.deletedAt),
+  eq(serviceRequests.status, 'SCHEDULED'),
+  or(isNull(serviceReports.status), ne(serviceReports.status, 'SUBMITTED')),
+);
+
+export async function listAwaitingReassignment(db: Executor, employeeId?: number) {
+  const conditions = [AWAITING_REASSIGNMENT];
   if (employeeId !== undefined) conditions.push(eq(appointments.employeeId, employeeId));
   return selectAppointments(db)
     .where(and(...conditions))
