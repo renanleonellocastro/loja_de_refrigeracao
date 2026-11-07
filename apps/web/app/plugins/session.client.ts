@@ -3,11 +3,17 @@
  * On a server rendered page it waits for the hydration to finish: the server always renders the visitor view,
  * and swapping to the signed in header before hydrating would make Vue warn about mismatched markup.
  * Protected pages wait for the same restoration in the auth middleware.
+ * Once it settles, <html data-session="settled"> tells E2E tests that leaving the page no longer cuts a refresh
+ * short: the API would have rotated the token without the browser keeping the new cookie.
  */
 export default defineNuxtPlugin(() => {
   const nuxtApp = useNuxtApp();
   const restore = () => {
-    void useAuthStore().restore({ onlyWithHint: true });
+    void useAuthStore()
+      .restore({ onlyWithHint: true })
+      .finally(() => {
+        document.documentElement.dataset.session = 'settled';
+      });
   };
   if (nuxtApp.isHydrating) nuxtApp.hooks.hookOnce('app:suspense:resolve', restore);
   else restore();
