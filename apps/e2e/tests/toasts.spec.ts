@@ -26,10 +26,13 @@ test.describe('RNF-04 notificação não bloqueia o próximo passo', () => {
     // A person scrolls to the end of the form to reach the button; how far depends on how many services the store
     // offers, and the layout leaves room below the button for the toast at any length.
     await expect(page.getByRole('radio', { name: /Conserto de geladeira/ })).toBeChecked();
-    await page.evaluate(() =>
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
-    );
-    await expect(proceed).toBeInViewport();
+    // The router scrolls to the top once the page finishes loading, which can land after this scroll; scroll again then.
+    await expect(async () => {
+      await page.evaluate(() =>
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }),
+      );
+      await expect(proceed).toBeInViewport({ timeout: 500 });
+    }).toPass();
     expect(await overlaps(welcome, proceed)).toBe(false);
 
     // The toast lasts 5 s; a click that had to wait for it would run past this timeout.

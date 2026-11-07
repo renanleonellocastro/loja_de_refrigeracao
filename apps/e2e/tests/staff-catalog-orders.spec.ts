@@ -2,7 +2,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
 import { uniqueEmail } from '../support/identity.js';
 import { closeToast, closeWelcomeToast } from '../support/toast.js';
-import { deviceOf, hasHorizontalScroll, open } from '../support/viewport.js';
+import { deviceOf, hasHorizontalScroll, open, search } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
 const PASSWORD = 'Castro-Dev-2026';
@@ -141,7 +141,7 @@ test.describe('RF-12, RF-13, RF-17, RF-19, RF-20 e RF-22 produtos, pedidos e bal
     await signIn(page, 'gerente@castro.dev', /\/painel/);
     await open(page, '/pedidos');
     await expect(page.getByRole('tab', { name: /Em análise/ })).toBeVisible();
-    await page.getByLabel('Buscar pedidos').fill(number);
+    await search(page, 'Buscar pedidos', number, '/api/v1/orders');
     await page.getByRole('link', { name: `Pedido ${number}` }).click();
     await expect(page.getByRole('heading', { name: `Pedido ${number}` })).toBeVisible();
     await expectAccessibleSettled(page);
@@ -161,7 +161,7 @@ test.describe('RF-12, RF-13, RF-17, RF-19, RF-20 e RF-22 produtos, pedidos e bal
     await signOut(page);
     await signIn(page, 'tecnico@castro.dev', /\/hoje/);
     await open(page, '/balcao');
-    await page.getByLabel('Buscar produto').fill(productName);
+    await search(page, 'Buscar produto', productName, '/api/v1/products');
     await page.getByRole('button', { name: `Adicionar ${productName}` }).click();
     await page.getByRole('button', { name: `Adicionar ${productName}` }).click();
     await expect(page.getByTestId('counter-total')).toHaveText('R$ 179,80');
