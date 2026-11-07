@@ -9,9 +9,9 @@ Plano de execução do replanejamento de 03/10/2026. Cada milestone tem um épic
 * Cada issue vira um PR pequeno a partir de `main`; o CI bloqueia o merge se algum portão falhar.
 * Primeiras respostas necessárias: #14 (aprovação do replanejamento) e #15 (informações da loja).
 
-## Situação em 05/10/2026
+## Situação em 07/11/2026
 
-Os PRs #91 a #113 entregaram os milestones M0 a M9 e boa parte do M10. Itens marcados estão entregues e com a issue fechada; os demais seguem abertos com o que falta entre parênteses. M1 e M8 estão completos.
+M1 a M9 estão completos e com os épicos fechados. Itens marcados estão entregues e com a issue fechada; os demais seguem abertos com o que falta entre parênteses. Ficam abertos o M0, só pelas informações da loja (#15), e o M10.
 
 ## Ordem e dependências
 
@@ -31,7 +31,7 @@ flowchart LR
 Aprovação do replanejamento, monorepo, CI com cobertura de 100%, ambiente local em um comando, higiene do repositório.
 
 * [x] #14 Revisar e aprovar o replanejamento (documentos e ADRs 0001 a 0015)
-* [ ] #15 Informações pendentes da Refrigeração Castro (pendente: aguarda as informações do dono da loja)
+* [ ] #15 Informações pendentes da Refrigeração Castro (pendente: o dono confirmar o ano de fundação e se o site mostra a filial da Rua Expedicionários)
 * [x] #16 Monorepo pnpm com TypeScript estrito, ESLint e Prettier
 * [x] #17 CI no GitHub Actions com portões de qualidade e cobertura de 100%
 * [x] #18 Ambiente local em um comando com Docker Compose, seed com pedidos, orçamentos e serviços em todos os estados e passo a passo para Mac, Linux e Windows (WSL)
@@ -58,9 +58,9 @@ Fastify, OpenAPI, banco com o esquema completo, autenticação segura, autoriza�
 * [x] #31 Banco: Drizzle, migrações e esquema completo
 * [x] #32 Autenticação: entrar, renovar sessão e sair
 * [x] #33 Recuperar senha, convites e confirmação de email
-* [ ] #34 Autorização por papel e posse com matriz testada (pendente: falta o teste de dono e não dono na matriz gerada)
+* [x] #34 Autorização por papel e posse com matriz testada
 * [x] #35 Emails assíncronos com outbox, pg-boss e templates da marca
-* [ ] #36 Trilha de auditoria das ações administrativas (pendente: falta proteger a tabela de auditoria contra UPDATE e DELETE no banco)
+* [x] #36 Trilha de auditoria das ações administrativas
 
 ## M3 Usuários e perfis (épico #37)
 
@@ -70,7 +70,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 * [x] #39 UC Consultar Clientes com busca instantânea
 * [x] #40 UC Consultar e Editar Perfil do Usuário
 * [x] #41 UC Excluir Cliente com anonimização
-* [ ] #42 UC Cadastrar, Consultar e Excluir Colaborador (pendente: excluir um colaborador ainda não sinaliza os serviços futuros dele)
+* [x] #42 UC Cadastrar, Consultar e Excluir Colaborador
 * [x] #43 UC Cadastrar, Consultar e Excluir Gerente
 * [x] #44 LGPD: política de privacidade, exportar e excluir meus dados
 
@@ -80,7 +80,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 
 * [x] #46 Gerenciar Categorias
 * [x] #47 UC Cadastrar e Editar Produto
-* [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
+* [x] #48 Fotos de produto otimizadas
 * [x] #49 UC Consultar Produtos: catálogo público
 * [x] #50 Página de detalhes do produto
 * [x] #51 UC Excluir Produto com arquivamento
@@ -104,7 +104,7 @@ Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, 
 
 * [x] #60 UC Cadastrar, Consultar, Alterar e Excluir tipos de Reparo/Manutenção
 * [x] #61 UC Solicitar Agendamento de Reparo/Manutenção
-* [ ] #62 Solicitações pendentes: conversar, aprovar ou recusar (pendente: faltam os contadores por estado na fila)
+* [x] #62 Solicitações pendentes: conversar, aprovar ou recusar
 * [x] #63 Meus Agendamentos do cliente
 
 ## M7 Agenda e execução (épico #64)
@@ -144,6 +144,6 @@ E2E de todos os casos de uso nos três dispositivos, auditorias de acessibilidad
 * [ ] #83 E2E de todos os casos de uso em celular, tablet e desktop (pendente: falta a matriz de rastreabilidade e a conferência dos emails)
 * [ ] #84 Auditoria de acessibilidade WCAG 2.2 AA (axe em account.spec.ts e testes de teclado feitos; pendente: teste manual com VoiceOver e TalkBack)
 * [x] #85 Desempenho: Lighthouse CI, bundle e carga com k6
-* [ ] #86 Revisão de segurança antes do lançamento (pendente: falta a varredura com OWASP ZAP)
-* [ ] #87 Deploy em produção, backups e monitoramento (pendente: imagens Docker, compose de produção e guia de operação prontos; falta escolher o provedor e publicar)
-* [ ] #88 Documentação final e manual por papel (pendente: README, manual por papel e guia de operação entregues neste PR)
+* [ ] #86 Revisão de segurança antes do lançamento (varredura ZAP local e CSP sem `unsafe-inline` feitas; pendente: varredura ZAP e TLS em homologação, depois do #87)
+* [ ] #87 Deploy em produção, backups e monitoramento (imagens Docker, compose de produção e guia de operação prontos; provedor decidido na ADR 0012; pendente: conta Oracle do Eduardo, domínio, contas Cloudflare e Brevo, destino do backup e a publicação)
+* [ ] #88 Documentação final e manual por papel (README, manual ilustrado por papel e guia de operação entregues; pendente: ajustar o guia de operação e a ADR 0012 ao deploy real do #87)
