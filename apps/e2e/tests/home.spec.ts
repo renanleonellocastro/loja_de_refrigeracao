@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { expectAccessible } from '../support/a11y.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
-test.describe('RF-36 página inicial', () => {
+test.describe('RF-36 página inicial', { tag: '@RF-36' }, () => {
   test('mostra a marca, serviços e a loja sem rolagem horizontal @a11y', async ({ page }) => {
     await open(page, '/');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Refrigeração Castro');
@@ -37,7 +37,7 @@ test.describe('RF-36 página inicial', () => {
   });
 });
 
-test.describe('RF-37 páginas institucionais', () => {
+test.describe('RF-37 páginas institucionais', { tag: '@RF-37' }, () => {
   test('sobre e contato @a11y', async ({ page }) => {
     await open(page, '/sobre');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sobre a loja');

@@ -26,7 +26,7 @@ async function signIn(page: Page, email: string): Promise<void> {
   await closeWelcomeToast(page);
 }
 
-test.describe('orçamentos', () => {
+test.describe('RF-33 a RF-35 orçamentos', { tag: ['@RF-33', '@RF-34', '@RF-35'] }, () => {
   test('cliente pede orçamento, gerente responde com valor e cliente aceita com datas', async ({
     page,
   }, testInfo) => {

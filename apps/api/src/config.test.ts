@@ -11,6 +11,7 @@ describe('loadConfig', () => {
       COOKIE_SECURE: false,
       TRUST_PROXY: false,
       SIGN_UP_LIMIT_PER_HOUR: 10,
+      PASSWORD_RESETS_PER_15_MINUTES: 5,
     });
   });
 
@@ -20,12 +21,14 @@ describe('loadConfig', () => {
       COOKIE_SECURE: 'true',
       TRUST_PROXY: 'false',
       SIGN_UP_LIMIT_PER_HOUR: '1000',
+      PASSWORD_RESETS_PER_15_MINUTES: '1000',
     });
     expect(config).toMatchObject({
       PORT: 8080,
       COOKIE_SECURE: true,
       TRUST_PROXY: false,
       SIGN_UP_LIMIT_PER_HOUR: 1000,
+      PASSWORD_RESETS_PER_15_MINUTES: 1000,
     });
   });
 

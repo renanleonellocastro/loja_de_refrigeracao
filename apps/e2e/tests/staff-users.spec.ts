@@ -26,7 +26,10 @@ function uniqueCpf(): string {
   return `${base}${first}${digit(`${base}${first}`, 11)}`;
 }
 
-test.describe('RF-05, RF-07 e RF-08 cadastros da equipe', () => {
+// The requirements this journey covers, read by tools/traceability for docs/RASTREABILIDADE.md.
+const REQUIREMENTS = { tag: ['@RF-04', '@RF-05', '@RF-08', '@RF-41'] };
+
+test.describe('RF-04, RF-05, RF-08 e RF-41 cadastros da equipe', REQUIREMENTS, () => {
   test('o gerente busca e cadastra um cliente', async ({ page }, testInfo) => {
     await signIn(page, 'gerente@castro.dev', /\/painel/);
     await open(page, '/clientes');

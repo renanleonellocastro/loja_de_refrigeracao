@@ -10,16 +10,19 @@ ZAP_PROJECT ?= refrigeracao-castro-zap
 ZAP_COMPOSE = docker compose --project-name $(ZAP_PROJECT) --env-file infra/zap/zap.env \
 	-f infra/compose.production.yaml -f infra/zap/compose.zap.yaml
 FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
+TRACEABILITY = tools/traceability/node_modules/.bin/tsx tools/traceability/src/cli.ts
+# The E2E test list as Playwright JSON; test-results/ is ignored by git.
+TRACEABILITY_REPORT = apps/e2e/test-results/traceability.json
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list load zap zap-down \
+	function-length function-length-list load traceability traceability-check traceability-report zap zap-down \
 	backup restore-test backup-test
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
 
-check: packages contracts lint depcruise typecheck function-length test web ## Everything the CI quality job checks
+check: packages contracts lint depcruise typecheck function-length traceability-check test web ## Everything the CI quality job checks
 	@echo "make check: OK"
 
 packages: ## Build the shared packages the apps import
@@ -75,6 +78,16 @@ zap: ## OWASP ZAP baseline scan of the production stack built locally (docs/TEST
 
 zap-down: ## Remove the containers and volumes of the ZAP stack
 	$(ZAP_COMPOSE) --profile scan down --volumes --remove-orphans
+
+traceability-report:
+	@mkdir -p $(dir $(TRACEABILITY_REPORT))
+	cd apps/e2e && $(PNPM) exec playwright test --list --reporter=json > ../../$(TRACEABILITY_REPORT)
+
+traceability: traceability-report ## Write docs/RASTREABILIDADE.md from docs/REQUISITOS.md and the @RF-NN E2E tags
+	$(TRACEABILITY) --report $(TRACEABILITY_REPORT)
+
+traceability-check: traceability-report ## Fails when a requirement has no E2E test or docs/RASTREABILIDADE.md is stale
+	$(TRACEABILITY) --check --report $(TRACEABILITY_REPORT)
 
 # docs/OPERACAO.md section 5. Settings come from the environment or the BACKUP_* lines of infra/.env.production.
 backup: ## Backup of the production stack: database, counts and photos in a dated folder, with retention

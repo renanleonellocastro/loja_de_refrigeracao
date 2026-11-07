@@ -102,7 +102,7 @@ const logoutRoute = defineRoute({
 const requestPasswordResetRoute = defineRoute({
   method: 'POST',
   url: '/auth/password-resets',
-  config: { public: true, rateLimit: { max: 5, timeWindow: '15 minutes' } },
+  config: { public: true },
   schema: {
     tags,
     summary: 'Pedir link de recuperação de senha',
@@ -115,6 +115,11 @@ const requestPasswordResetRoute = defineRoute({
     return reply.code(202).send();
   },
 });
+
+function limitedPasswordResetRoute(resetsPer15Minutes: number) {
+  const rateLimit = { max: resetsPer15Minutes, timeWindow: '15 minutes' };
+  return { ...requestPasswordResetRoute, config: { ...requestPasswordResetRoute.config, rateLimit } };
+}
 
 const resetPasswordRoute = passwordTokenRoute(
   'password-resets',
@@ -165,7 +170,6 @@ const AUTH_ROUTES = [
   loginRoute,
   refreshRoute,
   logoutRoute,
-  requestPasswordResetRoute,
   resetPasswordRoute,
   acceptInvitationRoute,
   confirmEmailRoute,
@@ -173,5 +177,6 @@ const AUTH_ROUTES = [
 ];
 
 export function authRoutes(ctx: AppContext): FastifyPluginAsyncZod {
-  return async (app) => registerRoutes(app, ctx, AUTH_ROUTES);
+  const passwordReset = limitedPasswordResetRoute(ctx.config.PASSWORD_RESETS_PER_15_MINUTES);
+  return async (app) => registerRoutes(app, ctx, [passwordReset, ...AUTH_ROUTES]);
 }

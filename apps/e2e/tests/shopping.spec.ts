@@ -21,7 +21,10 @@ async function createCustomer(page: Page, email: string): Promise<void> {
   await page.evaluate(() => localStorage.clear());
 }
 
-test.describe('RF-20 a RF-24 compras', () => {
+// The requirements this journey covers, read by tools/traceability for docs/RASTREABILIDADE.md.
+const REQUIREMENTS = { tag: ['@RF-14', '@RF-15', '@RF-18', '@RF-19', '@RF-21', '@RF-23'] };
+
+test.describe('RF-14, RF-15, RF-18, RF-19, RF-21 e RF-23 compras', REQUIREMENTS, () => {
   test('visitante busca, adiciona ao carrinho, entra, fecha o pedido e cancela', async ({
     page,
   }, testInfo) => {

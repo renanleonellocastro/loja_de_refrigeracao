@@ -21,7 +21,7 @@ Também valem: DRY, KISS e YAGNI; alta coesão e baixo acoplamento; Lei de Demé
 
 ## Como o `make check` verifica
 
-`make check` roda os mesmos passos do job de qualidade do CI: build dos pacotes, OpenAPI e cliente sem divergência, ESLint e Prettier, fronteiras da API, TypeScript, a verificação estrita do tamanho das funções, testes com 100% de cobertura (num PostgreSQL descartável na porta 5482, que não encosta no banco de desenvolvimento) e o build do site. Rode `pnpm install` antes da primeira vez.
+`make check` roda os mesmos passos do job de qualidade do CI: build dos pacotes, OpenAPI e cliente sem divergência, ESLint e Prettier, fronteiras da API, TypeScript, a verificação estrita do tamanho das funções, a matriz de rastreabilidade dos requisitos com os testes E2E (docs/TESTES.md), testes com 100% de cobertura (num PostgreSQL descartável na porta 5482, que não encosta no banco de desenvolvimento) e o build do site. Rode `pnpm install` antes da primeira vez.
 
 ### Tamanho das funções (estrito)
 

@@ -109,6 +109,7 @@ O modelo de desenvolvimento é `infra/env.sample`; o de produção é `infra/env
 | `STORAGE_PATH` | API e worker | pasta das fotos; `/data/storage` nas imagens |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_FORCE_PATH_STYLE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | API e worker | só com `STORAGE_DRIVER=s3` (seção 3.1) |
 | `SIGN_UP_LIMIT_PER_HOUR` | API | cadastros de cliente por IP por hora, padrão 10; só a stack de testes E2E aumenta |
+| `PASSWORD_RESETS_PER_15_MINUTES` | API | pedidos de link de recuperação de senha por IP a cada 15 minutos, padrão 5; só a stack de testes E2E aumenta |
 | `NUXT_PUBLIC_API_BASE` | site | endereço público da API, lido quando o container inicia |
 
 ### 3.1 Fotos em disco ou em S3 compatível

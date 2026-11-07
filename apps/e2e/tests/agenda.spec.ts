@@ -129,7 +129,10 @@ async function scheduleVisit(
   return ((await created.json()) as { id: number }).id;
 }
 
-test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
+// The requirements this journey covers, read by tools/traceability for docs/RASTREABILIDADE.md.
+const REQUIREMENTS = { tag: ['@RF-27', '@RF-28', '@RF-29', '@RF-30', '@RF-31'] };
+
+test.describe('RF-27 a RF-31 agenda, finalização e aprovação', REQUIREMENTS, () => {
   test('gerente agenda, técnico finaliza no celular e gerente aprova com valor', async ({
     page,
     browser,
@@ -256,7 +259,7 @@ test.describe('RF-35 a RF-38 agenda, finalização e aprovação', () => {
   });
 });
 
-test.describe('RF-08 atendimentos de técnico excluído', () => {
+test.describe('RF-08 atendimentos de técnico excluído', { tag: ['@RF-08', '@RF-29'] }, () => {
   test('o super usuário exclui o técnico e a gerência passa a visita para outro', async ({
     page,
     request,

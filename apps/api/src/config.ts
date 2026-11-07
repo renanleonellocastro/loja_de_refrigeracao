@@ -36,6 +36,7 @@ const baseSchema = z.object({
   S3_ACCESS_KEY_ID: optional(z.string()),
   S3_SECRET_ACCESS_KEY: optional(z.string()),
   SIGN_UP_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
+  PASSWORD_RESETS_PER_15_MINUTES: z.coerce.number().int().positive().default(5),
 });
 
 const configSchema = baseSchema

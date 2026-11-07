@@ -37,7 +37,7 @@ async function deleteServiceTypes(request: APIRequestContext, prefix: string): P
   }
 }
 
-test.describe('RF-24 tipos de reparo e manutenção', () => {
+test.describe('RF-24 tipos de reparo e manutenção', { tag: '@RF-24' }, () => {
   let leftover: string | undefined;
   test.afterEach(async ({ request }) => {
     if (leftover) await deleteServiceTypes(request, leftover);
