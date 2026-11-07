@@ -913,7 +913,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Variante de uma foto (imutável) */
+        /**
+         * Variante de uma foto (imutável)
+         * @description Variantes AVIF e WebP geradas pelo worker. Enquanto o worker não termina, responde com a foto original em WebP, sem cache.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -926,12 +929,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Imagem WebP */
+                /** @description Imagem AVIF ou WebP */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
+                        "image/avif": string;
                         "image/webp": string;
                     };
                 };
@@ -3039,8 +3043,10 @@ export interface paths {
                             height: number;
                             /** @description Maior variante WebP */
                             url: string;
-                            /** @description Variantes para o atributo srcset */
+                            /** @description Variantes WebP para o atributo srcset */
                             srcset: string;
+                            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                            avifSrcset: string;
                             id: number;
                         }[];
                     };
@@ -5872,7 +5878,25 @@ export interface paths {
                     };
                 };
                 /** @description Default Response */
+                412: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
                 422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["Problem"];
+                    };
+                };
+                /** @description Default Response */
+                428: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -6017,7 +6041,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Finalizar o serviço (técnico do atendimento) */
+        /**
+         * Finalizar o serviço (técnico do atendimento)
+         * @description Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -8009,8 +8036,10 @@ export interface paths {
                             height: number;
                             /** @description Maior variante WebP */
                             url: string;
-                            /** @description Variantes para o atributo srcset */
+                            /** @description Variantes WebP para o atributo srcset */
                             srcset: string;
+                            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                            avifSrcset: string;
                             id: number;
                         }[];
                     };
@@ -9413,8 +9442,10 @@ export interface components {
             height: number;
             /** @description Maior variante WebP */
             url: string;
-            /** @description Variantes para o atributo srcset */
+            /** @description Variantes WebP para o atributo srcset */
             srcset: string;
+            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+            avifSrcset: string;
         };
         AppointmentInput: {
             id: number;
@@ -9464,8 +9495,10 @@ export interface components {
                     height: number;
                     /** @description Maior variante WebP */
                     url: string;
-                    /** @description Variantes para o atributo srcset */
+                    /** @description Variantes WebP para o atributo srcset */
                     srcset: string;
+                    /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                    avifSrcset: string;
                     id: number;
                 }[];
             } | null;
@@ -9493,8 +9526,10 @@ export interface components {
             height: number;
             /** @description Maior variante WebP */
             url: string;
-            /** @description Variantes para o atributo srcset */
+            /** @description Variantes WebP para o atributo srcset */
             srcset: string;
+            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+            avifSrcset: string;
             id: number;
             position: number;
             isCover: boolean;
@@ -9867,8 +9902,10 @@ export interface components {
                 height: number;
                 /** @description Maior variante WebP */
                 url: string;
-                /** @description Variantes para o atributo srcset */
+                /** @description Variantes WebP para o atributo srcset */
                 srcset: string;
+                /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                avifSrcset: string;
                 id: number;
             }[];
             customer: {
@@ -9935,8 +9972,10 @@ export interface components {
                 height: number;
                 /** @description Maior variante WebP */
                 url: string;
-                /** @description Variantes para o atributo srcset */
+                /** @description Variantes WebP para o atributo srcset */
                 srcset: string;
+                /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                avifSrcset: string;
                 id: number;
             }[];
             customer: {
@@ -10027,8 +10066,10 @@ export interface components {
             height: number;
             /** @description Maior variante WebP */
             url: string;
-            /** @description Variantes para o atributo srcset */
+            /** @description Variantes WebP para o atributo srcset */
             srcset: string;
+            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+            avifSrcset: string;
         };
         Appointment: {
             id: number;
@@ -10081,8 +10122,10 @@ export interface components {
                     height: number;
                     /** @description Maior variante WebP */
                     url: string;
-                    /** @description Variantes para o atributo srcset */
+                    /** @description Variantes WebP para o atributo srcset */
                     srcset: string;
+                    /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                    avifSrcset: string;
                     id: number;
                 }[];
             } | null;
@@ -10111,8 +10154,10 @@ export interface components {
             height: number;
             /** @description Maior variante WebP */
             url: string;
-            /** @description Variantes para o atributo srcset */
+            /** @description Variantes WebP para o atributo srcset */
             srcset: string;
+            /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+            avifSrcset: string;
             id: number;
             position: number;
             isCover: boolean;
@@ -10503,8 +10548,10 @@ export interface components {
                 height: number;
                 /** @description Maior variante WebP */
                 url: string;
-                /** @description Variantes para o atributo srcset */
+                /** @description Variantes WebP para o atributo srcset */
                 srcset: string;
+                /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                avifSrcset: string;
                 id: number;
             }[];
             customer: {
@@ -10578,8 +10625,10 @@ export interface components {
                 height: number;
                 /** @description Maior variante WebP */
                 url: string;
-                /** @description Variantes para o atributo srcset */
+                /** @description Variantes WebP para o atributo srcset */
                 srcset: string;
+                /** @description Variantes AVIF para o srcset de um <source type="image/avif"> */
+                avifSrcset: string;
                 id: number;
             }[];
             customer: {

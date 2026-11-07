@@ -19,11 +19,11 @@ flowchart LR
 |---|---|---|
 | `caddy` | `caddy:2-alpine` | HTTPS automático com Let's Encrypt, compressão zstd e gzip, encaminha `/api/*`, `/health` e `/ready` para a API e o resto para o site |
 | `api` | `infra/docker/api.Dockerfile` | API REST em `:3001`; aplica as migrações pendentes ao iniciar |
-| `worker` | mesma imagem da API, comando `node dist/worker.js` | envia os emails do outbox, vence orçamentos a cada hora e roda as tarefas de retenção de dados uma vez por dia (seção 4.5) |
+| `worker` | mesma imagem da API, comando `node dist/worker.js` | envia os emails do outbox, gera as variantes AVIF e WebP das fotos enviadas, vence orçamentos a cada hora e roda as tarefas de retenção de dados uma vez por dia (seção 4.5) |
 | `web` | `infra/docker/web.Dockerfile` | site Nuxt renderizado no servidor em `:3000` |
 | `postgres` | `postgres:17-alpine` | banco de dados, volume `postgres-data` |
 
-As fotos de produtos e serviços ficam no volume `storage`, montado em `/data/storage` na API e no worker.
+As fotos de produtos e serviços ficam no volume `storage`, montado em `/data/storage` na API e no worker, ou em um serviço S3 compatível (seção 3.1).
 
 ## 2. Deploy com Docker
 
@@ -87,11 +87,33 @@ O modelo de desenvolvimento é `infra/env.sample`; o de produção é `infra/env
 | `COOKIE_SECURE`, `TRUST_PROXY` | API | ligados por padrão em produção; só mude se não houver HTTPS na frente |
 | `SMTP_URL` | worker | servidor de envio de emails (seção 7) |
 | `MAIL_FROM` | worker | remetente dos emails |
+| `STORAGE_DRIVER` | API e worker | `local` (padrão, pasta `STORAGE_PATH`) ou `s3` (seção 3.1) |
 | `STORAGE_PATH` | API e worker | pasta das fotos; `/data/storage` nas imagens |
+| `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_FORCE_PATH_STYLE`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | API e worker | só com `STORAGE_DRIVER=s3` (seção 3.1) |
 | `SIGN_UP_LIMIT_PER_HOUR` | API | cadastros de cliente por IP por hora, padrão 10; só a stack de testes E2E aumenta |
 | `NUXT_PUBLIC_API_BASE` | site | endereço público da API, lido quando o container inicia |
 
-`STORAGE_DRIVER` aparece no modelo de desenvolvimento, mas hoje só existe o armazenamento em disco (ADR 0010).
+### 3.1 Fotos em disco ou em S3 compatível
+
+A API grava a foto enviada (já validada pelos bytes, girada e sem EXIF) como `<chave>/original.webp` e agenda no outbox a geração das variantes. O worker escreve `<chave>/<largura>.avif` e `<chave>/<largura>.webp` nas larguras 320, 640, 960 e 1440 (nunca maiores que a foto). Enquanto o worker não termina, a rota `/api/v1/media` responde com o original, sem cache; depois, com a variante e cache de um ano (ADR 0010). O site usa `<picture>`: AVIF para quem aceita, WebP para os demais.
+
+Com `STORAGE_DRIVER=local` (padrão) as fotos ficam em `STORAGE_PATH`. Com `STORAGE_DRIVER=s3` vão para um bucket de qualquer serviço compatível com a API S3:
+
+| Variável | Uso |
+|---|---|
+| `S3_BUCKET` | nome do bucket, obrigatório; crie antes, privado (a API serve as fotos) |
+| `S3_REGION` | região do serviço; padrão `us-east-1`. No Cloudflare R2 use `auto` |
+| `S3_ENDPOINT` | vazio na AWS; endereço do serviço nos demais |
+| `S3_FORCE_PATH_STYLE` | `true` põe o bucket no caminho da URL; quando vazio, liga sozinho se houver `S3_ENDPOINT` |
+| `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | chave de acesso com leitura, escrita, listagem e remoção no bucket; as duas juntas ou nenhuma (aí vale a cadeia padrão do SDK, como o papel da instância) |
+
+Exemplos de `S3_ENDPOINT`:
+
+* Oracle Object Storage: `https://<namespace>.compat.objectstorage.<região>.oraclecloud.com`, com chave de "Customer Secret Keys" e a região do bucket em `S3_REGION`.
+* Cloudflare R2: `https://<id da conta>.r2.cloudflarestorage.com`, `S3_REGION=auto`.
+* MinIO ou SeaweedFS local: `http://localhost:9000`.
+
+Para migrar de `local` para `s3`, copie o conteúdo do volume `storage` para o bucket mantendo os caminhos (por exemplo `rclone copy /data/storage remoto:bucket`) e só então troque a variável. Com S3 o backup das fotos é o do próprio serviço (versionamento ou replicação do bucket); o `tar` do volume da seção 5 deixa de ser necessário.
 
 ## 4. Banco de dados
 
@@ -101,7 +123,7 @@ As migrações SQL ficam em `apps/api/drizzle` e são aplicadas pela própria AP
 
 ### 4.2 Dados de exemplo só em desenvolvimento
 
-`pnpm --filter @rc/api seed` cria categorias, produtos, tipos de serviço e as contas de exemplo com a senha conhecida `Castro-Dev-2026`. O script se recusa a rodar com `NODE_ENV=production` e a imagem de produção nem traz o código fonte necessário para executá-lo. Nunca aponte o seed para o banco de produção.
+`pnpm --filter @rc/api seed` cria categorias, produtos com fotos, tipos de serviço, as contas de exemplo com a senha conhecida `Castro-Dev-2026` e clientes com pedidos, orçamentos e solicitações de serviço em todos os estados. O seed dos testes E2E carrega só a parte básica, sem esse movimento. O script se recusa a rodar com `NODE_ENV=production` e a imagem de produção nem traz o código fonte necessário para executá-lo. Nunca aponte o seed para o banco de produção.
 
 ### 4.3 Primeiro super usuário
 

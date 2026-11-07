@@ -9,10 +9,14 @@ test.describe('RNF-01 e RNF-02 layout público', () => {
     await open(page, '/');
     await expect(page.getByRole('banner').getByRole('link', { name: /página inicial/ })).toBeVisible();
     const footer = page.getByRole('contentinfo');
-    await expect(footer).toContainText('Rua Doutor Ulhoa Cintra, 91');
+    await expect(footer).toContainText('Rua Doutor Ulhôa Cintra, 91');
     await expect(footer).toContainText('(19) 3804-1658');
-    // The development seed has no WhatsApp number, so the floating button stays hidden.
-    await expect(page.getByRole('link', { name: /WhatsApp/ })).toHaveCount(0);
+    await expect(footer).toContainText('Refrigeração Castro Ltda. · CNPJ 63.060.560/0001-51');
+    // The seeded store settings carry the store WhatsApp, so the floating button opens a chat with it.
+    await expect(page.getByRole('link', { name: /WhatsApp/ }).first()).toHaveAttribute(
+      'href',
+      /^https:\/\/wa\.me\/5519997641658\?text=/,
+    );
     const mainNav = page.getByRole('navigation', { name: 'Principal' });
     if (deviceOf(testInfo) === 'desktop') {
       await expect(mainNav).toBeVisible();

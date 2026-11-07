@@ -10,9 +10,9 @@ export type OpeningHours = StorePublic['openingHours'];
  */
 export const STORE_INFO = {
   name: 'Refrigeração Castro',
-  legalName: 'Refrigeração Castro Ltda ME',
+  legalName: 'Refrigeração Castro Ltda.',
   cnpj: '63.060.560/0001-51',
-  street: 'Rua Doutor Ulhoa Cintra, 91',
+  street: 'Rua Doutor Ulhôa Cintra, 91',
   district: 'Centro',
   city: 'Mogi Mirim/SP',
   cep: '13800-061',
@@ -30,11 +30,11 @@ export const FALLBACK_STORE: StorePublic = {
   legalName: STORE_INFO.legalName,
   cnpj: '63060560000151',
   phone: '1938041658',
-  whatsapp: null,
+  whatsapp: '19997641658',
   email: STORE_INFO.email,
   address: {
     cep: '13800061',
-    street: 'Rua Doutor Ulhoa Cintra',
+    street: 'Rua Doutor Ulhôa Cintra',
     number: '91',
     complement: null,
     district: 'Centro',
@@ -65,7 +65,7 @@ export function whatsappHref(digits: string, message = 'Olá! Vim pelo site da R
   return `https://wa.me/55${digits}?text=${encodeURIComponent(message)}`;
 }
 
-/** "Rua Doutor Ulhoa Cintra, 91" plus the complement when there is one. */
+/** "Rua Doutor Ulhôa Cintra, 91" plus the complement when there is one. */
 export function streetLine(address: StorePublic['address']): string {
   const base = `${address.street}, ${address.number}`;
   return address.complement ? `${base}, ${address.complement}` : base;

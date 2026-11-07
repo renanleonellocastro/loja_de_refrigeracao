@@ -27,7 +27,7 @@ afterEach(async () => {
 describe('home page', () => {
   it('shows the hero, services, featured products, reasons and the store from the API', async () => {
     const api = mockApi()
-      .on('GET /api/v1/store', { body: storeData({ whatsapp: '19999998888' }) })
+      .on('GET /api/v1/store', { body: storeData() })
       .on('GET /api/v1/service-types', {
         body: [serviceType(), serviceType({ id: 2, name: 'Antigo', active: false })],
       })
@@ -51,7 +51,7 @@ describe('home page', () => {
     expect(page.text()).toContain('Por que a Castro');
     expect(page.text()).toContain('Aberto agora');
     expect(page.find('a[href="tel:+551938041658"]').text()).toBe('(19) 3804-1658');
-    expect(page.find('a[href^="https://wa.me/5519999998888"]').exists()).toBe(true);
+    expect(page.find('a[href^="https://wa.me/5519997641658"]').exists()).toBe(true);
     expect(api.called('GET /api/v1/products')[0]!.url.searchParams.get('available')).toBe('true');
     expect(jsonLd().find((item) => item['@type'] === 'HVACBusiness')).toMatchObject({
       name: 'Refrigeração Castro',
@@ -71,7 +71,7 @@ describe('home page', () => {
     expect(page.text()).toContain('Conheça os serviços');
     expect(page.text()).not.toContain('Produtos em destaque');
     expect(page.text()).toContain('Fechado agora');
-    expect(page.find('a[href^="https://wa.me/"]').exists()).toBe(false);
+    expect(page.find('a[href^="https://wa.me/5519997641658"]').exists()).toBe(true);
   });
 });
 
@@ -90,24 +90,23 @@ describe('about and contact pages', () => {
   it('lists address, phone, email, WhatsApp and hours', async () => {
     mockApi().on('GET /api/v1/store', {
       body: storeData({
-        whatsapp: '19999998888',
         address: { ...FALLBACK_STORE.address, complement: 'Loja 2' },
       }),
     });
     const page = await mountSuspended(ContactPage, { route: '/contato' });
     await settle();
     expect(page.get('h1').text()).toBe('Contato');
-    expect(page.text()).toContain('Rua Doutor Ulhoa Cintra, 91, Loja 2');
+    expect(page.text()).toContain('Rua Doutor Ulhôa Cintra, 91, Loja 2');
     expect(page.text()).toContain('Centro, Mogi Mirim/SP, CEP 13800-061');
     expect(page.get('[data-testid="contact-phone"]').attributes('href')).toBe('tel:+551938041658');
     expect(page.find('a[href="mailto:refrigeracaocastro@yahoo.com.br"]').exists()).toBe(true);
-    expect(page.text()).toContain('WhatsApp (19) 99999-8888');
+    expect(page.text()).toContain('WhatsApp (19) 99764-1658');
     expect(page.text()).toContain('Segunda a sexta:');
     expect(page.text()).toContain('Sábado e domingo:');
   });
 
   it('leaves WhatsApp out when the store has none', async () => {
-    mockApi().on('GET /api/v1/store', { body: storeData() });
+    mockApi().on('GET /api/v1/store', { body: storeData({ whatsapp: null }) });
     const page = await mountSuspended(ContactPage, { route: '/contato' });
     await settle();
     expect(page.text()).not.toContain('WhatsApp');
@@ -124,7 +123,7 @@ describe('store components', () => {
       .find((button) => button.text() === 'Mostrar mapa')!
       .trigger('click');
     expect(map.get('iframe').attributes('src')).toContain('output=embed');
-    expect(map.get('iframe').attributes('title')).toBe('Mapa: Rua Doutor Ulhoa Cintra, 91');
+    expect(map.get('iframe').attributes('title')).toBe('Mapa: Rua Doutor Ulhôa Cintra, 91');
   });
 
   it('shows open or closed and the grouped hours', async () => {

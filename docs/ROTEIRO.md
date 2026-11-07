@@ -34,7 +34,7 @@ Aprovação do replanejamento, monorepo, CI com cobertura de 100%, ambiente loca
 * [ ] #15 Informações pendentes da Refrigeração Castro (pendente: aguarda as informações do dono da loja)
 * [x] #16 Monorepo pnpm com TypeScript estrito, ESLint e Prettier
 * [x] #17 CI no GitHub Actions com portões de qualidade e cobertura de 100%
-* [ ] #18 Ambiente local em um comando com Docker Compose (pendente: falta o seed com pedidos e serviços em vários estados e o passo a passo para Mac, Linux e Windows)
+* [x] #18 Ambiente local em um comando com Docker Compose, seed com pedidos, orçamentos e serviços em todos os estados e passo a passo para Mac, Linux e Windows (WSL)
 * [x] #19 Higiene do repositório: tokens, scripts de teste, licença e README
 * [x] #20 Convenções de contribuição: branches, commits, templates de PR e issue
 
@@ -68,7 +68,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 
 * [x] #38 UC Cadastrar Cliente (autocadastro e pela equipe com convite)
 * [x] #39 UC Consultar Clientes com busca instantânea
-* [ ] #40 UC Consultar e Editar Perfil do Usuário (pendente: o perfil mostra só os últimos pedidos, sem serviços e orçamentos)
+* [x] #40 UC Consultar e Editar Perfil do Usuário
 * [x] #41 UC Excluir Cliente com anonimização
 * [ ] #42 UC Cadastrar, Consultar e Excluir Colaborador (pendente: excluir um colaborador ainda não sinaliza os serviços futuros dele)
 * [x] #43 UC Cadastrar, Consultar e Excluir Gerente
@@ -79,7 +79,7 @@ Clientes, colaboradores e gerentes: cadastro, consulta, perfil, exclusão com an
 Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO, movimentações de estoque. Dependência: depende do M3.
 
 * [x] #46 Gerenciar Categorias
-* [ ] #47 UC Cadastrar e Editar Produto (pendente: faltam as diferenças no aviso de conflito e o formulário em etapas no celular)
+* [x] #47 UC Cadastrar e Editar Produto
 * [ ] #48 Fotos de produto otimizadas (pendente: só WebP, sem AVIF e sem adaptador S3)
 * [ ] #49 UC Consultar Produtos: catálogo público (pendente: falta cache do catálogo e a verificação do LCP)
 * [x] #50 Página de detalhes do produto
@@ -90,7 +90,7 @@ Categorias, produtos com fotos otimizadas, catálogo público rápido e com SEO,
 
 Carrinho, compra online com reserva de estoque, gestão da fila de pedidos, venda no balcão, histórico e remoção do protótipo. Dependência: depende do M4.
 
-* [ ] #54 UC Comprar Produto: fechar pedido com reserva de estoque (pendente: falta a tela para a equipe fechar pedido online em nome do cliente)
+* [x] #54 UC Comprar Produto: fechar pedido com reserva de estoque
 * [x] #55 Gerenciar Pedidos: fila, estados e etiqueta
 * [x] #56 UC Vender Produto no balcão
 * [x] #57 Emails e notificações do ciclo do pedido
@@ -111,7 +111,7 @@ Tipos de reparo e manutenção, solicitação de agendamento com fotos e datas, 
 
 Agenda dos técnicos (mês, semana, dia), atribuição sem conflitos, finalização pelo celular e aprovação com valor. Dependência: depende do M6.
 
-* [ ] #65 UC Cadastrar Serviço na Agenda do Colaborador (pendente: falta o salvamento automático do formulário)
+* [x] #65 UC Cadastrar Serviço na Agenda do Colaborador
 * [x] #66 UC Consultar Agenda (mês, semana, dia e lista)
 * [x] #67 UC Alterar e Excluir Serviço da Agenda
 * [x] #68 UC Finalizar Serviço pelo celular
@@ -135,7 +135,7 @@ Página inicial com a marca, páginas institucionais, SEO local, painel da equip
 * [x] #78 Painel da equipe com indicadores
 * [x] #79 Central de notificações
 * [x] #80 Configurar a Loja
-* [ ] #81 PWA instalável com suporte básico offline (pendente: falta a sincronização automática ao reconectar)
+* [x] #81 PWA instalável com suporte básico offline
 
 ## M10 Qualidade final e lançamento (épico #82)
 

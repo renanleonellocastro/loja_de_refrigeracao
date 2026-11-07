@@ -103,7 +103,10 @@ const LINKS = [
       <div
         class="rc-container flex flex-col gap-4 py-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-sm md:flex-row md:items-center md:justify-between md:pr-48 md:pb-6"
       >
-        <p>© {{ store.legalName }} · CNPJ {{ formatCnpj(store.cnpj) }}</p>
+        <p>
+          © {{ store.legalName }} · CNPJ {{ formatCnpj(store.cnpj) }} · {{ streetLine(store.address) }},
+          {{ cityLine(store.address) }}
+        </p>
         <ThemeToggle tone="brand" />
       </div>
     </div>

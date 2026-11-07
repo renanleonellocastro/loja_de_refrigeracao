@@ -22,6 +22,7 @@ describe('security headers', () => {
   it('declares the static headers', () => {
     expect(SECURITY_HEADERS['referrer-policy']).toBe('strict-origin-when-cross-origin');
     expect(SECURITY_HEADERS['permissions-policy']).toContain('camera=()');
+    expect(SECURITY_HEADERS['cross-origin-resource-policy']).toBe('same-origin');
     expect(HSTS).toContain('max-age=');
   });
 });

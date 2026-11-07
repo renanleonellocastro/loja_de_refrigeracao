@@ -39,11 +39,11 @@ Em **Agendar visita** (ou no botão da página inicial), escolha o serviço, dig
 
 Em **Orçamento**, escolha o tipo de serviço e descreva o que precisa (fotos ajudam). Quando a loja responde, o orçamento mostra o valor, o que está incluído e a validade. Dentro da validade você pode **aceitar**, escolhendo as datas da visita, ou **recusar**. Orçamentos não respondidos a tempo vencem sozinhos.
 
-![Pedido de orçamento](assets/manual/cliente-orcamento.webp)
+![Orçamento respondido, com valor, validade e os botões de aceitar e recusar](assets/manual/cliente-orcamento.webp)
 
 ### Minha conta e privacidade
 
-Em **Perfil** você muda seus dados, endereço e senha. Um email novo só passa a valer depois de confirmado pelo link enviado a ele. Na aba de privacidade dá para baixar todos os seus dados e excluir a conta; os pedidos e serviços ficam anônimos no histórico da loja.
+Em **Perfil** você vê seus 3 últimos pedidos, serviços e orçamentos, cada um com link para a sua tela, e muda seus dados, endereço e senha. Um email novo só passa a valer depois de confirmado pelo link enviado a ele. Na aba de privacidade dá para baixar todos os seus dados e excluir a conta; os pedidos e serviços ficam anônimos no histórico da loja.
 
 ![Meus pedidos](assets/manual/cliente-pedidos.webp)
 
@@ -59,7 +59,7 @@ A tela **Hoje** mostra as visitas do dia em ordem, com cliente, endereço e hor�
 
 ### Atender e finalizar um serviço
 
-Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo.
+Abra a visita para ver o problema com as fotos do cliente, o telefone e o botão de rota no mapa. Ao terminar, preencha **Finalizar serviço**: se encontrou defeito, o reparo feito e as peças trocadas, com fotos do serviço. A finalização vai para a aprovação da gerência; se ela devolver para ajuste, a visita volta para você com o motivo. Se o sinal cair na hora de enviar, o que você escreveu fica guardado no celular e a finalização é enviada sozinha quando a internet voltar, sem duplicar; deixe a página aberta até aparecer a confirmação.
 
 <img src="assets/manual/colaborador-atendimento.webp" alt="Atendimento com o formulário de finalização" width="300">
 
@@ -83,12 +83,14 @@ O gerente faz tudo o que o colaborador faz e cuida da operação da loja. O **Pa
 
 Em **Pedidos**, filtre por situação, abra o pedido, imprima a etiqueta de separação e marque **Pronto para retirada** e depois **Retirado**. Cancelamentos pedem um motivo, que vai para o cliente.
 
+Quando um cliente pedir por telefone ou WhatsApp, toque em **Novo pedido**: escolha o cliente (ou cadastre na hora), adicione os produtos e toque em **Fechar pedido**. Os itens ficam reservados, o cliente recebe o email do pedido e o pedido entra na fila **Em análise** como qualquer pedido do site; ele paga na retirada.
+
 ![Fila de pedidos](assets/manual/gerente-pedidos.webp)
 
 ### Solicitações de visita e agenda
 
 1. Em **Solicitações**, as abas mostram quantas solicitações há em cada estado (e em **Todas**), já contando a busca por número ou cliente. Abra uma solicitação nova, converse com o cliente se faltar alguma informação e **aprove** ou **recuse** com o motivo.
-2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita.
+2. Na solicitação aprovada, marque o técnico e o horário. A **Agenda** mostra todos os técnicos com cores diferentes e impede horários sobrepostos; dá para remarcar arrastando ou pela visita. O formulário de agendamento e o de remarcação salvam sozinhos neste aparelho enquanto você preenche: se a janela fechar ou a página recarregar, o que foi digitado volta ao abrir de novo. **Cancelar** descarta o rascunho.
 3. Em **Aprovações**, revise as finalizações dos técnicos e aprove com o valor cobrado ou devolva para ajuste.
 
 ![Solicitações de visita](assets/manual/gerente-solicitacoes.webp)
@@ -106,6 +108,10 @@ Em **Orçamentos**, abra os pedidos novos e responda com o valor, a validade em 
 ### Produtos e estoque
 
 Em **Produtos**, cadastre e edite produtos com preço, condição e categoria, adicione fotos do produto (a primeira vira capa e dá para reordenar) e registre entradas, ajustes e perdas de estoque. Produtos abaixo do mínimo aparecem no painel. Quando uma movimentação ou um pedido deixa um produto abaixo do mínimo, gerentes e super usuários recebem um aviso na central de notificações e por email, uma vez só; o aviso volta a ser enviado se o estoque for reposto e cair de novo.
+
+No celular, o formulário do produto aparece em três etapas: **Identificação**, **Preço e estoque** e **Descrição**. No cadastro, toque em **Continuar** para avançar e em **Cadastrar produto** na última etapa. Na edição, toque no nome da etapa para abrir qualquer uma e salve de onde estiver. Se algum campo precisar de correção, o formulário volta para a etapa dele.
+
+Se outra pessoa salvar o mesmo produto enquanto você edita, o sistema não sobrescreve nada: ele mostra cada campo diferente entre a versão salva agora e a sua edição, dizendo quem mudou. Toque em **Manter minhas alterações** para juntar as duas (os campos que você mudou ficam com o seu valor, o resto vem da versão salva) e depois salve, ou em **Usar a versão salva** para descartar a sua edição.
 
 ![Gerenciar produtos](assets/manual/gerente-produtos.webp)
 

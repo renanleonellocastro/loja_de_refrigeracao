@@ -15,7 +15,7 @@ import { validateNewPassword, validatePerson } from '~/utils/validation';
 
 const FILLED = {
   cep: '13800061',
-  street: 'Rua Doutor Ulhoa Cintra',
+  street: 'Rua Doutor Ulhôa Cintra',
   number: '91',
   complement: '',
   district: 'Centro',
@@ -118,7 +118,7 @@ describe('addresses', () => {
   it('formats one line', () => {
     expect(formatAddress(null)).toBe('Não informado');
     expect(formatAddress({ ...FILLED, complement: 'Fundos' })).toBe(
-      'Rua Doutor Ulhoa Cintra, 91, Fundos, Centro, Mogi Mirim/SP, CEP 13800-061',
+      'Rua Doutor Ulhôa Cintra, 91, Fundos, Centro, Mogi Mirim/SP, CEP 13800-061',
     );
   });
 });

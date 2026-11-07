@@ -1,8 +1,16 @@
 <script setup lang="ts">
 import { CONDITION_OPTIONS } from '~/utils/products';
 
-/** Fields of the product form shared by Cadastrar and Editar Produto (RF-12). */
-const props = defineProps<{ categories: Category[]; errors: FieldErrors; creating?: boolean }>();
+/**
+ * Fields of the product form shared by Cadastrar and Editar Produto (RF-12). On the phone the page shows one step at
+ * a time and `shows` tells which fields belong to the step on screen.
+ */
+const props = defineProps<{
+  categories: Category[];
+  errors: FieldErrors;
+  creating?: boolean;
+  shows: (field: string) => boolean;
+}>();
 const values = defineModel<ProductForm>({ required: true });
 
 const categoryOptions = computed<SelectOption[]>(() =>
@@ -12,10 +20,11 @@ const categoryOptions = computed<SelectOption[]>(() =>
 
 <template>
   <div class="grid gap-4 sm:grid-cols-2">
-    <div class="sm:col-span-2">
+    <div v-if="shows('name')" class="sm:col-span-2">
       <BaseTextField v-model="values.name" label="Nome do produto" :error="errors.name" required />
     </div>
     <FormSelect
+      v-if="shows('categoryId')"
       v-model="values.categoryId"
       label="Categoria"
       placeholder="Escolha a categoria"
@@ -23,10 +32,17 @@ const categoryOptions = computed<SelectOption[]>(() =>
       :error="errors.categoryId"
       required
     />
-    <FormSelect v-model="values.condition" label="Condição" :options="CONDITION_OPTIONS" required />
-    <BaseTextField v-model="values.brand" label="Marca" :error="errors.brand" />
-    <BaseTextField v-model="values.model" label="Modelo" :error="errors.model" />
+    <FormSelect
+      v-if="shows('condition')"
+      v-model="values.condition"
+      label="Condição"
+      :options="CONDITION_OPTIONS"
+      required
+    />
+    <BaseTextField v-if="shows('brand')" v-model="values.brand" label="Marca" :error="errors.brand" />
+    <BaseTextField v-if="shows('model')" v-model="values.model" label="Modelo" :error="errors.model" />
     <BaseMaskedField
+      v-if="shows('priceCents')"
       v-model="values.priceCents"
       mask="money"
       label="Preço"
@@ -34,7 +50,7 @@ const categoryOptions = computed<SelectOption[]>(() =>
       required
     />
     <BaseTextField
-      v-if="creating"
+      v-if="creating && shows('initialStock')"
       v-model="values.initialStock"
       label="Estoque inicial"
       inputmode="numeric"
@@ -42,13 +58,14 @@ const categoryOptions = computed<SelectOption[]>(() =>
       :error="errors.initialStock"
     />
     <BaseTextField
+      v-if="shows('stockMin')"
       v-model="values.stockMin"
       label="Estoque mínimo"
       inputmode="numeric"
       hint="Abaixo dele o produto ganha o aviso de estoque baixo. Vazio usa o padrão da loja."
       :error="errors.stockMin"
     />
-    <div class="sm:col-span-2">
+    <div v-if="shows('description')" class="sm:col-span-2">
       <BaseTextArea
         v-model="values.description"
         label="Descrição"
