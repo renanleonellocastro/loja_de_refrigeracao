@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { expectAccessibleSettled } from '../support/a11y.js';
+import { expectAccessible, expectAccessibleSettled } from '../support/a11y.js';
 import { uniqueEmail } from '../support/identity.js';
-import { closeWelcomeToast } from '../support/toast.js';
+import { closeToast, closeWelcomeToast } from '../support/toast.js';
 import { hasHorizontalScroll, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -13,9 +13,10 @@ async function signOut(page: Page): Promise<void> {
   await expect(page.getByText('Você saiu da sua conta. Até logo!')).toBeVisible();
 }
 
-/** Fills the sign up form; the new customer ends signed in. */
+/** Fills the sign up form; the new customer ends signed in, with the welcome toast closed. */
 async function createAccount(page: Page, email: string): Promise<void> {
   await open(page, '/criar-conta');
+  await expectAccessible(page);
   await page.getByLabel('Nome completo').fill('Teste Automatizado');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Telefone').fill('19999998888');
@@ -23,7 +24,8 @@ async function createAccount(page: Page, email: string): Promise<void> {
   await page.locator('input[autocomplete="new-password"]').nth(1).fill(PASSWORD);
   await page.getByRole('checkbox').click();
   await page.getByRole('button', { name: 'Criar minha conta' }).click();
-  await expect(page.getByText('Pronto, Teste! Sua conta está criada.')).toBeVisible();
+  // Closed right away: on desktop the toast covers the corner of the next page and would skew the axe contrast scan.
+  await closeToast(page, 'Pronto, Teste! Sua conta está criada.');
 }
 
 /** Drops the session without the account menu, which only some pages show. */
@@ -44,11 +46,13 @@ test.describe('RF-01, RF-04, RF-06 e RF-10 conta', { tag: ['@RF-01', '@RF-04', '
     await page.locator('input[autocomplete="current-password"]').fill('senha-errada');
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page.getByRole('alert')).toBeVisible();
+    await expectAccessibleSettled(page);
     await page.locator('input[autocomplete="current-password"]').fill(PASSWORD);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page).toHaveURL(/\/perfil$/);
     await expect(page.getByRole('heading', { name: 'Seus dados' })).toBeVisible();
     await closeWelcomeToast(page);
+    await expectAccessibleSettled(page);
     await signOut(page);
     await open(page, '/perfil');
     await expect(page).toHaveURL(/\/entrar/);
@@ -68,10 +72,27 @@ test.describe('RF-01, RF-04, RF-06 e RF-10 conta', { tag: ['@RF-01', '@RF-04', '
   test('cria a conta, entra e exclui a conta', async ({ page }, testInfo) => {
     await createAccount(page, uniqueEmail('e2e', testInfo));
     await open(page, '/perfil?aba=privacidade');
+    // The tab shows a skeleton until the profile loads, so the scan waits for the real content.
+    await expect(page.getByRole('button', { name: 'Excluir minha conta' })).toBeVisible();
+    await expectAccessibleSettled(page);
     await page.getByRole('button', { name: 'Excluir minha conta' }).click();
     const dialog = page.getByRole('dialog');
+    await expectAccessibleSettled(page);
     await dialog.locator('input').fill(PASSWORD);
     await dialog.getByRole('button', { name: 'Excluir minha conta' }).click();
     await expect(page.getByText('Sua conta foi excluída.')).toBeVisible();
+  });
+
+  test('telas da conta passam no axe @a11y', async ({ page }, testInfo) => {
+    for (const path of ['/entrar', '/esqueci-minha-senha']) {
+      await open(page, path);
+      await expectAccessible(page);
+    }
+    await createAccount(page, uniqueEmail('axe', testInfo));
+    for (const tab of ['endereco', 'seguranca']) {
+      await open(page, `/perfil?aba=${tab}`);
+      await expect(page.getByRole('tabpanel').getByRole('button').first()).toBeVisible();
+      await expectAccessibleSettled(page);
+    }
   });
 });

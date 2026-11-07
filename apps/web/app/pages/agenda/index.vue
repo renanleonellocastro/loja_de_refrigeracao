@@ -7,7 +7,8 @@ import { dayRange, etagOf, storeDay, technicianColor, toCalendarEvent, type Pers
  * UC Consultar Agenda (RF-35): month, week, day and list on desktop, week on tablets and a day list with swipe
  * on phones. Management sees every technician in its color and can filter; technicians see their own visits.
  * With ?solicitacao={id} the management schedules an approved request (UC Cadastrar Serviço na Agenda) and on
- * desktop moves visits by drag and drop (UC Alterar Serviço na Agenda).
+ * desktop moves visits by drag and drop (UC Alterar Serviço na Agenda). Visits of removed technicians are
+ * listed on top for management to pass to someone else.
  */
 definePageMeta({ layout: 'area', permission: 'appointments.read', title: 'Agenda' });
 
@@ -198,13 +199,15 @@ onMounted(() => {
     >
       <li v-for="person in technicians" :key="person.id" class="flex items-center gap-2 text-text">
         <span
+          v-dynamic-style="{ 'background-color': technicianColor(person.id) }"
           class="size-3 rounded-full"
-          :style="{ backgroundColor: technicianColor(person.id) }"
           aria-hidden="true"
         />
         {{ person.name }}
       </li>
     </ul>
+
+    <AgendaReassignments v-if="manage" />
 
     <BaseAlert v-if="pendingFailed" tone="danger" title="Não encontramos a solicitação">
       Confira o número ou abra pela lista de solicitações.

@@ -11,6 +11,7 @@ import {
   mapsUrl,
   storeDay,
   technicianColor,
+  technicianName,
 } from '~/utils/agenda';
 import type { ConfirmOptions } from '~/composables/useConfirm';
 import { holdWhile, runOrToast } from '~/composables/useScreenAction';
@@ -134,11 +135,11 @@ onMounted(load);
           </p>
           <p class="mt-1 flex items-center gap-2 text-sm text-text">
             <span
+              v-dynamic-style="{ 'background-color': technicianColor(appointment.employee.id) }"
               class="size-3 rounded-full"
-              :style="{ backgroundColor: technicianColor(appointment.employee.id) }"
               aria-hidden="true"
             />
-            Técnico: {{ appointment.employee.name }}
+            Técnico: {{ technicianName(appointment) }}
           </p>
         </div>
         <BaseStatusBadge
@@ -158,6 +159,15 @@ onMounted(load);
           Excluir
         </BaseButton>
       </div>
+
+      <BaseAlert
+        v-if="canManage && appointment.needsReassignment"
+        tone="warning"
+        title="O técnico deste atendimento foi excluído"
+        data-testid="needs-reassignment"
+      >
+        Escolha outro técnico em Remarcar. O cliente e o novo técnico são avisados.
+      </BaseAlert>
 
       <BaseAlert
         v-if="appointment.report?.status === 'REWORK'"

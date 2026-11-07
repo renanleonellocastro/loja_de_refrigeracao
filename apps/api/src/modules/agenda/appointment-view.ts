@@ -50,6 +50,11 @@ function reportView(report: ReportRow | null, photos: readonly Photo[]) {
   };
 }
 
+/** Same rule as AWAITING_REASSIGNMENT in repository.ts: an unfinished visit of a removed technician. */
+export function needsReassignment({ employee, request, report }: AppointmentDetails): boolean {
+  return employee.deletedAt !== null && request.status === 'SCHEDULED' && report?.status !== 'SUBMITTED';
+}
+
 export function toAppointmentView(row: AppointmentDetails, photos: readonly Photo[] = []) {
   const { appointment } = row;
   return {
@@ -57,7 +62,8 @@ export function toAppointmentView(row: AppointmentDetails, photos: readonly Phot
     startsAt: appointment.startsAt,
     endsAt: appointment.endsAt,
     version: appointment.version,
-    employee: row.employee,
+    employee: { id: row.employee.id, name: row.employee.name },
+    needsReassignment: needsReassignment(row),
     request: requestView(row),
     report: reportView(row.report, photos),
   };

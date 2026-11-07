@@ -127,11 +127,11 @@ const CONTROL =
           @wheel.prevent="gestures.wheel($event)"
         >
           <div
+            v-dynamic-style="{ transform: view.transform }"
             class="size-full will-change-transform"
             :class="{
               'transition-transform duration-200 ease-out motion-reduce:transition-none': isAnimated,
             }"
-            :style="{ transform: view.transform }"
           >
             <CatalogProductImage
               :key="image.id"

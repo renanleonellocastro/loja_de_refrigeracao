@@ -25,6 +25,20 @@ export default tseslint.config(
     languageOptions: { parserOptions: { parser: tseslint.parser } },
   },
   {
+    // The CSP blocks style attributes (no 'unsafe-inline' in style-src, docs/SEGURANCA.md).
+    files: ['apps/web/app/**/*.vue'],
+    rules: {
+      'vue/no-restricted-v-bind': [
+        'error',
+        { argument: 'style', message: 'Use classes or v-dynamic-style: the CSP blocks style attributes.' },
+      ],
+      'vue/no-restricted-static-attribute': [
+        'error',
+        { key: 'style', message: 'Use classes: the CSP blocks style attributes.' },
+      ],
+    },
+  },
+  {
     files: ['**/*.cjs'],
     languageOptions: { sourceType: 'commonjs' },
     rules: { '@typescript-eslint/no-require-imports': 'off' },
@@ -59,6 +73,11 @@ export default tseslint.config(
     // Tests declare small probe components next to each other.
     files: ['apps/web/test/**/*.ts'],
     rules: { 'vue/one-component-per-file': 'off' },
+  },
+  {
+    // k6 scripts run in the k6 runtime, which injects these globals (docs/TESTES.md, load test).
+    files: ['tools/load/**/*.js'],
+    languageOptions: { globals: { __ENV: 'readonly', __VU: 'readonly', __ITER: 'readonly' } },
   },
   {
     languageOptions: { globals: { ...globals.node, ...globals.browser } },

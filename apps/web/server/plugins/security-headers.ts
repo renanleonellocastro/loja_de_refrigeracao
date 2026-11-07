@@ -13,7 +13,7 @@ function sendSecurityHeaders(event: RequestEvent): void {
   if (!import.meta.dev) setResponseHeader(event, 'strict-transport-security', HSTS);
 }
 
-function addNonceToScripts(html: NuxtRenderHTMLContext, nonce: string): void {
+function addNonceToInlineTags(html: NuxtRenderHTMLContext, nonce: string): void {
   for (const part of HTML_PARTS) {
     html[part] = html[part].map((fragment) => withNonce(fragment, nonce));
   }
@@ -22,7 +22,7 @@ function addNonceToScripts(html: NuxtRenderHTMLContext, nonce: string): void {
 function applyContentSecurityPolicy(html: NuxtRenderHTMLContext, event: RequestEvent): void {
   if (import.meta.dev) return;
   const nonce = randomBytes(NONCE_BYTES).toString('base64');
-  addNonceToScripts(html, nonce);
+  addNonceToInlineTags(html, nonce);
   const { apiBase } = useRuntimeConfig(event).public;
   setResponseHeader(event, 'content-security-policy', contentSecurityPolicy(nonce, apiBase));
 }

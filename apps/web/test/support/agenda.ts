@@ -1,4 +1,4 @@
-import type { CalendarOptions } from '@fullcalendar/core';
+import type { CalendarOptions } from '@fullcalendar/vue3';
 import { defineComponent, h, watchEffect } from 'vue';
 import type { Appointment, ServiceReport } from '~/utils/agenda';
 import { IMAGE } from './shop';
@@ -28,6 +28,7 @@ export const appointment = (
     endsAt: '2026-10-07T13:00:00.000Z',
     version: 1,
     employee: { id: 3, name: 'Tiago Técnico' },
+    needsReassignment: false,
     report: null,
     ...rest,
     request: {

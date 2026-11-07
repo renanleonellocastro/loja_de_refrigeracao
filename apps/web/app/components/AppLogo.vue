@@ -8,16 +8,23 @@ const props = withDefaults(defineProps<{ variant?: 'full' | 'symbol'; relief?: b
   variant: 'full',
 });
 
+// The mask is a class and not a style binding: the CSP blocks style attributes (docs/SEGURANCA.md).
 const LOGOS = {
-  full: { relief: '/brand/logo-prata.svg', mask: '/brand/logo-mono.svg', width: 1363, height: 436 },
-  symbol: { relief: '/brand/simbolo-prata.svg', mask: '/brand/simbolo-azul.svg', width: 480, height: 480 },
+  full: {
+    relief: '/brand/logo-prata.svg',
+    mask: 'aspect-[1363/436] [mask:url(/brand/logo-mono.svg)_center/contain_no-repeat]',
+    width: 1363,
+    height: 436,
+  },
+  symbol: {
+    relief: '/brand/simbolo-prata.svg',
+    mask: 'aspect-square [mask:url(/brand/simbolo-azul.svg)_center/contain_no-repeat]',
+    width: 480,
+    height: 480,
+  },
 } as const;
 
 const logo = computed(() => LOGOS[props.variant]);
-const maskStyle = computed(() => ({
-  aspectRatio: `${logo.value.width} / ${logo.value.height}`,
-  mask: `url(${logo.value.mask}) center / contain no-repeat`,
-}));
 </script>
 
 <template>
@@ -34,6 +41,6 @@ const maskStyle = computed(() => ({
     role="img"
     aria-label="Refrigeração Castro"
     class="inline-block bg-current"
-    :style="maskStyle"
+    :class="logo.mask"
   />
 </template>

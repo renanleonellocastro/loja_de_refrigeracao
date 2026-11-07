@@ -16,7 +16,8 @@ TRACEABILITY_REPORT = apps/e2e/test-results/traceability.json
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list traceability traceability-check traceability-report zap zap-down
+	function-length function-length-list load traceability traceability-check traceability-report zap zap-down \
+	backup restore-test backup-test
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
@@ -65,6 +66,10 @@ function-length: ## Strict: fails on any function past 12 lines
 function-length-list: ## Every function past 12 lines, longest first
 	$(FUNCTION_LENGTH) --list
 
+# Not part of `check`: it takes about four minutes and needs the PostgreSQL of infra/compose.yaml (pnpm db:up).
+load: packages ## k6 load test of RNF-10: 50 users, 10 thousand products, 50 thousand orders (docs/TESTES.md)
+	infra/load-test.sh
+
 # The production images behind Caddy on a private network; ZAP writes to infra/zap/reports/ as uid 1000.
 zap: ## OWASP ZAP baseline scan of the production stack built locally (docs/TESTES.md)
 	mkdir -p infra/zap/reports && chmod a+w infra/zap/reports
@@ -83,3 +88,13 @@ traceability: traceability-report ## Write docs/RASTREABILIDADE.md from docs/REQ
 
 traceability-check: traceability-report ## Fails when a requirement has no E2E test or docs/RASTREABILIDADE.md is stale
 	$(TRACEABILITY) --check --report $(TRACEABILITY_REPORT)
+
+# docs/OPERACAO.md section 5. Settings come from the environment or the BACKUP_* lines of infra/.env.production.
+backup: ## Backup of the production stack: database, counts and photos in a dated folder, with retention
+	infra/backup/backup.sh
+
+restore-test: ## Restore BACKUP=<folder> into a fresh database and check row counts and a sample photo
+	infra/backup/restore-test.sh $(BACKUP)
+
+backup-test: packages ## Backup and restore test against a throwaway stack with the sample data
+	infra/backup/backup-test.sh

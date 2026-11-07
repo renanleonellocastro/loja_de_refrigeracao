@@ -1,6 +1,9 @@
 # Production stack: PostgreSQL, API, worker, site and Caddy (automatic HTTPS and compression).
-# Usage (docs/OPERACAO.md): copy infra/env.production.sample to infra/.env.production, fill it, then
-#   docker compose -f infra/compose.production.yaml --env-file infra/.env.production up -d --build
+# Usage (docs/OPERACAO.md): copy infra/env.production.sample to infra/.env.production, fill it (IMAGE_TAG picks the
+# version published to GHCR by .github/workflows/images.yml), then
+#   docker compose -f infra/compose.production.yaml --env-file infra/.env.production pull
+#   docker compose -f infra/compose.production.yaml --env-file infra/.env.production up -d
+# Without IMAGE_TAG the images are tagged "local" and built from the sources with `up -d --build`.
 name: refrigeracao-castro-prod
 
 x-api-env: &api-env
@@ -39,7 +42,7 @@ services:
       retries: 30
 
   api:
-    image: ${API_IMAGE:-refrigeracao-castro-api:latest}
+    image: ghcr.io/renanleonellocastro/refrigeracao-castro-api:${IMAGE_TAG:-local}
     build:
       context: ..
       dockerfile: infra/docker/api.Dockerfile
@@ -52,7 +55,7 @@ services:
         condition: service_healthy
 
   worker:
-    image: ${API_IMAGE:-refrigeracao-castro-api:latest}
+    image: ghcr.io/renanleonellocastro/refrigeracao-castro-api:${IMAGE_TAG:-local}
     restart: unless-stopped
     command: ['node', 'dist/worker.js']
     environment: *api-env
@@ -65,7 +68,7 @@ services:
         condition: service_healthy
 
   web:
-    image: ${WEB_IMAGE:-refrigeracao-castro-web:latest}
+    image: ghcr.io/renanleonellocastro/refrigeracao-castro-web:${IMAGE_TAG:-local}
     build:
       context: ..
       dockerfile: infra/docker/web.Dockerfile

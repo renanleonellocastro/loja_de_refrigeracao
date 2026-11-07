@@ -342,8 +342,8 @@ onMounted(() => Promise.all([loadTypes(), loadProfile()]));
         </p>
         <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-sunken md:hidden" aria-hidden="true">
           <div
+            v-dynamic-style="{ width: `${((current + 1) / steps.length) * 100}%` }"
             class="h-full rounded-full bg-primary transition-[width] duration-300"
-            :style="{ width: `${((current + 1) / steps.length) * 100}%` }"
           />
         </div>
         <ol class="hidden gap-2 md:flex">

@@ -1,5 +1,6 @@
 import { devices, expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { expectAccessibleSettled } from '../support/a11y.js';
+import { uniqueEmail } from '../support/identity.js';
 import { deviceOf, open } from '../support/viewport.js';
 
 // Runs against the real API started by `pnpm --filter @rc/api e2e:stack` (development seed).
@@ -8,6 +9,7 @@ const PASSWORD = 'Castro-Dev-2026';
 const CUSTOMER = 'cliente@castro.dev';
 const MANAGER = 'gerente@castro.dev';
 const TECHNICIAN = 'tecnico@castro.dev';
+const ADMIN = 'admin@castro.dev';
 const PIXEL = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
   'base64',
@@ -90,6 +92,43 @@ async function approvedRequest(request: APIRequestContext, problem: string): Pro
   return id;
 }
 
+/** A valid CPF that no other run used, since every device project writes to the same database. */
+function uniqueCpf(): string {
+  const base = String(Date.now() + Math.floor(Math.random() * 1000)).slice(-9);
+  const digit = (digits: string, start: number) => {
+    const sum = [...digits].reduce((acc, char, i) => acc + Number(char) * (start - i), 0);
+    const rest = sum % 11;
+    return rest < 2 ? 0 : 11 - rest;
+  };
+  const first = digit(base, 10);
+  return `${base}${first}${digit(`${base}${first}`, 11)}`;
+}
+
+/** A technician of this run only (only the super user registers staff), so deleting them touches no other test. */
+async function newTechnician(request: APIRequestContext, name: string, email: string): Promise<number> {
+  const created = await request.post(`${API}/api/v1/users`, {
+    headers: { authorization: `Bearer ${await token(request, ADMIN)}` },
+    data: { role: 'EMPLOYEE', name, email, cpf: uniqueCpf() },
+  });
+  expect(created.status()).toBe(201);
+  return ((await created.json()) as { id: number }).id;
+}
+
+/** The approved request on the agenda of the technician, at its own slot (see visitSlot). */
+async function scheduleVisit(
+  request: APIRequestContext,
+  requestId: number,
+  employeeId: number,
+): Promise<number> {
+  const { day, hour } = visitSlot(requestId);
+  const created = await request.post(`${API}/api/v1/appointments`, {
+    headers: { authorization: `Bearer ${await token(request, MANAGER)}` },
+    data: { serviceRequestId: requestId, employeeId, startsAt: `${day}T${hour}:00:00-03:00` },
+  });
+  expect(created.status()).toBe(201);
+  return ((await created.json()) as { id: number }).id;
+}
+
 // The requirements this journey covers, read by tools/traceability for docs/RASTREABILIDADE.md.
 const REQUIREMENTS = { tag: ['@RF-27', '@RF-28', '@RF-29', '@RF-30', '@RF-31'] };
 
@@ -147,7 +186,7 @@ test.describe('RF-27 a RF-31 agenda, finalização e aprovação', REQUIREMENTS,
     if (deviceOf(testInfo) === 'celular') {
       await expect(page.getByRole('button', { name: 'Próximo dia' })).toBeVisible();
     } else {
-      await expect(page.locator('.fc-timegrid')).toBeVisible();
+      await expect(page.locator('.rc-fc-timeGridWeek')).toBeVisible();
     }
     await expectAccessibleSettled(page);
 
@@ -216,6 +255,52 @@ test.describe('RF-27 a RF-31 agenda, finalização e aprovação', REQUIREMENTS,
     await open(page, `/agenda/${appointmentId}`);
     await expect(page.locator('[data-status="COMPLETED"]')).toBeVisible();
     await expect(page.getByTestId('report-amount')).toHaveText('R$ 180,00');
+    await expectAccessibleSettled(page);
+  });
+});
+
+test.describe('RF-08 atendimentos de técnico excluído', { tag: ['@RF-08', '@RF-29'] }, () => {
+  test('o super usuário exclui o técnico e a gerência passa a visita para outro', async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.slow();
+    const stamp = `${testInfo.project.name} ${crypto.randomUUID()}`;
+    const requestId = await approvedRequest(request, `Freezer sem gelar (${stamp}).`);
+    const employeeId = await newTechnician(
+      request,
+      `Técnico Saindo ${testInfo.project.name}`,
+      uniqueEmail('saindo', testInfo),
+    );
+    const appointmentId = await scheduleVisit(request, requestId, employeeId);
+
+    // The super user deletes the technician, who still had this visit ahead.
+    await signIn(page, ADMIN);
+    await open(page, `/colaboradores/${employeeId}`);
+    await page.getByRole('button', { name: 'Excluir colaborador' }).click();
+    const confirm = page.getByRole('dialog', { name: 'Excluir este colaborador?' });
+    await expect(confirm).toContainText('ficam na agenda como sem técnico');
+    await confirm.getByRole('button', { name: 'Excluir colaborador' }).click();
+    await expect(page).toHaveURL(/\/colaboradores$/);
+
+    // The management sees the visit flagged on the agenda and passes it to another technician.
+    await signOut(page);
+    await signIn(page, MANAGER);
+    await open(page, '/agenda');
+    const warning = page.getByTestId('reassignments');
+    await expect(warning.locator(`a[href="/agenda/${appointmentId}"]`)).toBeVisible();
+    await expectAccessibleSettled(page);
+    await warning.locator(`a[href="/agenda/${appointmentId}"]`).click();
+    await expect(page.getByTestId('needs-reassignment')).toBeVisible();
+    await expect(page.getByText('Técnico: Sem técnico')).toBeVisible();
+    await expectAccessibleSettled(page);
+    await page.getByRole('button', { name: 'Remarcar' }).click();
+    const edit = page.getByRole('dialog', { name: 'Remarcar atendimento' });
+    await expect(edit.getByRole('combobox', { name: 'Técnico' })).toHaveValue('');
+    await edit.getByRole('combobox', { name: 'Técnico' }).selectOption({ label: 'Paulo Técnico' });
+    await edit.getByRole('button', { name: 'Salvar alteração' }).click();
+    await expect(page.getByText('Técnico: Paulo Técnico')).toBeVisible();
+    await expect(page.getByTestId('needs-reassignment')).toHaveCount(0);
     await expectAccessibleSettled(page);
   });
 });
