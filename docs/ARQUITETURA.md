@@ -105,7 +105,7 @@ Solicitação (`REQUESTED`) → conversa → aprovação → `POST /api/v1/appoi
 
 ## 4. Desempenho
 
-* Consultas com índices definidos junto das migrações (busca de produtos com `pg_trgm` para nome, marca e modelo; índices por estado e data nas filas).
+* Consultas com índices definidos junto das migrações (busca de produtos com `pg_trgm` para nome, marca e modelo; índices por estado e data nas filas; índice em toda chave estrangeira que uma consulta filtra, como os itens de um pedido).
 * Paginação com `limit` máximo de 100; listas grandes da equipe usam cursor.
 * `ETag` nas leituras públicas de catálogo e `Cache-Control` adequado; imagens com nome por conteúdo e cache de um ano.
 * Nuxt: SSR com cache por rota nas páginas públicas, divisão de código por rota, `@nuxt/image` para variantes responsivas, fontes auto hospedadas com `font-display: swap` e subconjunto latino.

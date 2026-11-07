@@ -43,6 +43,13 @@
       "when": 1793995568393,
       "tag": "0005_audit_logs_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794051542821,
+      "tag": "0006_foreign_key_indexes",
+      "breakpoints": true
     }
   ]
 }
