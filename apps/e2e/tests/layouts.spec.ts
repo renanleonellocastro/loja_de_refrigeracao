@@ -43,9 +43,13 @@ test.describe('RNF-01 e RNF-02 layout público', () => {
     await expect(drawer).toBeHidden();
     await expect(toggle).toBeFocused();
   });
+});
+
+test.describe('RNF-01 a partir de 320 px', () => {
+  // The page opens at 320 px instead of resizing: Firefox never finishes setViewportSize on an emulated phone or tablet.
+  test.use({ viewport: { width: 320, height: 640 } });
 
   test('sem rolagem horizontal a partir de 320 px', async ({ page }) => {
-    await page.setViewportSize({ width: 320, height: 640 });
     for (const path of ['/', '/design', '/design/area?papel=ADMIN', '/pagina-que-nao-existe']) {
       await open(page, path);
       expect(await hasHorizontalScroll(page), path).toBe(false);

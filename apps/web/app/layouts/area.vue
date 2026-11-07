@@ -20,10 +20,12 @@ const title = computed(() => {
     <LayoutAreaSideNav :navigation="navigation" />
     <div class="flex min-w-0 flex-1 flex-col">
       <LayoutAreaTopBar :title="title" />
+      <!-- The bottom padding keeps the last buttons of a page clear of the bottom bar on phones and of the toasts in the
+           bottom right corner from tablet up, so a person can always scroll the next step out from under a toast. -->
       <main
         id="conteudo"
         tabindex="-1"
-        class="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] outline-none md:px-8 md:pt-8 md:pb-12"
+        class="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] outline-none md:px-8 md:pt-8 md:pb-28"
       >
         <slot />
       </main>
