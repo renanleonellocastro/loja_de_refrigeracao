@@ -1,0 +1,7 @@
+# Throwaway stack of the backup test (backup-test.sh, `make backup-test`), layered over
+# infra/compose.production.yaml so the backup runs against the same services as production. Only PostgreSQL
+# gets a host port, for the development seed that fills it with sample data and photos.
+services:
+  postgres:
+    ports:
+      - '127.0.0.1:${BACKUP_TEST_POSTGRES_PORT:-5487}:5432'

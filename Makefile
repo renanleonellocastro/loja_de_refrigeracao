@@ -13,7 +13,8 @@ FUNCTION_LENGTH = tools/quality/node_modules/.bin/tsx tools/quality/src/cli.ts
 
 .DEFAULT_GOAL := help
 .PHONY: help check packages contracts lint depcruise typecheck test test-db test-db-down web \
-	function-length function-length-list load zap zap-down
+	function-length function-length-list load zap zap-down \
+	backup restore-test backup-test
 
 help: ## List the targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "} {printf "  %-26s %s\n", $$1, $$2}'
@@ -74,3 +75,13 @@ zap: ## OWASP ZAP baseline scan of the production stack built locally (docs/TEST
 
 zap-down: ## Remove the containers and volumes of the ZAP stack
 	$(ZAP_COMPOSE) --profile scan down --volumes --remove-orphans
+
+# docs/OPERACAO.md section 5. Settings come from the environment or the BACKUP_* lines of infra/.env.production.
+backup: ## Backup of the production stack: database, counts and photos in a dated folder, with retention
+	infra/backup/backup.sh
+
+restore-test: ## Restore BACKUP=<folder> into a fresh database and check row counts and a sample photo
+	infra/backup/restore-test.sh $(BACKUP)
+
+backup-test: packages ## Backup and restore test against a throwaway stack with the sample data
+	infra/backup/backup-test.sh
