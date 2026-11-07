@@ -47,6 +47,8 @@ test.describe('RF-24 tipos de reparo e manutenção', () => {
   test('o super usuário cadastra, altera, desativa e exclui um tipo de serviço', async ({
     page,
   }, testInfo) => {
+    // Create, edit, toggle twice and delete with accessibility scans: WebKit on the CI runner passes the default 30 s.
+    test.slow();
     // Every device project writes to the same database, so the name is unique per run.
     const name = `Revisão ${testInfo.project.name} ${Date.now()}`;
     const edited = `${name} completa`;
