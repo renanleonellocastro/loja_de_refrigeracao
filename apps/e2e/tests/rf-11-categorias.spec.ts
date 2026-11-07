@@ -18,6 +18,18 @@ async function nameDialog(page: Page, title: string, name: string, action: strin
   await dialog.getByRole('button', { name: action }).click();
 }
 
+// The new order carries every category id, so a category created or deleted at the same time by a test on
+// another device makes the API refuse it (422); the move is tried again on a fresh list.
+async function moveUp(page: Page, name: string): Promise<void> {
+  const position = positionOf(page, name).locator('span').first();
+  await expect(async () => {
+    await page.reload();
+    const before = Number(await position.textContent());
+    await page.getByRole('button', { name: `Subir ${name}` }).click();
+    await expect(position).toHaveText(String(before - 1), { timeout: 2_000 });
+  }).toPass();
+}
+
 test.describe('RF-11 gerenciar categorias de produto', { tag: '@RF-11' }, () => {
   test('o super usuário cria, renomeia, ordena e exclui uma categoria', async ({ page }, testInfo) => {
     const stamp = `${testInfo.project.name} ${crypto.randomUUID().slice(0, 8)}`;
@@ -36,11 +48,7 @@ test.describe('RF-11 gerenciar categorias de produto', { tag: '@RF-11' }, () => 
     await expectAccessibleSettled(page);
 
     // Every device writes the same list, so only one of them reorders it.
-    if (deviceOf(testInfo) === 'desktop') {
-      const before = Number(await positionOf(page, renamed).locator('span').first().textContent());
-      await page.getByRole('button', { name: `Subir ${renamed}` }).click();
-      await expect(positionOf(page, renamed).locator('span').first()).toHaveText(String(before - 1));
-    }
+    if (deviceOf(testInfo) === 'desktop') await moveUp(page, renamed);
 
     await page.getByRole('button', { name: `Excluir ${renamed}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Excluir categoria' }).click();

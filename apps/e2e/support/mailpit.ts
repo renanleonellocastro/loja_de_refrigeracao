@@ -4,6 +4,10 @@ import { expect, type APIRequestContext } from '@playwright/test';
 const MAILPIT = process.env.E2E_MAILPIT_URL ?? 'http://localhost:8025';
 // The worker polls the outbox every few seconds, so an email can take a while to arrive.
 const DELIVERY_TIMEOUT = 20_000;
+// Ids restart with every E2E database, so an earlier local run may have left an email with the same subject in
+// Mailpit. Only emails received after this worker started count; the slack absorbs the clock of the container.
+const CLOCK_SLACK = 5_000;
+const WORKER_START = Date.now() - CLOCK_SLACK;
 
 export interface Email {
   readonly subject: string;
@@ -14,6 +18,7 @@ export interface Email {
 interface Summary {
   readonly ID: string;
   readonly Subject: string;
+  readonly Created: string;
 }
 
 interface Message {
@@ -29,7 +34,8 @@ async function search(request: APIRequestContext, to: string): Promise<Summary[]
 }
 
 async function findId(request: APIRequestContext, to: string, subject: string): Promise<string | undefined> {
-  return (await search(request, to)).find((message) => message.Subject === subject)?.ID;
+  const fresh = (message: Summary) => Date.parse(message.Created) >= WORKER_START;
+  return (await search(request, to)).find((message) => message.Subject === subject && fresh(message))?.ID;
 }
 
 /** Waits for the email with exactly this subject sent to this address and returns its content. */
