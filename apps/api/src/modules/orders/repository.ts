@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, ilike, inArray, lte, sql, sum, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, sql, type SQL } from 'drizzle-orm';
 import type { Executor } from '../../infra/db/client.js';
 import { cartItems, orderEvents, orderItems, orders, users } from '../../infra/db/schema.js';
 import { normalizeText, onlyDigits } from '../../shared/text.js';
@@ -127,32 +127,21 @@ function statusCondition(statuses: OrderStatus[] | undefined): SQL | undefined {
   return statuses?.length ? inArray(orders.status, statuses) : undefined;
 }
 
-function itemCountsByOrder(db: Executor) {
-  return db
-    .select({ orderId: orderItems.orderId, quantity: sum(orderItems.quantity).as('quantity') })
-    .from(orderItems)
-    .groupBy(orderItems.orderId)
-    .as('item_count');
-}
+/** Units in the order, counted per listed row so only the page's orders are read (order_items_order_idx). */
+const itemCountOfOrder = sql<number>`coalesce((select sum(${orderItems.quantity}) from ${orderItems} where ${orderItems.orderId} = ${orders.id}), 0)::int`;
 
-type ItemCounts = ReturnType<typeof itemCountsByOrder>;
-
-function listColumns(itemCount: ItemCounts) {
-  return {
-    order: orders,
-    customerName: users.name,
-    customerDeleted: sql<boolean>`${users.deletedAt} is not null`,
-    itemCount: sql<number>`coalesce(${itemCount.quantity}, 0)::int`,
-  };
-}
+const LIST_COLUMNS = {
+  order: orders,
+  customerName: users.name,
+  customerDeleted: sql<boolean>`${users.deletedAt} is not null`,
+  itemCount: itemCountOfOrder,
+};
 
 function pageOfOrders(db: Executor, where: SQL | undefined, filters: OrderFilters) {
-  const itemCount = itemCountsByOrder(db);
   return db
-    .select(listColumns(itemCount))
+    .select(LIST_COLUMNS)
     .from(orders)
     .innerJoin(users, eq(users.id, orders.customerId))
-    .leftJoin(itemCount, eq(itemCount.orderId, orders.id))
     .where(where)
     .orderBy(desc(orders.createdAt), desc(orders.id))
     .limit(filters.limit)

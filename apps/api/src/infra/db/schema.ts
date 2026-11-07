@@ -240,18 +240,22 @@ export const orders = pgTable(
   ],
 );
 
-export const orderItems = pgTable('order_items', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  orderId: integer()
-    .notNull()
-    .references(() => orders.id, { onDelete: 'cascade' }),
-  productId: integer()
-    .notNull()
-    .references(() => products.id),
-  productName: text().notNull(),
-  unitPriceCents: money().notNull(),
-  quantity: integer().notNull(),
-});
+export const orderItems = pgTable(
+  'order_items',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    orderId: integer()
+      .notNull()
+      .references(() => orders.id, { onDelete: 'cascade' }),
+    productId: integer()
+      .notNull()
+      .references(() => products.id),
+    productName: text().notNull(),
+    unitPriceCents: money().notNull(),
+    quantity: integer().notNull(),
+  },
+  (t) => [index('order_items_order_idx').on(t.orderId), index('order_items_product_idx').on(t.productId)],
+);
 
 export const orderEvents = pgTable(
   'order_events',
@@ -354,6 +358,7 @@ export const quotes = pgTable(
   (t) => [
     index('quotes_customer_idx').on(t.customerId),
     index('quotes_status_idx').on(t.status, t.createdAt),
+    index('quotes_service_type_idx').on(t.serviceTypeId),
   ],
 );
 
@@ -385,6 +390,8 @@ export const serviceRequests = pgTable(
   (t) => [
     index('service_requests_customer_idx').on(t.customerId),
     index('service_requests_status_idx').on(t.status, t.createdAt),
+    index('service_requests_service_type_idx').on(t.serviceTypeId),
+    index('service_requests_quote_idx').on(t.quoteId),
   ],
 );
 
@@ -525,6 +532,7 @@ export const auditLogs = pgTable(
   (t) => [
     index('audit_logs_created_idx').on(t.createdAt),
     index('audit_logs_resource_idx').on(t.resourceType, t.resourceId),
+    index('audit_logs_actor_idx').on(t.actorId, t.createdAt),
   ],
 );
 
