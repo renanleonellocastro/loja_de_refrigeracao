@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { can } from '@rc/contracts';
-import { Archive, ArchiveRestore, ArrowLeft, ExternalLink, RefreshCw, Trash2 } from 'lucide-vue-next';
+import { Archive, ArchiveRestore, ArrowLeft, ExternalLink, Trash2 } from 'lucide-vue-next';
 import type { ConfirmOptions } from '~/composables/useConfirm';
 import { holdWhile, runOrToast } from '~/composables/useScreenAction';
-import type { ProductForm } from '~/utils/products';
+import { PRODUCT_FORM_STEPS, type ProductForm } from '~/utils/products';
 
 /**
  * UCs Editar, Arquivar, Excluir e Desarquivar Produto, Gerenciar Fotos and Movimentar Estoque (RF-12 to RF-16).
- * Editing sends If-Match with the version on screen; a 412 means someone else saved first.
+ * Editing sends If-Match with the version on screen; a 412 means someone else saved first and the page shows the
+ * differences. On the phone the form shows one step at a time, any step can be opened and saving works from all.
  */
 definePageMeta({ layout: 'area', permission: 'products.manage', title: 'Produto' });
 
@@ -38,7 +39,6 @@ const product = ref<ProductDetail | null>(null);
 const categories = ref<Category[]>([]);
 const failed = ref(false);
 const notFound = ref(false);
-const conflict = ref(false);
 const busy = ref(false);
 const canDelete = computed(() => can(auth.actor, 'products.delete'));
 
@@ -50,7 +50,14 @@ const TABS: TabItem[] = [
 const tab = ref(TABS.some((item) => item.value === route.query.aba) ? String(route.query.aba) : 'dados');
 watch(tab, (value) => void router.replace({ query: { ...route.query, aba: value } }));
 
-const form = useForm(productFormFrom(null), { validate: (values) => validateProductForm(values, false) });
+/** The same checks run on save and, on the phone, for the step on screen before moving on. */
+const validate = (): FieldErrors => validateProductForm(form.values, false);
+const form = useForm(productFormFrom(null), { validate });
+const steps = useFormSteps(PRODUCT_FORM_STEPS, {
+  errors: form.errors,
+  validate,
+  free: true,
+});
 
 useHead({ title: computed(() => `${product.value?.name ?? 'Produto'} | Refrigeração Castro`) });
 
@@ -59,17 +66,17 @@ function show(next: ProductDetail): void {
   form.reset(productFormFrom(next));
 }
 
-function fetchProductAndCategories() {
+function fetchProduct(): Promise<ProductDetail> {
   const id = String(Number(route.params.id));
-  return Promise.all([
-    unwrap(api.GET('/api/v1/products/{id}', { params: { path: { id } } })),
-    unwrap(api.GET('/api/v1/categories')),
-  ]);
+  return unwrap(api.GET('/api/v1/products/{id}', { params: { path: { id } } }));
+}
+
+function fetchProductAndCategories() {
+  return Promise.all([fetchProduct(), unwrap(api.GET('/api/v1/categories'))]);
 }
 
 async function load(): Promise<void> {
   failed.value = false;
-  conflict.value = false;
   try {
     const [detail, list] = await fetchProductAndCategories();
     categories.value = list;
@@ -90,20 +97,29 @@ function patchProduct(values: ProductForm): Promise<ProductDetail> {
   );
 }
 
-/** A 412 means someone else saved first: the page offers to reload instead of overwriting. */
+const conflict = useProductConflict({
+  product,
+  categories,
+  form,
+  fetchSaved: fetchProduct,
+  show,
+  reload: load,
+});
+
+/** A 412 means someone else saved first: the page shows the differences instead of overwriting. */
 async function saveValues(values: ProductForm): Promise<void> {
   try {
     show(await patchProduct(values));
     toast.success({ title: 'Alterações salvas.' });
   } catch (error) {
     if (toApiError(error).status !== HTTP_PRECONDITION_FAILED) throw error;
-    conflict.value = true;
+    await conflict.report();
   }
 }
 
 async function save(): Promise<void> {
-  conflict.value = false;
-  await form.submit(saveValues);
+  conflict.close();
+  if (!(await form.submit(saveValues))) await steps.revealFirstError();
 }
 
 async function showRemoval(result: string): Promise<void> {
@@ -211,17 +227,19 @@ onMounted(load);
         <template #dados>
           <BaseCard>
             <form id="product-edit-form" class="flex flex-col gap-5" novalidate @submit.prevent="save">
-              <BaseAlert v-if="conflict" tone="warning" title="Outra pessoa alterou este produto">
-                Enquanto você editava, alguém salvou outra versão. Carregue a versão atual, confira e salve de
-                novo.
-                <div class="mt-3">
-                  <BaseButton variant="secondary" size="sm" @click="load">
-                    <RefreshCw class="size-4" aria-hidden="true" />
-                    Carregar versão atual
-                  </BaseButton>
-                </div>
-              </BaseAlert>
-              <ProductsFields v-model="form.values" :categories="categories" :errors="form.errors.value" />
+              <ProductsConflict
+                v-if="conflict.open.value"
+                :rows="conflict.rows.value"
+                @keep-mine="conflict.keepMine"
+                @use-saved="conflict.useSaved"
+              />
+              <FormStepNav :steps="steps" />
+              <ProductsFields
+                v-model="form.values"
+                :categories="categories"
+                :errors="form.errors.value"
+                :shows="steps.shows"
+              />
             </form>
             <template #footer>
               <div class="flex justify-end">

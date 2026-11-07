@@ -15,7 +15,7 @@ export const FALLBACK_FOOTER: Omit<StoreFooter, 'appOrigin'> = {
   name: 'Refrigeração Castro',
   phone: '(19) 3804-1658',
   whatsapp: '',
-  address: 'Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP',
+  address: 'Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP',
 };
 
 const LANDLINE_DIGITS = 10;

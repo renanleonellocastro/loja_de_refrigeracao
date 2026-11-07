@@ -46,7 +46,7 @@ async function assertRoomForPhotos(db: Executor, quoteId: number, count: number)
 /** Stores the images one after the other, before the transaction that links them to the quote. */
 async function storeImages(ctx: AppContext, files: Buffer[]): Promise<StoredImage[]> {
   const stored: StoredImage[] = [];
-  for (const file of files) stored.push(await storeImage(ctx.storage, file));
+  for (const file of files) stored.push(await storeImage(ctx, file));
   return stored;
 }
 

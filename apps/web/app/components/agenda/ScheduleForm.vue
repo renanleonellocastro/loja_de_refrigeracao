@@ -13,10 +13,12 @@ import {
   type Availability,
 } from '~/utils/agenda';
 import { durationLabel, formatWindow, sortWindows, type VisitWindow } from '~/utils/service-requests';
+import type { ScheduleDraftTarget } from '~/utils/schedule-draft';
 
 /**
  * UCs Cadastrar and Alterar Serviço na Agenda: technician, day, start and duration, with the busy times of
- * the chosen technician and the days the customer prefers. Editing sends If-Match with the ETag.
+ * the chosen technician and the days the customer prefers. Editing sends If-Match with the ETag. What is
+ * typed is saved on the device as it changes (useScheduleDraft).
  */
 const props = withDefaults(
   defineProps<{
@@ -68,7 +70,14 @@ const futureWindows = computed(() =>
   sortWindows(props.request?.windows ?? []).filter((window) => window.day >= today),
 );
 
-const form = useForm(initialValues(), {
+function draftTarget(): ScheduleDraftTarget {
+  if (props.appointment) return { appointmentId: props.appointment.id, etag: props.etag };
+  return { requestId: props.request!.id };
+}
+
+const draft = useScheduleDraft(draftTarget);
+
+const form = useForm(draft.saved ?? initialValues(), {
   inline: true,
   validate: (values) => {
     const errors: FieldErrors = {};
@@ -79,6 +88,8 @@ const form = useForm(initialValues(), {
     return errors;
   },
 });
+
+draft.follow(() => form.values);
 
 const availability = ref<Availability[]>([]);
 const availabilityFailed = ref(false);
@@ -154,7 +165,13 @@ function fail(status: number, body: unknown): never {
 async function send(): Promise<void> {
   failureStatus.value = 0;
   const ok = await form.submit(save);
-  if (!ok && failureStatus.value === 412) emit('stale');
+  if (ok) draft.clear();
+  else if (failureStatus.value === 412) emit('stale');
+}
+
+function discard(): void {
+  draft.clear();
+  emit('cancel');
 }
 
 const alertTitle = computed(() => {
@@ -169,6 +186,9 @@ const alertTitle = computed(() => {
     <BaseAlert v-if="form.message.value" tone="danger" :title="alertTitle" data-testid="schedule-error">
       {{ form.message.value }}
     </BaseAlert>
+    <p v-if="draft.restored" class="text-sm text-text-muted" data-testid="schedule-draft">
+      Recuperamos o rascunho guardado neste aparelho.
+    </p>
 
     <section v-if="futureWindows.length > 0" aria-labelledby="schedule-windows">
       <h3 id="schedule-windows" class="mb-2 text-sm font-bold text-text">Dias que o cliente prefere</h3>
@@ -233,7 +253,7 @@ const alertTitle = computed(() => {
     </section>
 
     <div class="flex flex-wrap justify-end gap-2">
-      <BaseButton variant="secondary" @click="emit('cancel')">Cancelar</BaseButton>
+      <BaseButton variant="secondary" @click="discard">Cancelar</BaseButton>
       <BaseButton type="submit" :loading="form.pending.value">
         <CalendarCheck class="size-5" aria-hidden="true" />
         {{ isEdit ? 'Salvar alteração' : 'Agendar visita' }}

@@ -2,7 +2,7 @@ import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { connect, runMigrations } from './infra/db/client.js';
 import { createSmtpMailer } from './infra/mail/mailer.js';
-import { createLocalStorage } from './infra/storage/storage.js';
+import { createStorage } from './infra/storage/factory.js';
 import { systemClock } from './shared/clock.js';
 
 const config = loadConfig(process.env);
@@ -12,7 +12,7 @@ const app = await buildApp({
   config,
   db: database.db,
   mailer: createSmtpMailer(config.SMTP_URL, config.MAIL_FROM),
-  storage: createLocalStorage(config.STORAGE_PATH),
+  storage: createStorage(config),
   fetch: globalThis.fetch,
   clock: systemClock,
 });

@@ -82,14 +82,19 @@
           },
           "srcset": {
             "type": "string",
-            "description": "Variantes para o atributo srcset"
+            "description": "Variantes WebP para o atributo srcset"
+          },
+          "avifSrcset": {
+            "type": "string",
+            "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
           }
         },
         "required": [
           "width",
           "height",
           "url",
-          "srcset"
+          "srcset",
+          "avifSrcset"
         ]
       },
       "AppointmentInput": {
@@ -312,7 +317,11 @@
                         },
                         "srcset": {
                           "type": "string",
-                          "description": "Variantes para o atributo srcset"
+                          "description": "Variantes WebP para o atributo srcset"
+                        },
+                        "avifSrcset": {
+                          "type": "string",
+                          "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                         },
                         "id": {
                           "type": "integer",
@@ -325,6 +334,7 @@
                         "height",
                         "url",
                         "srcset",
+                        "avifSrcset",
                         "id"
                       ]
                     }
@@ -462,7 +472,11 @@
           },
           "srcset": {
             "type": "string",
-            "description": "Variantes para o atributo srcset"
+            "description": "Variantes WebP para o atributo srcset"
+          },
+          "avifSrcset": {
+            "type": "string",
+            "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
           },
           "id": {
             "type": "integer",
@@ -483,6 +497,7 @@
           "height",
           "url",
           "srcset",
+          "avifSrcset",
           "id",
           "position",
           "isCover"
@@ -2277,7 +2292,11 @@
                 },
                 "srcset": {
                   "type": "string",
-                  "description": "Variantes para o atributo srcset"
+                  "description": "Variantes WebP para o atributo srcset"
+                },
+                "avifSrcset": {
+                  "type": "string",
+                  "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                 },
                 "id": {
                   "type": "integer",
@@ -2290,6 +2309,7 @@
                 "height",
                 "url",
                 "srcset",
+                "avifSrcset",
                 "id"
               ]
             }
@@ -2605,7 +2625,11 @@
                 },
                 "srcset": {
                   "type": "string",
-                  "description": "Variantes para o atributo srcset"
+                  "description": "Variantes WebP para o atributo srcset"
+                },
+                "avifSrcset": {
+                  "type": "string",
+                  "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                 },
                 "id": {
                   "type": "integer",
@@ -2618,6 +2642,7 @@
                 "height",
                 "url",
                 "srcset",
+                "avifSrcset",
                 "id"
               ]
             }
@@ -3038,14 +3063,19 @@
           },
           "srcset": {
             "type": "string",
-            "description": "Variantes para o atributo srcset"
+            "description": "Variantes WebP para o atributo srcset"
+          },
+          "avifSrcset": {
+            "type": "string",
+            "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
           }
         },
         "required": [
           "width",
           "height",
           "url",
-          "srcset"
+          "srcset",
+          "avifSrcset"
         ],
         "additionalProperties": false
       },
@@ -3285,7 +3315,11 @@
                         },
                         "srcset": {
                           "type": "string",
-                          "description": "Variantes para o atributo srcset"
+                          "description": "Variantes WebP para o atributo srcset"
+                        },
+                        "avifSrcset": {
+                          "type": "string",
+                          "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                         },
                         "id": {
                           "type": "integer",
@@ -3298,6 +3332,7 @@
                         "height",
                         "url",
                         "srcset",
+                        "avifSrcset",
                         "id"
                       ],
                       "additionalProperties": false
@@ -3443,7 +3478,11 @@
           },
           "srcset": {
             "type": "string",
-            "description": "Variantes para o atributo srcset"
+            "description": "Variantes WebP para o atributo srcset"
+          },
+          "avifSrcset": {
+            "type": "string",
+            "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
           },
           "id": {
             "type": "integer",
@@ -3464,6 +3503,7 @@
           "height",
           "url",
           "srcset",
+          "avifSrcset",
           "id",
           "position",
           "isCover"
@@ -5370,7 +5410,11 @@
                 },
                 "srcset": {
                   "type": "string",
-                  "description": "Variantes para o atributo srcset"
+                  "description": "Variantes WebP para o atributo srcset"
+                },
+                "avifSrcset": {
+                  "type": "string",
+                  "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                 },
                 "id": {
                   "type": "integer",
@@ -5383,6 +5427,7 @@
                 "height",
                 "url",
                 "srcset",
+                "avifSrcset",
                 "id"
               ],
               "additionalProperties": false
@@ -5729,7 +5774,11 @@
                 },
                 "srcset": {
                   "type": "string",
-                  "description": "Variantes para o atributo srcset"
+                  "description": "Variantes WebP para o atributo srcset"
+                },
+                "avifSrcset": {
+                  "type": "string",
+                  "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                 },
                 "id": {
                   "type": "integer",
@@ -5742,6 +5791,7 @@
                 "height",
                 "url",
                 "srcset",
+                "avifSrcset",
                 "id"
               ],
               "additionalProperties": false
@@ -7123,6 +7173,7 @@
         "tags": [
           "Imagens"
         ],
+        "description": "Variantes AVIF e WebP geradas pelo worker. Enquanto o worker não termina, responde com a foto original em WebP, sem cache.",
         "parameters": [
           {
             "schema": {
@@ -7136,7 +7187,7 @@
           {
             "schema": {
               "type": "string",
-              "pattern": "^\\d{3,4}\\.webp$"
+              "pattern": "^\\d{3,4}\\.(avif|webp)$"
             },
             "in": "path",
             "name": "file",
@@ -7145,8 +7196,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Imagem WebP",
+            "description": "Imagem AVIF ou WebP",
             "content": {
+              "image/avif": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
               "image/webp": {
                 "schema": {
                   "type": "string",
@@ -10150,7 +10207,11 @@
                       },
                       "srcset": {
                         "type": "string",
-                        "description": "Variantes para o atributo srcset"
+                        "description": "Variantes WebP para o atributo srcset"
+                      },
+                      "avifSrcset": {
+                        "type": "string",
+                        "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                       },
                       "id": {
                         "type": "integer",
@@ -10163,6 +10224,7 @@
                       "height",
                       "url",
                       "srcset",
+                      "avifSrcset",
                       "id"
                     ],
                     "additionalProperties": false
@@ -13822,7 +13884,27 @@
               }
             }
           },
+          "412": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
           "422": {
+            "description": "Default Response",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "428": {
             "description": "Default Response",
             "content": {
               "application/problem+json": {
@@ -14131,6 +14213,7 @@
         "tags": [
           "Agenda"
         ],
+        "description": "Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.",
         "requestBody": {
           "required": true,
           "content": {
@@ -16593,7 +16676,11 @@
                       },
                       "srcset": {
                         "type": "string",
-                        "description": "Variantes para o atributo srcset"
+                        "description": "Variantes WebP para o atributo srcset"
+                      },
+                      "avifSrcset": {
+                        "type": "string",
+                        "description": "Variantes AVIF para o srcset de um <source type=\"image/avif\">"
                       },
                       "id": {
                         "type": "integer",
@@ -16606,6 +16693,7 @@
                       "height",
                       "url",
                       "srcset",
+                      "avifSrcset",
                       "id"
                     ],
                     "additionalProperties": false

@@ -9,6 +9,7 @@ export const IMAGE = {
   height: 1200,
   url: '/api/v1/media/abc/960.webp',
   srcset: '/api/v1/media/abc/320.webp 320w, /api/v1/media/abc/960.webp 960w',
+  avifSrcset: '/api/v1/media/abc/320.avif 320w, /api/v1/media/abc/960.avif 960w',
 };
 
 export const product = (overrides: Partial<ProductSummary> = {}): ProductSummary => ({

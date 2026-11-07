@@ -155,7 +155,7 @@ describe('my visit request', () => {
     expect(page.get('h2').text()).toBe('Conserto de geladeira');
     expect(text()).toContain('A loja fez uma pergunta.');
     expect(text()).toContain('Geladeira duplex · Brastemp');
-    expect(text()).toContain('Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061');
+    expect(text()).toContain('Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061');
     expect(text()).toContain('A geladeira faz barulho?');
     expect(text()).toContain('Marina Gerente');
     expect(text()).toContain('até as 18h do dia anterior');

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { dateInput, positiveIntegerInput } from '../../shared/schemas.js';
+import { dateInput, positiveIntegerInput, trimmedText } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 
 const person = z.object({ id: z.number().int(), name: z.string() });
@@ -86,8 +86,8 @@ export const appointmentUpdateSchema = z.object({
 export const reportInputSchema = z
   .object({
     defectFound: z.boolean(),
-    defectDescription: z.string().trim().max(2000).optional(),
-    repairDescription: z.string().trim().min(5, { error: 'Descreva o que foi feito.' }).max(2000),
+    defectDescription: trimmedText(2000).optional(),
+    repairDescription: trimmedText(2000).min(5, { error: 'Descreva o que foi feito.' }),
   })
   .superRefine((value, ctx) => {
     if (value.defectFound && !value.defectDescription) {
@@ -104,7 +104,7 @@ export const reportApprovalSchema = z.object({
 });
 
 export const reworkSchema = z.object({
-  comment: z.string().trim().min(5, { error: 'Explique o que precisa ser ajustado.' }).max(1000),
+  comment: trimmedText(1000).min(5, { error: 'Explique o que precisa ser ajustado.' }),
 });
 
 export const availabilitySchema = z.array(

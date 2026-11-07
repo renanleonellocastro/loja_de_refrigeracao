@@ -33,7 +33,7 @@ afterEach(() => {
 
 const SETTINGS: StoreSettings = {
   name: 'Refrigeração Castro',
-  legalName: 'Refrigeração Castro Ltda ME',
+  legalName: 'Refrigeração Castro Ltda.',
   cnpj: '63060560000151',
   phone: '1938041658',
   whatsapp: null,

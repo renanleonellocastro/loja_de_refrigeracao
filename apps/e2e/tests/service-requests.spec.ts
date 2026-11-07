@@ -82,7 +82,7 @@ test.describe('RF-30 a RF-34 solicitações de visita', () => {
     if (await other.isVisible()) await other.check();
     await page.getByLabel('CEP').fill('13800061');
     await expect(page.getByText(/Achamos!|Não achamos esse CEP/)).toBeVisible();
-    await page.getByLabel('Rua').fill('Rua Doutor Ulhoa Cintra');
+    await page.getByLabel('Rua').fill('Rua Doutor Ulhôa Cintra');
     await page.getByLabel('Número').fill('91');
     await page.getByLabel('Bairro').fill('Centro');
     await page.getByLabel('Cidade').fill('Mogi Mirim');

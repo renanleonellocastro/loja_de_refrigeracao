@@ -1,6 +1,7 @@
 import { ROLES } from '@rc/contracts';
 import { z } from 'zod';
 import { pageQuerySchema } from '../../shared/pagination.js';
+import { trimmedText } from '../../shared/schemas.js';
 import { imageSchema } from '../media/schemas.js';
 import { addressSchema, addressViewSchema } from '../users/schemas.js';
 import { REQUEST_STATUSES } from './status.js';
@@ -19,8 +20,8 @@ export const serviceTypeSchema = z
   .meta({ id: 'ServiceType' });
 
 export const serviceTypeInputSchema = z.object({
-  name: z.string().trim().min(3, { error: 'Informe o nome do serviço.' }).max(80),
-  description: z.string().trim().max(500).default(''),
+  name: trimmedText(80).min(3, { error: 'Informe o nome do serviço.' }),
+  description: trimmedText(500).default(''),
   estimatedMinutes: z.number().int().min(15, { error: 'Mínimo de 15 minutos.' }).max(1440).default(60),
   active: z.boolean().default(true),
   position: z.number().int().min(0).default(0),
@@ -42,14 +43,10 @@ export const windowSchema = z.object({
 export const requestCreationSchema = z.object({
   customerId: z.number().int().positive().optional(),
   serviceTypeId: z.number().int().positive(),
-  productKind: z.string().trim().min(2, { error: 'Informe o tipo de produto.' }).max(80),
-  brand: z.string().trim().max(60).optional(),
-  model: z.string().trim().max(60).optional(),
-  problem: z
-    .string()
-    .trim()
-    .min(10, { error: 'Descreva o problema com pelo menos 10 caracteres.' })
-    .max(2000),
+  productKind: trimmedText(80).min(2, { error: 'Informe o tipo de produto.' }),
+  brand: trimmedText(60).optional(),
+  model: trimmedText(60).optional(),
+  problem: trimmedText(2000).min(10, { error: 'Descreva o problema com pelo menos 10 caracteres.' }),
   windows: z
     .array(windowSchema)
     .min(1, { error: 'Escolha pelo menos uma data para a visita.' })
@@ -59,7 +56,7 @@ export const requestCreationSchema = z.object({
 
 export type RequestCreation = z.infer<typeof requestCreationSchema>;
 
-export const requestFacetsQuerySchema = z.object({ q: z.string().trim().max(100).optional() });
+export const requestFacetsQuerySchema = z.object({ q: trimmedText(100).optional() });
 
 export const requestFacetsSchema = z
   .object({
@@ -132,11 +129,11 @@ export const messageSchema = z
   .meta({ id: 'Message' });
 
 export const messageInputSchema = z.object({
-  body: z.string().trim().min(1, { error: 'Escreva a mensagem.' }).max(2000),
+  body: trimmedText(2000).min(1, { error: 'Escreva a mensagem.' }),
 });
 
-export const approvalSchema = z.object({ message: z.string().trim().max(2000).optional() });
+export const approvalSchema = z.object({ message: trimmedText(2000).optional() });
 export const rejectionSchema = z.object({
-  reason: z.string().trim().min(5, { error: 'Explique o motivo para o cliente.' }).max(1000),
+  reason: trimmedText(1000).min(5, { error: 'Explique o motivo para o cliente.' }),
 });
-export const cancellationSchema = z.object({ reason: z.string().trim().max(1000).optional() });
+export const cancellationSchema = z.object({ reason: trimmedText(1000).optional() });

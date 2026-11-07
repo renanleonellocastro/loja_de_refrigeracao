@@ -20,6 +20,7 @@ import {
   toCalendarEvent,
   toStoreWall,
 } from '~/utils/agenda';
+import { clearScheduleDraft, loadScheduleDraft, saveScheduleDraft } from '~/utils/schedule-draft';
 import { mountSuspended } from '@nuxt/test-utils/runtime';
 import { defineComponent, h } from 'vue';
 import { appointment, report, resizeTo } from '../support/agenda';
@@ -50,7 +51,9 @@ describe('agenda time helpers', () => {
   it('describes visits for the calendar and the map', () => {
     expect(technicianColor(3)).toBe(technicianColor(11));
     expect(appliance(appointment().request)).toBe('Geladeira duplex · Brastemp');
-    expect(mapsUrl(appointment().request.address)).toContain('destination=Rua%20Doutor%20Ulhoa%20Cintra');
+    expect(mapsUrl(appointment().request.address)).toContain(
+      'destination=Rua%20Doutor%20Ulh%C3%B4a%20Cintra',
+    );
     expect(etagOf(4)).toBe('W/"4"');
     const event = toCalendarEvent(appointment(), true);
     expect(event).toMatchObject({
@@ -96,6 +99,49 @@ describe('report drafts', () => {
       saveDraft(9, { defectFound: '', defectDescription: '', repairDescription: '' }),
     ).not.toThrow();
     expect(() => clearDraft(9)).not.toThrow();
+  });
+});
+
+describe('schedule drafts', () => {
+  const values = { employeeId: '3', day: '2026-10-08', time: '13:00', duration: '120' };
+  const visit = { appointmentId: 9, etag: 'W/"2"' };
+
+  it('keeps the draft of a request and of a visit version on the device', () => {
+    expect(loadScheduleDraft({ requestId: 41 })).toBeNull();
+    saveScheduleDraft({ requestId: 41 }, values);
+    expect(loadScheduleDraft({ requestId: 41 })).toEqual(values);
+    saveScheduleDraft(visit, { ...values, employeeId: '', day: '', time: '' });
+    expect(loadScheduleDraft(visit)).toEqual({ employeeId: '', day: '', time: '', duration: '120' });
+    clearScheduleDraft({ requestId: 41 });
+    expect(localStorage.getItem('rc:agendamento:41')).toBeNull();
+  });
+
+  it('drops drafts of another version of the visit and broken ones', () => {
+    saveScheduleDraft(visit, values);
+    expect(loadScheduleDraft({ appointmentId: 9, etag: 'W/"3"' })).toBeNull();
+    expect(localStorage.getItem('rc:remarcacao:9')).toBeNull();
+    for (const broken of [
+      '{',
+      'null',
+      '"texto"',
+      JSON.stringify({ etag: '', values: { ...values, day: '8/10' } }),
+    ]) {
+      localStorage.setItem('rc:agendamento:41', broken);
+      expect(loadScheduleDraft({ requestId: 41 })).toBeNull();
+    }
+    localStorage.setItem('rc:agendamento:41', JSON.stringify({ etag: '', values: null }));
+    expect(loadScheduleDraft({ requestId: 41 })).toBeNull();
+  });
+
+  it('survives blocked storage', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('full');
+    });
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    expect(() => saveScheduleDraft({ requestId: 41 }, values)).not.toThrow();
+    expect(() => clearScheduleDraft({ requestId: 41 })).not.toThrow();
   });
 });
 

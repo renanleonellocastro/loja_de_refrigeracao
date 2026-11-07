@@ -107,6 +107,9 @@ describe('visit detail for the management', () => {
     expect(page.find('a[href*="google.com/maps"]').exists()).toBe(true);
     expect(page.find('a[href="/solicitacoes/41"]').exists()).toBe(true);
     expect(page.find('img[alt="Foto 1 do problema, abre em tamanho grande"]').exists()).toBe(true);
+    expect(page.find('picture source[type="image/avif"]').attributes('srcset')).toContain(
+      '/abc/320.avif 320w',
+    );
     expect(page.find('[data-testid="rework-comment"]').text()).toContain('Faltou a foto da peça.');
     expect(page.find('[data-testid="report-status"]').text()).toContain('Devolvido para ajuste');
     expect(text()).toContain('Relé de partida queimado.');
@@ -150,9 +153,15 @@ describe('visit detail for the management', () => {
     expect(text()).not.toContain('Remarcar atendimento');
     click('Remarcar');
     await settle();
+    await fill('Início', '10:30');
+    await settle();
     press('Fechar');
     await settle();
     expect(text()).not.toContain('Remarcar atendimento');
+    click('Remarcar');
+    await settle();
+    expect(text()).toContain('Recuperamos o rascunho guardado neste aparelho.');
+    expect((document.querySelector('input[type="time"]') as HTMLInputElement).value).toBe('10:30');
     page.unmount();
   });
 
@@ -275,6 +284,53 @@ describe('finalizing a service', () => {
     expect(toastTitles()).toContain('Serviço finalizado. A gerência vai conferir o relatório.');
     expect(loadDraft(9)).toBeNull();
     expect(exists('#finalizar')).toBe(false);
+    page.unmount();
+  });
+
+  it('sends the report again by itself when the connection comes back, with the same key', async () => {
+    useAuthStore().apply(session(EMPLOYEE_USER));
+    stubImages();
+    const sent = mockUploads({ status: 201, body: appointment({ report: report() }) });
+    saveDraft(9, { defectFound: 'nao', defectDescription: '', repairDescription: 'Limpeza do condensador.' });
+    const api = mockApi()
+      .on(DETAIL, { body: appointment() })
+      .on(REPORT, new Error('offline'), new Error('offline'), new Error('offline'), {
+        body: appointment({ request: { status: 'AWAITING_COMPLETION_APPROVAL' }, report: report() }),
+      });
+    const page = await mountSuspended(VisitPage, { route: '/agenda/9', attachTo: document.body });
+    await settle();
+    pickFiles(['depois.jpg']);
+    await settle();
+    const keys = vi.spyOn(crypto, 'randomUUID');
+    const online = async () => {
+      window.dispatchEvent(new Event('online'));
+      await settle();
+    };
+
+    await online();
+    expect(api.called(REPORT)).toHaveLength(0);
+    submit('Finalizar serviço');
+    await settle();
+    expect(text()).toContain('enviamos a finalização sozinhos');
+    await online();
+    expect(api.called(REPORT)).toHaveLength(2);
+    expect(keys).not.toHaveBeenCalled();
+    expect(page.find('[data-testid="report-offline"]').exists()).toBe(true);
+
+    // Changing the text after a failed send makes a new key: the API would refuse the old one with other data.
+    await fill('Reparo realizado', 'Limpeza do condensador e do filtro.');
+    expect(keys).toHaveBeenCalledTimes(1);
+    await online();
+    await online();
+    expect(api.called(REPORT)[3]!.body).toMatchObject({
+      repairDescription: 'Limpeza do condensador e do filtro.',
+    });
+    expect(sent).toHaveLength(1);
+    expect(toastTitles()).toContain('Serviço finalizado. A gerência vai conferir o relatório.');
+    expect(loadDraft(9)).toBeNull();
+    await online();
+    expect(api.called(REPORT)).toHaveLength(4);
+    keys.mockRestore();
     page.unmount();
   });
 

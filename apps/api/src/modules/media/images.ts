@@ -5,6 +5,11 @@ import { AppError } from '../../shared/errors.js';
 
 /** Responsive widths served for every photo (docs/ARQUITETURA.md, ADR 0010). */
 export const IMAGE_WIDTHS = [320, 640, 960, 1440] as const;
+/** Formats of every variant, the lightest first: browsers take the first one they support. */
+export const VARIANT_FORMATS = ['avif', 'webp'] as const;
+export type VariantFormat = (typeof VARIANT_FORMATS)[number];
+/** The upright copy without metadata that the worker turns into variants. */
+export const ORIGINAL_FILE = 'original.webp';
 const ACCEPTED_FORMATS = new Set(['jpeg', 'png', 'webp', 'heif', 'avif']);
 
 export interface StoredImage {
@@ -28,7 +33,9 @@ export function variantWidths(originalWidth: number): number[] {
 
 /** Hex digits of the SHA-256 kept in a storage key: 128 bits are enough to never collide. */
 const CONTENT_KEY_LENGTH = 32;
-const WEBP_QUALITY = 80;
+/** Twice the largest variant: sharp enough for every screen, small enough to keep. */
+const ORIGINAL_MAX_SIZE = 2 * IMAGE_WIDTHS[IMAGE_WIDTHS.length - 1]!;
+const ORIGINAL_QUALITY = 90;
 
 async function readMetadata(data: Buffer): Promise<Metadata> {
   try {
@@ -48,40 +55,43 @@ function contentKey(data: Buffer): string {
   return createHash('sha256').update(data).digest('hex').slice(0, CONTENT_KEY_LENGTH);
 }
 
-/** A WebP copy at `width`, upright and without EXIF data (sharp drops metadata unless asked to keep it). */
-function webpVariant(data: Buffer, width: number): Promise<Buffer> {
+/** Upright, at most ORIGINAL_MAX_SIZE on its longest side, without EXIF (sharp drops metadata unless asked). */
+function normalizedOriginal(data: Buffer) {
   return sharp(data)
     .rotate()
-    .resize({ width, withoutEnlargement: true })
-    .webp({ quality: WEBP_QUALITY })
-    .toBuffer();
+    .resize({ width: ORIGINAL_MAX_SIZE, height: ORIGINAL_MAX_SIZE, fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: ORIGINAL_QUALITY })
+    .toBuffer({ resolveWithObject: true });
 }
 
 /**
  * Validates the real content (not the declared type), fixes the orientation, drops EXIF data
- * including GPS, and stores WebP variants under a content addressed key.
+ * including GPS, and stores the original under a content addressed key. The variants come later.
  */
-export async function storeImage(storage: Storage, data: Buffer): Promise<StoredImage> {
+export async function saveOriginal(storage: Storage, data: Buffer): Promise<StoredImage> {
   await assertAcceptedPhoto(data);
-  const { info } = await sharp(data).rotate().toBuffer({ resolveWithObject: true });
+  const original = await normalizedOriginal(data);
   const key = contentKey(data);
-  for (const width of variantWidths(info.width)) {
-    await storage.put(`${key}/${width}.webp`, await webpVariant(data, width));
-  }
-  return { key, width: info.width, height: info.height };
+  await storage.put(`${key}/${ORIGINAL_FILE}`, original.data);
+  return { key, width: original.info.width, height: original.info.height };
 }
 
-export function mediaUrl(key: string, width: number): string {
-  return `/api/v1/media/${key}/${width}.webp`;
+export function mediaUrl(key: string, width: number, format: VariantFormat = 'webp'): string {
+  return `/api/v1/media/${key}/${width}.${format}`;
 }
 
-/** Public shape of an image: the largest URL plus a srcset for responsive loading. */
+function srcsetOf(key: string, widths: number[], format: VariantFormat): string {
+  return widths.map((width) => `${mediaUrl(key, width, format)} ${width}w`).join(', ');
+}
+
+/** Public shape of an image: the largest WebP plus srcsets in WebP and AVIF for responsive loading. */
 export function imageView(image: StoredImage) {
   const widths = variantWidths(image.width);
   return {
     width: image.width,
     height: image.height,
     url: mediaUrl(image.key, widths[widths.length - 1]!),
-    srcset: widths.map((width) => `${mediaUrl(image.key, width)} ${width}w`).join(', '),
+    srcset: srcsetOf(image.key, widths, 'webp'),
+    avifSrcset: srcsetOf(image.key, widths, 'avif'),
   };
 }

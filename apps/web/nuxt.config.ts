@@ -1,6 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import { THEME_BOOT_SCRIPT } from './app/utils/theme';
-import { PRIVATE_ROUTES } from './app/utils/routes';
+import { pageRouteRules } from './app/utils/route-rules';
 import type { Nuxt } from 'nuxt/schema';
 
 /**
@@ -13,6 +13,9 @@ function keepPageMetaInTests(_options: unknown, nuxt: Nuxt) {
     build['#app'] = (build['#app'] ?? []).filter((name) => name !== 'definePageMeta');
   }
 }
+
+/** Most pages (and their payloads) kept in the server cache at once. */
+const CACHED_PAGES_LIMIT = 500;
 
 /** Modules shared by the public pages (home, catalog, product, services), bundled together. */
 const PUBLIC_SHARED_MODULES = new RegExp(
@@ -30,6 +33,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-09-01',
   devtools: { enabled: false },
   features: { inlineStyles: true },
+  // The payload stays inline in the HTML even for cached pages: a separate _payload.json would be one more
+  // request before the page becomes interactive, and links would prefetch the payloads of other pages.
+  experimental: { payloadExtraction: false },
   modules: ['@nuxt/fonts', '@nuxt/image', '@pinia/nuxt', keepPageMetaInTests],
   css: ['~/assets/css/main.css'],
   vite: {
@@ -96,15 +102,17 @@ export default defineNuxtConfig({
     public: { apiBase: 'http://localhost:3001' },
   },
   // Public pages render on the server for speed and search engines; signed in areas render in the browser,
-  // where the session lives (the access token is kept in memory only).
-  routeRules: Object.fromEntries(
-    PRIVATE_ROUTES.flatMap((path) => [
-      [path, { ssr: false }],
-      [`${path}/**`, { ssr: false }],
-    ]),
-  ),
+  // where the session lives (the access token is kept in memory only). See app/utils/route-rules.ts.
+  routeRules: pageRouteRules({ cachePublicPages: false }),
+  // Production builds also keep the public pages in a server cache for a minute (stale while revalidate).
+  $production: { routeRules: pageRouteRules({ cachePublicPages: true }) },
   // Built CSS, JS and SVG ship with gzip and brotli copies, served without compressing on each request.
-  nitro: { compressPublicAssets: { gzip: true, brotli: true } },
+  // The server cache keeps at most CACHED_PAGES_LIMIT entries (least recently used out), so many distinct
+  // query strings cannot grow the memory without bound.
+  nitro: {
+    compressPublicAssets: { gzip: true, brotli: true },
+    storage: { cache: { driver: 'lru-cache', max: CACHED_PAGES_LIMIT } },
+  },
   typescript: { strict: true },
   hooks: {
     // No prefetch hints for lazy components and other pages: on a slow phone they compete with the hero

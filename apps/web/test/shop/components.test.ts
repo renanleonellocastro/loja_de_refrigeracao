@@ -7,11 +7,9 @@ import CatalogProductImage from '~/components/catalog/ProductImage.vue';
 import CatalogQuantityStepper from '~/components/catalog/QuantityStepper.vue';
 import LayoutCartBadge from '~/components/layout/CartBadge.vue';
 import OrderItems from '~/components/order/Items.vue';
-import ProfileRecentOrders from '~/components/profile/RecentOrders.vue';
 import { useCartStore } from '~/stores/cart';
 import { filtersFromQuery } from '~/utils/catalog';
-import { mockApi } from '../support/api';
-import { FACETS, IMAGE, guestCart, order, orderList, orderListItem, product } from '../support/shop';
+import { FACETS, IMAGE, guestCart, order, product } from '../support/shop';
 
 afterEach(() => {
   useCartStore().guest = [];
@@ -27,10 +25,14 @@ describe('CatalogProductImage', () => {
     const img = wrapper.get('img');
     expect(img.attributes('src')).toBe('http://localhost:3001/api/v1/media/abc/960.webp');
     expect(img.attributes('srcset')).toContain('http://localhost:3001/api/v1/media/abc/320.webp 320w');
+    const avif = wrapper.get('picture source[type="image/avif"]');
+    expect(avif.attributes('srcset')).toContain('http://localhost:3001/api/v1/media/abc/320.avif 320w');
+    expect(avif.attributes('sizes')).toBe(img.attributes('sizes'));
     expect(img.attributes('width')).toBe('1200');
     expect(img.attributes('loading')).toBe('eager');
     expect(img.attributes('fetchpriority')).toBe('high');
     await img.trigger('error');
+    expect(wrapper.find('picture').exists()).toBe(false);
     expect(wrapper.get('img').attributes('src')).toBe('/illustrations/produto-sem-foto.svg');
     expect(wrapper.get('img').attributes('alt')).toBe('Compressor, sem foto');
     expect(wrapper.get('img').attributes('loading')).toBe('eager');
@@ -40,6 +42,17 @@ describe('CatalogProductImage', () => {
     expect(wrapper.get('img').attributes('fetchpriority')).toBeUndefined();
     await wrapper.setProps({ image: null, alt: '' });
     expect(wrapper.get('img').attributes('alt')).toBe('');
+  });
+});
+
+describe('CatalogProductImage without AVIF', () => {
+  it('keeps the WebP variants for covers saved before AVIF existed', async () => {
+    const { avifSrcset: _saved, ...legacy } = IMAGE;
+    const wrapper = await mountSuspended(CatalogProductImage, {
+      props: { image: legacy as typeof IMAGE, alt: 'Compressor' },
+    });
+    expect(wrapper.find('source').exists()).toBe(false);
+    expect(wrapper.get('img').attributes('srcset')).toContain('/api/v1/media/abc/320.webp 320w');
   });
 });
 
@@ -179,19 +192,5 @@ describe('OrderItems', () => {
     const wrapper = await mountSuspended(OrderItems, { props: { order: order() } });
     expect(wrapper.text()).toContain('2 × R$ 499,00');
     expect(wrapper.text()).toContain('R$ 998,00');
-  });
-});
-
-describe('ProfileRecentOrders', () => {
-  it('shows the last orders and hides when there are none or offline', async () => {
-    mockApi().on('GET /api/v1/orders', { body: orderList([orderListItem()]) });
-    const wrapper = await mountSuspended(ProfileRecentOrders);
-    await flushPromises();
-    expect(wrapper.text()).toContain('Pedido 2026-000031');
-    expect(wrapper.find('a[href="/minha-conta/pedidos"]').exists()).toBe(true);
-    mockApi().on('GET /api/v1/orders', new TypeError('offline'));
-    const offline = await mountSuspended(ProfileRecentOrders);
-    await flushPromises();
-    expect(offline.text()).toBe('');
   });
 });

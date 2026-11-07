@@ -29,7 +29,7 @@ export const serviceRequest = (overrides: Partial<ServiceRequest> = {}): Service
   problem: 'Não gela embaixo desde ontem.',
   address: {
     cep: '13800061',
-    street: 'Rua Doutor Ulhoa Cintra',
+    street: 'Rua Doutor Ulhôa Cintra',
     number: '91',
     complement: null,
     district: 'Centro',

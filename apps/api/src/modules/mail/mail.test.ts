@@ -23,7 +23,7 @@ describe('email templates', () => {
     expect(email.html).toContain('https://refrigeracaocastro.com.br/brand/logo-email.png');
     expect(email.html).toContain('Olá, Eduardo!');
     expect(email.text).toContain('Criar nova senha: https://x/redefinir-senha/abc');
-    expect(email.text).toContain('Rua Doutor Ulhoa Cintra, 91');
+    expect(email.text).toContain('Rua Doutor Ulhôa Cintra, 91');
     expect(email.text).not.toContain('<');
   });
 
@@ -68,8 +68,8 @@ describe('email templates', () => {
 
 const ADDRESS = {
   cep: '13800061',
-  street: 'Avenida Brasil',
-  number: '1563',
+  street: 'Rua das Palmeiras',
+  number: '200',
   complement: 'Loja 2',
   district: 'Jardim Santa Helena',
   city: 'Mogi Mirim',
@@ -85,12 +85,12 @@ describe('store footer', () => {
       name: 'Castro Peças',
       phone: '(19) 99876-5432',
       whatsapp: '(19) 99876-1111',
-      address: 'Avenida Brasil, 1563, Loja 2, Jardim Santa Helena, Mogi Mirim/SP',
+      address: 'Rua das Palmeiras, 200, Loja 2, Jardim Santa Helena, Mogi Mirim/SP',
     });
     expect(formatPhone('1938041658')).toBe('(19) 3804-1658');
     expect(formatPhone(' 0800 ')).toBe('0800');
     expect(formatAddress({ ...ADDRESS, complement: null, state: ' ' })).toBe(
-      'Avenida Brasil, 1563, Jardim Santa Helena, Mogi Mirim',
+      'Rua das Palmeiras, 200, Jardim Santa Helena, Mogi Mirim',
     );
   });
 
@@ -120,7 +120,7 @@ describe('emailHandler', () => {
     expect(first).toMatchObject({ to: 'ana@x.com', subject: 'Sua senha foi alterada' });
     expect(
       first.text.endsWith(
-        'Refrigeração Castro · Rua Doutor Ulhoa Cintra, 91, Centro, Mogi Mirim/SP · (19) 3804-1658',
+        'Refrigeração Castro · Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP · (19) 3804-1658 · WhatsApp (19) 99764-1658',
       ),
     ).toBe(true);
     await t.db
@@ -129,10 +129,10 @@ describe('emailHandler', () => {
     await send('passwordChanged', { name: 'Ana' });
     const second = t.mailer.sent[1]!;
     expect(second.text).toContain(
-      'Castro & Filhos · Avenida Brasil, 1563, Loja 2, Jardim Santa Helena, Mogi Mirim/SP · (19) 99876-5432 · WhatsApp (19) 99876-1111',
+      'Castro & Filhos · Rua das Palmeiras, 200, Loja 2, Jardim Santa Helena, Mogi Mirim/SP · (19) 99876-5432 · WhatsApp (19) 99876-1111',
     );
     expect(second.text).toContain('Ligue para a loja no (19) 99876-5432.');
-    expect(second.html).toContain('Castro &amp; Filhos · Avenida Brasil, 1563');
+    expect(second.html).toContain('Castro &amp; Filhos · Rua das Palmeiras, 200');
     expect(second.html).not.toContain('3804-1658');
   });
 

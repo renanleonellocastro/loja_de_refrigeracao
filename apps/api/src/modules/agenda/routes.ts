@@ -4,7 +4,7 @@ import type { AppContext } from '../../context.js';
 import { defineRoute, registerRoutes } from '../../shared/routes.js';
 import { requireAuth } from '../../plugins/auth.js';
 import { etagFor } from '../../shared/concurrency.js';
-import { errorResponses, idParamSchema, noContentSchema } from '../../shared/schemas.js';
+import { errorResponses, idParamSchema, noContentSchema, problemSchema } from '../../shared/schemas.js';
 import { readMultipart } from '../media/service.js';
 import * as agenda from './agenda.js';
 import * as reports from './reports.js';
@@ -112,7 +112,7 @@ const rescheduleAppointmentRoute = defineRoute({
     security,
     params: idParamSchema,
     body: appointmentUpdateSchema,
-    response: { 200: appointmentSchema, ...errorResponses },
+    response: { 200: appointmentSchema, 412: problemSchema, 428: problemSchema, ...errorResponses },
   },
   handle: async ({ ctx, request, reply }) => {
     const auth = requireAuth(request);
@@ -163,10 +163,12 @@ const availabilityRoute = defineRoute({
 const submitReportRoute = defineRoute({
   method: 'POST',
   url: '/appointments/:id/report',
-  config: { permission: 'appointments.complete' },
+  config: { permission: 'appointments.complete', idempotent: true },
   schema: {
     tags,
     summary: 'Finalizar o serviço (técnico do atendimento)',
+    description:
+      'Aceita Idempotency-Key: o celular do técnico reenvia sozinho quando a conexão volta, sem finalizar duas vezes.',
     security,
     params: idParamSchema,
     body: reportInputSchema,

@@ -255,6 +255,23 @@ describe('profile page', () => {
     }
   });
 
+  it('shows the recent orders, services and quotes of a customer', async () => {
+    const empty = { body: { data: [], meta: { page: 1, pageSize: 3, total: 0 } } };
+    mockApi()
+      .on('GET /api/v1/me', { body: PROFILE })
+      .on('GET /api/v1/orders', empty)
+      .on('GET /api/v1/service-requests', empty)
+      .on('GET /api/v1/quotes', empty);
+    useAuthStore().apply(session());
+    const page = await mountSuspended(ProfilePage, { route: '/perfil' });
+    await flushPromises();
+    const headings = page.findAll('h2').map((heading) => heading.text());
+    expect(headings).toEqual(
+      expect.arrayContaining(['Últimos pedidos', 'Últimos serviços', 'Últimos orçamentos']),
+    );
+    page.unmount();
+  });
+
   it('hides the privacy tab from the team', async () => {
     mockApi().on('GET /api/v1/me', { body: { ...PROFILE, ...MANAGER_USER } });
     useAuthStore().apply(session(MANAGER_USER));
