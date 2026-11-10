@@ -35,7 +35,7 @@ describe('default layout', () => {
     expect(wrapper.get('footer').text()).toContain('Rua Doutor Ulhôa Cintra, 91');
     expect(wrapper.get('footer').text()).toContain('(19) 3804-1658');
     expect(wrapper.get('footer').text()).toContain('Segunda a sexta, das 9h às 18h');
-    expect(wrapper.get('footer').text()).toContain('Desde 1990 em Mogi Mirim');
+    expect(wrapper.get('footer').text()).toContain('Desde 1980 em Mogi Mirim');
     expect(wrapper.get('footer').text()).toContain(
       'Refrigeração Castro Ltda. · CNPJ 63.060.560/0001-51 · Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim/SP, CEP 13800-061',
     );

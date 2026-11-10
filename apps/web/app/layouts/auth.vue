@@ -31,7 +31,7 @@ const PERKS = [
       </NuxtLink>
 
       <div class="relative mt-auto hidden max-w-md lg:block">
-        <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · desde 1990</p>
+        <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · desde 1980</p>
         <p class="rc-relief mt-4 font-display text-5xl leading-[1.05] font-extrabold xl:text-6xl">
           Seu frio em boas mãos.
         </p>
