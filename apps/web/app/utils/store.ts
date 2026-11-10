@@ -22,6 +22,18 @@ export const STORE_INFO = {
   hours: 'Segunda a sexta, das 9h às 18h',
 } as const;
 
+/** Founding date confirmed by the owner, the same day the CNPJ was opened (docs/LOJA.md). */
+const FOUNDED_ON = { year: 1990, month: 5, day: 29 } as const;
+
+/** Full years the store has been open on `today`, so the copy never goes stale. */
+export function yearsInBusiness(today: Date = new Date()): number {
+  const years = today.getFullYear() - FOUNDED_ON.year;
+  const month = today.getMonth() + 1;
+  const beforeAnniversary =
+    month < FOUNDED_ON.month || (month === FOUNDED_ON.month && today.getDate() < FOUNDED_ON.day);
+  return beforeAnniversary ? years - 1 : years;
+}
+
 const WEEKDAY = { opens: '09:00', closes: '18:00' };
 
 /** What the site shows when the API cannot answer: the same data the store settings start with. */

@@ -4,7 +4,7 @@ Dados usados no site, nos emails e na semeadura das configurações da loja (`St
 
 ## História
 
-A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e está no mercado há mais de 40 anos. Com o tempo, cada irmão seguiu com a sua própria refrigeração, de forma independente. Esta é a loja de **Eduardo Castro**, o dono. O site deve deixar claro que se trata da Refrigeração Castro da Rua Doutor Ulhôa Cintra, sem sugerir vínculo com as outras refrigerações da família.
+A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro em 29/05/1990, data de abertura do CNPJ. Com o tempo, cada irmão seguiu com a sua própria refrigeração, de forma independente. Esta é a loja de **Eduardo Castro**, o dono. O site deve deixar claro que se trata da Refrigeração Castro da Rua Doutor Ulhôa Cintra, sem sugerir vínculo com as outras refrigerações da família.
 
 ## Dados cadastrais
 
@@ -22,7 +22,7 @@ A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e e
 
 O rodapé do site mostra razão social, CNPJ e endereço, como pede o Decreto 7.962/2013 para o comércio eletrônico.
 
-Ainda a confirmar com o dono (#15): ano de fundação (o contrato mostra só o registro atual na JUCESP, de 2019) e se o site deve mostrar a filial. O celular foi tomado também como WhatsApp; se não for, basta apagar o campo WhatsApp em Configurações.
+Ainda a confirmar com o dono (#15): se o site deve mostrar a filial. O celular foi tomado também como WhatsApp; se não for, basta apagar o campo WhatsApp em Configurações.
 
 ## Serviços
 
