@@ -4,7 +4,13 @@ import { forgetDay, readDay, readOfflineDay, saveDay } from '~/utils/offline-day
 import { registerServiceWorker } from '~/utils/pwa';
 import { localBusinessJsonLd } from '~/utils/seo';
 import { fetchSitemapProducts, robotsTxt, sitemapXml } from '~/utils/sitemap';
-import { FALLBACK_STORE, mapsEmbedUrl, openingHoursLines, openingHoursSummary } from '~/utils/store';
+import {
+  FALLBACK_STORE,
+  mapsEmbedUrl,
+  openingHoursLines,
+  openingHoursSummary,
+  yearsInBusiness,
+} from '~/utils/store';
 import { appointment } from '../support/agenda';
 
 afterEach(() => {
@@ -32,6 +38,15 @@ describe('opening hours', () => {
     expect(mapsEmbedUrl(FALLBACK_STORE.address)).toBe(
       'https://www.google.com/maps?q=Rua%20Doutor%20Ulh%C3%B4a%20Cintra%2C%2091%2C%20Mogi%20Mirim%2C%20SP%2C%2013800061&output=embed',
     );
+  });
+});
+
+describe('years in business', () => {
+  it('counts full years since the founding on 29/05/1990', () => {
+    expect(yearsInBusiness(new Date(2026, 4, 28))).toBe(35);
+    expect(yearsInBusiness(new Date(2026, 4, 29))).toBe(36);
+    expect(yearsInBusiness(new Date(2026, 3, 30))).toBe(35);
+    expect(yearsInBusiness(new Date(2026, 10, 10))).toBe(36);
   });
 });
 

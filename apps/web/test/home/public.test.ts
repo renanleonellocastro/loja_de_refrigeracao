@@ -5,7 +5,7 @@ import StoreMap from '~/components/store/Map.vue';
 import ContactPage from '~/pages/contato.vue';
 import IndexPage from '~/pages/index.vue';
 import AboutPage from '~/pages/sobre.vue';
-import { FALLBACK_STORE } from '~/utils/store';
+import { FALLBACK_STORE, yearsInBusiness } from '~/utils/store';
 import { mockApi, problem } from '../support/api';
 import { storeData } from '../support/home';
 import { serviceType } from '../support/services';
@@ -36,7 +36,7 @@ describe('home page', () => {
     await settle();
 
     expect(page.get('h1').text()).toBe('Refrigeração Castro');
-    expect(page.text()).toContain('há mais de 40 anos');
+    expect(page.text()).toContain('desde 1990');
     expect(page.find('a[href="/agendar"]').text()).toContain('Agendar visita');
     expect(page.find('a[href="/orcamento"]').text()).toContain('Pedir orçamento');
     expect(page.find('source[media="(min-width: 768px)"]').attributes('srcset')).toBe(
@@ -83,7 +83,8 @@ describe('about and contact pages', () => {
     expect(page.get('h1').text()).toBe('Sobre a loja');
     expect(page.text()).toContain('três irmãos Castro');
     expect(page.text()).toContain('Eduardo Castro');
-    expect(page.text()).not.toContain('1990');
+    expect(page.text()).toContain('em 1990');
+    expect(page.get('dd').text()).toBe(String(yearsInBusiness()));
     expect(page.find('img[alt^="Fachada azul"]').exists()).toBe(true);
   });
 

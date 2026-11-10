@@ -31,7 +31,7 @@ flowchart LR
 Aprovação do replanejamento, monorepo, CI com cobertura de 100%, ambiente local em um comando, higiene do repositório.
 
 * [x] #14 Revisar e aprovar o replanejamento (documentos e ADRs 0001 a 0015)
-* [ ] #15 Informações pendentes da Refrigeração Castro (pendente: o dono confirmar o ano de fundação e se o site mostra a filial da Rua Expedicionários)
+* [ ] #15 Informações pendentes da Refrigeração Castro (pendente: o dono confirmar se o site mostra a filial da Rua Expedicionários)
 * [x] #16 Monorepo pnpm com TypeScript estrito, ESLint e Prettier
 * [x] #17 CI no GitHub Actions com portões de qualidade e cobertura de 100%
 * [x] #18 Ambiente local em um comando com Docker Compose, seed com pedidos, orçamentos e serviços em todos os estados e passo a passo para Mac, Linux e Windows (WSL)

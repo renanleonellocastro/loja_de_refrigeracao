@@ -85,7 +85,7 @@ export default defineNuxtConfig({
         {
           name: 'description',
           content:
-            'Refrigeração Castro, Mogi Mirim/SP: conserto de geladeiras, ar condicionado e lavadoras há mais de 40 anos.',
+            'Refrigeração Castro, Mogi Mirim/SP: conserto de geladeiras, ar condicionado e lavadoras desde 1990.',
         },
         { name: 'theme-color', content: '#184E86' },
         { property: 'og:site_name', content: 'Refrigeração Castro' },

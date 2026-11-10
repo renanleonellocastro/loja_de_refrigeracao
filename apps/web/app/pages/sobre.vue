@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { CalendarPlus, ReceiptText } from 'lucide-vue-next';
-import { cityLine, streetLine } from '~/utils/store';
+import { cityLine, streetLine, yearsInBusiness } from '~/utils/store';
 
 /** About the store (RF-37): the history of docs/LOJA.md with the real storefront photo. */
 usePageSeo({
   title: 'Sobre a loja | Refrigeração Castro',
   description:
-    'A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e está no mercado há mais de 40 anos. Hoje a loja é de Eduardo Castro.',
+    'A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro em 1990. Hoje a loja é de Eduardo Castro.',
   path: '/sobre',
 });
 
@@ -23,7 +23,7 @@ function facadeSrcset(format: string): string {
 }
 
 const FACTS = [
-  { value: '40+', label: 'anos no mercado' },
+  { value: String(yearsInBusiness()), label: 'anos no mercado' },
   { value: '3', label: 'irmãos fundadores' },
   { value: '1', label: 'loja, em Mogi Mirim' },
 ];
@@ -37,7 +37,7 @@ const FACTS = [
         <p class="rc-eyebrow text-frost-200">Nossa história</p>
         <h1 class="rc-relief mt-3 text-4xl leading-tight font-extrabold sm:text-5xl">Sobre a loja</h1>
         <p class="mt-4 max-w-2xl text-lg text-castro-100">
-          Uma loja de família que cuida do frio de Mogi Mirim há mais de 40 anos.
+          Uma loja de família que cuida do frio de Mogi Mirim desde 1990.
         </p>
       </div>
     </section>
@@ -46,8 +46,8 @@ const FACTS = [
       <div class="flex flex-col gap-4 text-lg leading-relaxed text-text">
         <h2 class="text-3xl font-extrabold">Feita pelos irmãos Castro</h2>
         <p>
-          A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro e está no mercado há mais
-          de 40 anos. Com o tempo, cada irmão seguiu com a sua própria refrigeração, de forma independente.
+          A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro em 1990. Com o tempo, cada
+          irmão seguiu com a sua própria refrigeração, de forma independente.
         </p>
         <p>
           Esta é a loja de <strong>Eduardo Castro</strong>, na {{ streetLine(store.address) }}, no

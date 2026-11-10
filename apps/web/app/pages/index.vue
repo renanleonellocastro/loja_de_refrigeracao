@@ -17,7 +17,7 @@ import { useLocalBusinessJsonLd } from '~/utils/seo';
 usePageSeo({
   title: 'Refrigeração Castro | Conserto de geladeira e ar condicionado em Mogi Mirim',
   description:
-    'Há mais de 40 anos em Mogi Mirim: conserto de geladeiras, freezers, lavadoras e bebedouros, instalação de ar condicionado e produtos novos e usados revisados.',
+    'Desde 1990 em Mogi Mirim: conserto de geladeiras, freezers, lavadoras e bebedouros, instalação de ar condicionado e produtos novos e usados revisados.',
   path: '/',
 });
 
@@ -71,7 +71,7 @@ const REASONS = [
   },
   {
     icon: BadgeCheck,
-    title: 'Há mais de 40 anos',
+    title: 'Desde 1990',
     text: 'Gerações de clientes em Mogi Mirim confiam o frio da casa e do comércio à Castro.',
   },
   {
@@ -96,7 +96,7 @@ const REASONS = [
     >
       <div class="rc-container relative z-10 py-10 sm:py-14 md:flex md:h-full md:flex-col md:justify-center">
         <div class="max-w-xl md:max-w-[min(36rem,42vw)]">
-          <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · há mais de 40 anos</p>
+          <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · desde 1990</p>
           <h1
             id="inicio-titulo"
             class="rc-relief mt-3 text-[2.5rem] leading-[1.05] font-extrabold sm:text-6xl lg:text-7xl"
