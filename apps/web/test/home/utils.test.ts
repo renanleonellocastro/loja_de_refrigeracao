@@ -42,11 +42,10 @@ describe('opening hours', () => {
 });
 
 describe('years in business', () => {
-  it('counts full years since the founding on 29/05/1990', () => {
-    expect(yearsInBusiness(new Date(2026, 4, 28))).toBe(35);
-    expect(yearsInBusiness(new Date(2026, 4, 29))).toBe(36);
-    expect(yearsInBusiness(new Date(2026, 3, 30))).toBe(35);
-    expect(yearsInBusiness(new Date(2026, 10, 10))).toBe(36);
+  it('counts the years since the founding in 1980', () => {
+    expect(yearsInBusiness(new Date(2026, 0, 1))).toBe(46);
+    expect(yearsInBusiness(new Date(2026, 10, 10))).toBe(46);
+    expect(yearsInBusiness(new Date(2030, 11, 31))).toBe(50);
   });
 });
 

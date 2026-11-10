@@ -1,6 +1,6 @@
 # Refrigeração Castro
 
-Sistema da Refrigeração Castro, loja de família em Mogi Mirim/SP que conserta geladeiras, freezers, lavadoras e ar condicionado desde 1990. Em um só lugar o sistema reúne o site da loja, a loja online com retirada no balcão, os pedidos de visita técnica e de orçamento, a agenda dos técnicos e o painel da equipe. O código é aberto (licença MIT) e pode servir de ponto de partida para outras lojas do segmento.
+Sistema da Refrigeração Castro, loja de família em Mogi Mirim/SP que conserta geladeiras, freezers, lavadoras e ar condicionado desde 1980. Em um só lugar o sistema reúne o site da loja, a loja online com retirada no balcão, os pedidos de visita técnica e de orçamento, a agenda dos técnicos e o painel da equipe. O código é aberto (licença MIT) e pode servir de ponto de partida para outras lojas do segmento.
 
 <p align="center">
   <img width="420" src="docs/assets/logo.png" alt="Logo da Refrigeração Castro">
