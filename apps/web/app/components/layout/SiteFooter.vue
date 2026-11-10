@@ -2,6 +2,7 @@
 import { formatCnpj } from '~/utils/masks';
 import {
   cityLine,
+  FOUNDED_ON,
   mapsSearchUrl,
   openingHoursSummary,
   phoneHref,
@@ -36,7 +37,7 @@ const LINKS = [
           class="inline-flex items-center gap-2 self-start rounded-full border border-white/15 bg-white/5 px-3 py-1 rc-eyebrow text-white"
         >
           <span class="size-1.5 rounded-full bg-frost-300" aria-hidden="true" />
-          Desde 1980 em Mogi Mirim
+          Desde {{ FOUNDED_ON.year }} em Mogi Mirim
         </p>
       </div>
 

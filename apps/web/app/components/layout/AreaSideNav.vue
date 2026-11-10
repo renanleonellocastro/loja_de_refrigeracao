@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STORE_INFO } from '~/utils/store';
+import { FOUNDED_ON, STORE_INFO } from '~/utils/store';
 /**
  * One navigation for two sizes: an icon rail on tablets (768 to 1023 px) and a labeled sidebar on
  * desktops (1024 px and up). Hidden on phones, where AreaBottomNav takes over.
@@ -43,7 +43,7 @@ defineProps<{ navigation: AreaNavigation }>();
       </div>
     </nav>
     <div class="hidden border-t border-white/10 px-6 py-4 text-xs text-castro-200 lg:block">
-      {{ STORE_INFO.phone }} · Desde 1980
+      {{ STORE_INFO.phone }} · Desde {{ FOUNDED_ON.year }}
     </div>
   </aside>
 </template>

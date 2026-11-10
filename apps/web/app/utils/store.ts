@@ -22,12 +22,16 @@ export const STORE_INFO = {
   hours: 'Segunda a sexta, das 9h às 18h',
 } as const;
 
-/** Founding year confirmed by the owner; only the year is known (docs/LOJA.md). */
-const FOUNDING_YEAR = 1980;
+/** Founding date confirmed by the owner, 29/05/1980 (docs/LOJA.md); the "desde" copy shows its year. */
+export const FOUNDED_ON = { year: 1980, month: 5, day: 29 } as const;
 
-/** Years the store has been open on `today`, so the copy never goes stale. */
+/** Full years the store has been open on `today`; the count goes up every 29 May, so the copy never goes stale. */
 export function yearsInBusiness(today: Date = new Date()): number {
-  return today.getFullYear() - FOUNDING_YEAR;
+  const years = today.getFullYear() - FOUNDED_ON.year;
+  const month = today.getMonth() + 1;
+  const beforeAnniversary =
+    month < FOUNDED_ON.month || (month === FOUNDED_ON.month && today.getDate() < FOUNDED_ON.day);
+  return beforeAnniversary ? years - 1 : years;
 }
 
 const WEEKDAY = { opens: '09:00', closes: '18:00' };

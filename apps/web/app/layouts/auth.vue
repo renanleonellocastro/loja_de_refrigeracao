@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { STORE_INFO } from '~/utils/store';
+import { FOUNDED_ON, STORE_INFO } from '~/utils/store';
 import { CalendarCheck, MapPin, Package, Phone, ReceiptText } from 'lucide-vue-next';
 
 /**
@@ -31,7 +31,7 @@ const PERKS = [
       </NuxtLink>
 
       <div class="relative mt-auto hidden max-w-md lg:block">
-        <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · desde 1980</p>
+        <p class="rc-eyebrow text-frost-200">Mogi Mirim/SP · desde {{ FOUNDED_ON.year }}</p>
         <p class="rc-relief mt-4 font-display text-5xl leading-[1.05] font-extrabold xl:text-6xl">
           Seu frio em boas mãos.
         </p>
