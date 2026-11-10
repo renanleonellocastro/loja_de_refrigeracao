@@ -4,14 +4,14 @@ Dados usados no site, nos emails e na semeadura das configurações da loja (`St
 
 ## História
 
-A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro em 1980, ano confirmado pelo dono. O CNPJ atual foi aberto depois, em 29/05/1990. Com o tempo, cada irmão seguiu com a sua própria refrigeração, de forma independente. Esta é a loja de **Eduardo Castro**, o dono. O site deve deixar claro que se trata da Refrigeração Castro da Rua Doutor Ulhôa Cintra, sem sugerir vínculo com as outras refrigerações da família.
+A Refrigeração Castro foi fundada em Mogi Mirim pelos três irmãos Castro em 29/05/1980, data confirmada pelo dono. Com o tempo, cada irmão seguiu com a sua própria refrigeração, de forma independente. Esta é a loja de **Eduardo Castro**, o dono. O site deve deixar claro que se trata da Refrigeração Castro da Rua Doutor Ulhôa Cintra, sem sugerir vínculo com as outras refrigerações da família.
 
 ## Dados cadastrais
 
 | Campo | Valor |
 |---|---|
 | Razão social | Refrigeração Castro Ltda. |
-| CNPJ | 63.060.560/0001-51 (abertura em 29/05/1990) |
+| CNPJ | 63.060.560/0001-51 |
 | Endereço | Rua Doutor Ulhôa Cintra, 91, Centro, Mogi Mirim, SP, CEP 13800-061 (sede, conforme o contrato social) |
 | Telefone fixo | (19) 3804-1658 |
 | Celular e WhatsApp | (19) 99764-1658 |
